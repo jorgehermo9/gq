@@ -178,9 +178,18 @@ impl<'src> Parser<'src> {
                 // a Query and a previous_token, it returns the possible previous_tokens
                 // The fact that this non-terminal knows about the previous_token is a bit
                 // weird and coupled.
+                // IDEA: have an enum from all non-terminals and have a method that returns
+                // the possible previous_tokens for each non-terminal
+
+                // Maybe this is useless. For example, see
+                // ```
+                // {hola(
+                // ```
                 let expected_tokens = match &self.previous_token {
                     Some((Token::Key(_), _)) => ExpectedTokens(vec![
                         OwnedToken::BraceOpen,
+                        // TODO: expect a key, or expect epsilon here? we were biased
+                        // because we know that it would be a list of keys
                         OwnedToken::Key("key".to_string()),
                     ]),
                     _ => ExpectedTokens(vec![OwnedToken::Key("key".to_string())]),
@@ -191,6 +200,18 @@ impl<'src> Parser<'src> {
                     span,
                 })
             }
+        }
+    }
+}
+
+pub enum NonTerminal {
+    Query,
+}
+
+impl NonTerminal {
+    pub fn first_tokens(&self) -> Vec<OwnedToken> {
+        match self {
+            NonTerminal::Query => vec![OwnedToken::Key("key".to_string())],
         }
     }
 }
