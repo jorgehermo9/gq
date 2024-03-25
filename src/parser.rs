@@ -1,21 +1,42 @@
 use logos::{Logos, Span, SpannedIter};
+use std::fmt::{self, Display, Formatter};
 use std::iter::Peekable;
 use thiserror::Error;
 
-use crate::lexer::{LexerError, Token};
+use crate::lexer::{LexerError, OwnedToken, Token};
 use crate::query::Query;
 
 type ParserResult<T> = Result<T, ParserError>;
 type SpannedToken<'src> = (Token<'src>, Span);
 type SpannedTokenRef<'a, 'src> = (&'a Token<'src>, Span);
 
+#[derive(Debug)]
+pub struct ExpectedTokens(Vec<OwnedToken>);
+
+impl Display for ExpectedTokens {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self.0.split_last() {
+            Some((last, [])) => write!(f, "'{last}'"),
+            Some((last, rest)) => {
+                for token in rest {
+                    write!(f, "'{token}', ")?;
+                }
+                write!(f, "or '{last}'")
+            }
+            None => write!(f, "nothing"),
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum ParserError {
-    #[error("Unexpected token")]
-    // TODO: be generic over this, specify which token is the unexpected
-    // and which token could be valid in a vector, with better string such as
-    // Unexpected token '{', expecting '}' or 'key'
-    UnexpectedToken(Span),
+    #[error("Unexpected token '{found}'. Expecting {expected}")]
+    UnexpectedToken {
+        expected: ExpectedTokens,
+        found: OwnedToken,
+        span: Span,
+    },
+
     #[error("Unexpected end of input")]
     UnexpectedEndOfInput(Span),
     #[error("Unexpected token after root query")]
@@ -31,7 +52,7 @@ pub enum ParserError {
 impl ParserError {
     pub fn span(&self) -> &Span {
         match self {
-            Self::UnexpectedToken(span) => span,
+            Self::UnexpectedToken { span, .. } => span,
             Self::UnexpectedEndOfInput(span) => span,
             Self::UnexpectedTokenAfterRootQuery(span) => span,
             Self::ExpectedClosingBrace(span) => span,
@@ -43,6 +64,8 @@ impl ParserError {
 
 pub struct Parser<'src> {
     lexer: Peekable<SpannedIter<'src, Token<'src>>>,
+    current_token: Option<SpannedToken<'src>>,
+    previous_token: Option<SpannedToken<'src>>,
     source: &'src str,
 }
 
@@ -50,6 +73,8 @@ impl<'src> Parser<'src> {
     pub fn new(source: &'src str) -> Self {
         Self {
             lexer: Token::lexer(source).spanned().peekable(),
+            current_token: None,
+            previous_token: None,
             source,
         }
     }
@@ -86,6 +111,7 @@ impl<'src> Parser<'src> {
     }
 
     fn next_token(&mut self) -> ParserResult<SpannedToken<'src>> {
+        self.previous_token = self.current_token.take();
         let spanned_token = self
             .lexer
             .next()
@@ -93,53 +119,73 @@ impl<'src> Parser<'src> {
 
         let (token, span) = spanned_token;
         let token = token.map_err(|err| ParserError::Lexer(err, span.clone()))?;
+        // TODO: check if this clone is correct.
+        self.current_token = Some((token.clone(), span.clone()));
         Ok((token, span))
     }
 
+    /// # Grammar
+    /// `S -> QUERY | { QUERY_CONTENT }`
     fn parse_root_query(&mut self) -> ParserResult<Query<'src>> {
-        match self.next_token()? {
+        match self.peek()? {
             (Token::BraceOpen, _) => {
-                let children = self.parse_query_content()?;
-                match self.next_token()? {
-                    (Token::BraceClose, _) => Ok(Query::root_with_children(children)),
-                    (_, span) => Err(ParserError::ExpectedClosingBrace(span)),
-                }
+                self.consume();
+                let children = self.parse_query_content(&Token::BraceClose)?;
+                // We know the next token is a closing brace, so we can consume it
+                self.consume();
+                Ok(Query::root_with_children(children))
             }
-            (Token::Key(_), _) => todo!(),
-            (_, span) => Err(ParserError::ExpectedOpeningBraceOrKey(span)),
+            // If the next token is not a brace, we try to parse a query
+            _ => self.parse_query(),
         }
     }
 
+    /// # Grammar
+    /// `QUERY_CONTENT -> QUERY QUERY_CONTENT | ε`
+    fn parse_query_content(&mut self, stop_token: &Token) -> ParserResult<Vec<Query<'src>>> {
+        let mut queries = Vec::new();
+
+        loop {
+            match self.peek()? {
+                (token, _) if token == stop_token => return Ok(queries),
+                _ => {
+                    let query = self.parse_query()?;
+                    queries.push(query);
+                }
+            }
+        }
+    }
+
+    /// # Grammar
+    /// `QUERY -> key | key { QUERY_CONTENT } | (key error)??`
     fn parse_query(&mut self) -> ParserResult<Query<'src>> {
         match self.next_token()? {
             (Token::Key(key), _) => match self.peek()? {
                 (Token::BraceOpen, _) => {
                     self.consume();
-                    let children = self.parse_query_content()?;
-                    match self.next_token()? {
-                        (Token::BraceClose, _) => Ok(Query::named_with_children(key, children)),
-                        (_, span) => Err(ParserError::ExpectedClosingBrace(span)),
-                    }
+                    let children = self.parse_query_content(&Token::BraceClose)?;
+                    self.consume();
+                    Ok(Query::named_with_children(key, children))
                 }
                 _ => Ok(Query::named_empty(key)),
             },
-            //TODO: improve unexpectedToken
-            (_, span) => Err(ParserError::UnexpectedToken(span)),
-        }
-    }
-
-    fn parse_query_content(&mut self) -> ParserResult<Vec<Query<'src>>> {
-        let mut queries = Vec::new();
-
-        loop {
-            match self.peek()? {
-                (Token::BraceClose, _) => return Ok(queries),
-                (Token::Key(_), _) => {
-                    let query = self.parse_query()?;
-                    queries.push(query);
-                }
-                // TODO: improve unexpectedToken, show which token appears
-                (_, span) => return Err(ParserError::UnexpectedToken(span)),
+            (unexpected_token, span) => {
+                // TODO: decouple this. maybe this should be in another method that based that
+                // a Query and a previous_token, it returns the possible previous_tokens
+                // The fact that this non-terminal knows about the previous_token is a bit
+                // weird and coupled.
+                let expected_tokens = match &self.previous_token {
+                    Some((Token::Key(_), _)) => ExpectedTokens(vec![
+                        OwnedToken::BraceOpen,
+                        OwnedToken::Key("key".to_string()),
+                    ]),
+                    _ => ExpectedTokens(vec![OwnedToken::Key("key".to_string())]),
+                };
+                Err(ParserError::UnexpectedToken {
+                    expected: expected_tokens,
+                    found: unexpected_token.into(),
+                    span,
+                })
             }
         }
     }
