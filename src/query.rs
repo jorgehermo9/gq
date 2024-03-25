@@ -13,6 +13,12 @@ impl<'a> QueryKey<'a> {
     }
 }
 
+// TODO: create a print method for Query, to print the query in the same format
+// as it would be parsed, and add tests for it so we can test that the parser
+// and the printer are inverses of each other. generate random queries
+// with some crate and then parse them and print them and check that the printed
+// query is the same as the original query.
+
 #[derive(Constructor, Getters, Debug)]
 pub struct Query<'a> {
     key: QueryKey<'a>,

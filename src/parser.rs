@@ -54,7 +54,17 @@ impl<'src> Parser<'src> {
         }
     }
 
-    pub fn last_span(&self) -> Span {
+    pub fn parse(&mut self) -> ParserResult<Query<'src>> {
+        let query = self.parse_root_query()?;
+
+        if self.lexer.next().is_some() {
+            return Err(ParserError::UnexpectedTokenAfterRootQuery(self.last_span()));
+        }
+
+        Ok(query)
+    }
+
+    fn last_span(&self) -> Span {
         self.source.len()..self.source.len()
     }
 
@@ -84,16 +94,6 @@ impl<'src> Parser<'src> {
         let (token, span) = spanned_token;
         let token = token.map_err(|err| ParserError::Lexer(err, span.clone()))?;
         Ok((token, span))
-    }
-
-    pub fn parse(&mut self) -> ParserResult<Query<'src>> {
-        let query = self.parse_root_query()?;
-
-        if self.lexer.next().is_some() {
-            return Err(ParserError::UnexpectedTokenAfterRootQuery(self.last_span()));
-        }
-
-        Ok(query)
     }
 
     fn parse_root_query(&mut self) -> ParserResult<Query<'src>> {
