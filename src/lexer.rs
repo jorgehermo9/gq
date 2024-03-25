@@ -71,15 +71,3 @@ impl From<Token<'_>> for OwnedToken {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_lexer() {
-        let input = "";
-        let mut lexer = Token::lexer(input);
-        dbg!(lexer.next());
-    }
-}

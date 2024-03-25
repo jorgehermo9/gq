@@ -32,6 +32,9 @@ impl Display for ExpectedTokens {
 pub enum ParserError {
     #[error("Unexpected token '{found}'. Expecting {expected}")]
     UnexpectedToken {
+        // TODO: Can this be done with Token instead of OwnedToken?
+        // Maybe some lifetime handling... ParserError<'src>? This should work
+        // like Query<'src> works...
         expected: ExpectedTokens,
         found: OwnedToken,
         span: Span,
@@ -83,6 +86,7 @@ impl<'src> Parser<'src> {
         let query = self.parse_root_query()?;
 
         if self.lexer.next().is_some() {
+            // TODO: use this error or the generic one?
             return Err(ParserError::UnexpectedTokenAfterRootQuery(self.last_span()));
         }
 
@@ -119,7 +123,7 @@ impl<'src> Parser<'src> {
 
         let (token, span) = spanned_token;
         let token = token.map_err(|err| ParserError::Lexer(err, span.clone()))?;
-        // TODO: check if this clone is correct.
+        // TODO: check if this clone is correct and does not allocate too much...
         self.current_token = Some((token.clone(), span.clone()));
         Ok((token, span))
     }
