@@ -35,6 +35,8 @@ pub enum ParserError {
         // TODO: Can this be done with Token instead of OwnedToken?
         // Maybe some lifetime handling... ParserError<'src>? This should work
         // like Query<'src> works...
+
+        // RETHINK: maybe we should not have expecting tokens...
         expected: ExpectedTokens,
         found: OwnedToken,
         span: Span,
@@ -200,18 +202,6 @@ impl<'src> Parser<'src> {
                     span,
                 })
             }
-        }
-    }
-}
-
-pub enum NonTerminal {
-    Query,
-}
-
-impl NonTerminal {
-    pub fn first_tokens(&self) -> Vec<OwnedToken> {
-        match self {
-            NonTerminal::Query => vec![OwnedToken::Key("key".to_string())],
         }
     }
 }
