@@ -41,7 +41,6 @@ pub enum ParserError {
         found: OwnedToken,
         span: Span,
     },
-
     #[error("Unexpected end of input")]
     UnexpectedEndOfInput(Span),
     #[error("Unexpected token after root query")]
@@ -117,6 +116,7 @@ impl<'src> Parser<'src> {
     }
 
     fn next_token(&mut self) -> ParserResult<SpannedToken<'src>> {
+        // TODO: remove this...
         self.previous_token = self.current_token.take();
         let spanned_token = self
             .lexer
