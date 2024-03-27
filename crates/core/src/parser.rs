@@ -1,4 +1,4 @@
-use crate::lexer::{LexerError, OwnedToken, Token};
+use crate::lexer::{self, OwnedToken, Token};
 use crate::query::Query;
 use logos::{Logos, Span, SpannedIter};
 use std::fmt::{self, Display, Formatter};
@@ -49,7 +49,7 @@ pub enum Error {
     #[error("Expected opening brace or key")]
     ExpectedOpeningBraceOrKey(Span),
     #[error("Lexer Error: {0}")]
-    Lexer(LexerError, Span),
+    Lexer(lexer::Error, Span),
 }
 
 impl Error {

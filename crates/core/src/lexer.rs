@@ -5,7 +5,7 @@ use logos::Logos;
 use thiserror::Error;
 
 #[derive(Error, Clone, Default, Debug, PartialEq)]
-pub enum LexerError {
+pub enum Error {
     #[default]
     #[error("Unknown character")]
     UnknownCharacter,
@@ -13,7 +13,7 @@ pub enum LexerError {
 
 #[derive(Clone, Debug, Logos, PartialEq)]
 #[logos(skip r"[ \t\r\n\f]+")]
-#[logos(error = LexerError)]
+#[logos(error = Error)]
 pub enum Token<'src> {
     // TODO: rename this to LBrace and RBrace?
     #[token("{")]
