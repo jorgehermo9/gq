@@ -1,14 +1,13 @@
-use core::entrypoint;
 use std::fs;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let query_file = "example.gq";
     let json_file = "example.json";
     let query = fs::read_to_string(query_file)?;
     let json = fs::read_to_string(json_file)?;
-    let result = core::entrypoint(&query, &json);
+    let result = gq_core::entrypoint(&query, &json);
 
     match result {
-        Ok(query) => println!("{:#?}", query),
+        Ok(query) => println!("{}", query),
         Err(err) => {
             use ariadne::{ColorGenerator, Label, Report, ReportKind, Source};
 
