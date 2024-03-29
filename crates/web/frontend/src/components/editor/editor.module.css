@@ -1,0 +1,11 @@
+.editor {
+	transition: border-color 0.2s;
+}
+
+.editor[data-focus="true"] {
+	border: 2px solid hsl(var(--accent));
+}
+
+.editor[data-focus="false"] {
+	border: 2px solid hsl(var(--muted));
+}
