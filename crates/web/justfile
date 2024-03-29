@@ -1,0 +1,2 @@
+build-wasm:
+    wasm-pack build --out-dir frontend/pkg --target web
