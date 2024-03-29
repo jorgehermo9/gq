@@ -89,6 +89,7 @@ dependencies = [
 name = "gq-web"
 version = "0.1.0"
 dependencies = [
+ "gq-core",
  "wasm-bindgen",
 ]
 
