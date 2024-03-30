@@ -10,12 +10,15 @@ import {
 import ActionButton from "../action-button/action-button";
 import { Settings } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { useSettings } from "@/providers/settings-provider";
 
 interface Props {
   className?: string;
 }
 
 const SettingsSheet = ({ className }: Props) => {
+  const { settings, setSettings } = useSettings();
+
   return (
     <Sheet>
       <SheetTrigger className={className}>
@@ -31,7 +34,14 @@ const SettingsSheet = ({ className }: Props) => {
           </SheetDescription>
         </SheetHeader>
         <div className="flex gap-4 items-center">
-          <Switch defaultChecked id="auto-apply" />
+          <Switch
+            defaultChecked
+            id="auto-apply"
+            checked={settings.autoApply}
+            onCheckedChange={(checked) =>
+              setSettings({ ...settings, autoApply: checked })
+            }
+          />
           <Label htmlFor="auto-apply">Enable auto apply</Label>
         </div>
       </SheetContent>

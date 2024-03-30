@@ -3,6 +3,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Montserrat } from "next/font/google";
 import { Toaster } from "sonner";
+import { SettingsProvider } from "@/providers/settings-provider";
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
@@ -36,7 +37,7 @@ export default function RootLayout({
             },
           }}
         />
-        <div>{children}</div>
+        <SettingsProvider>{children}</SettingsProvider>
       </body>
     </html>
   );

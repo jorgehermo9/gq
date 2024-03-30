@@ -3,11 +3,13 @@
 import Editor from "@/components/editor/editor";
 import { Badge } from "@/components/ui/badge";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import init, { gq } from "gq-web";
 import ApplyButton from "@/components/apply-button/apply-button";
-import { Settings } from "lucide-react";
+import { js_beautify as format } from "js-beautify";
 import SettingsSheet from "@/components/settings-sheet/settings-sheet";
+import { useSettings } from "@/providers/settings-provider";
+import { toast } from "sonner";
 
 const Home = dynamic(async () => {
   await init();
@@ -17,16 +19,26 @@ const Home = dynamic(async () => {
     const [inputQuery, setInputQuery] = useState<string>("{}");
     const [outputJson, setOutputJson] = useState<string>("");
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-    const [autoApply, setAutoApply] = useState<boolean>(true);
+    const { settings } = useSettings();
+
+    const updateOutputJson = useCallback(
+      (notify: boolean) => {
+        if (!notify) {
+          setOutputJson(format(gq(inputQuery, inputJson)));
+          return;
+        }
+        const toastId = toast.loading("Applying query to JSON...");
+        setOutputJson(format(gq(inputQuery, inputJson)));
+        toast.success("Query applied to JSON", { id: toastId });
+      },
+      [inputJson, inputQuery]
+    );
 
     useEffect(() => {
+      if (!settings.autoApply) return;
       timer && clearTimeout(timer);
-      setTimer(
-        setTimeout(() => {
-          setOutputJson(gq(inputQuery, inputJson));
-        }, 500)
-      );
-    }, [inputJson, inputQuery]);
+      setTimer(setTimeout(() => updateOutputJson(!settings.autoApply), 500));
+    }, [settings.autoApply, updateOutputJson]);
 
     return (
       <main className="flex flex-col items-center p-8 h-screen">
@@ -55,7 +67,10 @@ const Home = dynamic(async () => {
               title="Input Query"
             />
           </aside>
-          <ApplyButton autoApply={autoApply} />
+          <ApplyButton
+            autoApply={settings.autoApply}
+            onClick={updateOutputJson}
+          />
           <aside className="w-1/2 h-[48rem] flex flex-col">
             <Editor
               className="h-[48rem]"

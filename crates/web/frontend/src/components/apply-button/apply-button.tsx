@@ -1,11 +1,13 @@
-import { CirclePlay } from "lucide-react";
+import { CirclePlay, Play } from "lucide-react";
 import ActionButton from "@/components/action-button/action-button";
+import { useSettings } from "@/providers/settings-provider";
 
 interface Props {
   autoApply: boolean;
+  onClick: () => void;
 }
 
-const ApplyButton = ({ autoApply }: Props) => {
+const ApplyButton = ({ autoApply, onClick }: Props) => {
   return autoApply ? (
     <ActionButton
       disabled
@@ -17,10 +19,10 @@ const ApplyButton = ({ autoApply }: Props) => {
   ) : (
     <ActionButton
       className="rounded-full"
-      onClick={() => {}}
+      onClick={onClick}
       description="Apply the query to the provided JSON"
     >
-      <CirclePlay />
+      <Play />
     </ActionButton>
   );
 };
