@@ -1,5 +1,9 @@
 use std::fs;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // configure log at INFO
+    std::env::set_var("RUST_LOG", "info");
+    pretty_env_logger::init();
+
     let query_file = "example.gq";
     let json_file = "example.json";
     let query = fs::read_to_string(query_file)?;
