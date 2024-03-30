@@ -1,1 +1,2 @@
 crates/web/frontend/** linguist-vendored
+justfile linguist-vendored
