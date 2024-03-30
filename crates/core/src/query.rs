@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use derive_getters::Getters;
 use derive_more::Constructor;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use thiserror::Error;
 
 #[derive(Debug)]
@@ -37,24 +37,34 @@ impl<'a> Query<'a> {
 // TODO: move errors into their own module
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Key '{0}' not found")]
+    // TODO: 'key' should be in lowercase or capitalized?
+    #[error("key '{0}' not found")]
     KeyNotFound(OwnedJsonPath),
+    #[error("{0} while filtering inside array '{1}'")]
+    InsideArray(Box<Self>, OwnedJsonPath),
 }
 
-#[derive(Debug)]
+//TODO: maybe this is useless, it is only useful for the '?' syntax to convert a borrowed error into an owned error
+#[derive(Debug, Error)]
 pub enum InternalError<'a> {
-    KeyNotFound(&'a JsonPath<'a>),
+    #[error("key '{0}' not found")]
+    KeyNotFound(JsonPath<'a>),
+    #[error("{0} while filtering inside array '{1}'")]
+    InsideArray(Box<Self>, JsonPath<'a>),
 }
 
 impl From<InternalError<'_>> for Error {
     fn from(internal_error: InternalError) -> Self {
         match internal_error {
             InternalError::KeyNotFound(path) => Error::KeyNotFound(path.to_owned()),
+            InternalError::InsideArray(internal_error, path) => {
+                Error::InsideArray(Box::new(Error::from(*internal_error)), path.to_owned())
+            }
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum JsonPathEntry<'a> {
     Key(&'a str),
     Index(usize),
@@ -69,13 +79,13 @@ impl<'a> JsonPathEntry<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum OwnedJsonPathEntry {
     Key(String),
     Index(usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum JsonPath<'a> {
     Root,
     Node {
@@ -102,7 +112,13 @@ impl<'a> JsonPath<'a> {
     }
 }
 
-#[derive(Debug)]
+impl Display for JsonPath<'_> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        self.to_owned().fmt(f)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct OwnedJsonPath(Vec<OwnedJsonPathEntry>);
 
 impl Display for OwnedJsonPath {
@@ -117,22 +133,15 @@ impl Display for OwnedJsonPath {
     }
 }
 
-#[derive(Debug)]
-pub struct Context<'a> {
+#[derive(Debug, Clone, Copy)]
+pub struct ArrayContext<'a> {
     path: JsonPath<'a>,
 }
 
-impl Context<'_> {
-    pub fn to_owned(&self) -> OwnedContext {
-        OwnedContext {
-            path: self.path.to_owned(),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct OwnedContext {
-    path: OwnedJsonPath,
+#[derive(Debug, Clone, Copy)]
+pub struct Context<'a> {
+    path: JsonPath<'a>,
+    array_context: Option<ArrayContext<'a>>,
 }
 
 impl<'a> Context<'a> {
@@ -146,13 +155,23 @@ impl<'a> Context<'a> {
                 entry,
                 parent: &self.path,
             },
+            ..*self
+        }
+    }
+
+    pub fn enter_array(&'a self) -> Self {
+        Self {
+            array_context: Some(ArrayContext { path: self.path }),
+            ..*self
         }
     }
 }
-impl<'a> Default for Context<'a> {
+
+impl Default for Context<'_> {
     fn default() -> Self {
         Self {
             path: JsonPath::Root,
+            array_context: None,
         }
     }
 }
@@ -164,13 +183,12 @@ impl Query<'_> {
             // TODO: check if json is an object
             Some(QueryKey(key)) => {
                 let new_context = root_context.push(JsonPathEntry::Key(key));
-                (
-                    root_json
-                        .get_mut(key)
-                        .ok_or(InternalError::KeyNotFound(&new_context.path))?
-                        .take(),
-                    new_context,
-                )
+                let new_root_json = root_json
+                    .get_mut(key)
+                    .map(Value::take)
+                    .ok_or(InternalError::KeyNotFound(new_context.path))?;
+
+                (new_root_json, new_context)
             }
             None => (root_json, root_context),
         };
@@ -178,57 +196,69 @@ impl Query<'_> {
         self.do_apply(root_json, root_context)
     }
 
-    fn do_apply(&self, json: Value, context: Context) -> Result<Value, Error> {
-        let children = self.children();
-        if children.is_empty() {
-            return Ok(json);
+    fn do_apply<'a>(&'a self, value: Value, context: Context<'a>) -> Result<Value, Error> {
+        if self.children().is_empty() {
+            return Ok(value);
         }
 
-        match json {
-            Value::Object(mut old_object) => {
-                let mut filtered_object = serde_json::Map::new();
-                // TODO: can this be done with a more functional approach, like the Value::Array case?
-                for child in children {
-                    let Some(QueryKey(key)) = child.key() else {
-                        panic!("children query must have a key");
-                    };
-                    let child_context = context.push(JsonPathEntry::Key(key));
-                    let child_value = old_object
-                        .get_mut(*key)
-                        // TODO: do not '?' if if the context we are inside an array, just log warns
-                        // TODO: save in the context the first key that initialized the array
-                        .ok_or(InternalError::KeyNotFound(&child_context.path))?
-                        .take();
-                    let child_filtered_value = child.do_apply(child_value, child_context)?;
-                    filtered_object.insert(key.to_string(), child_filtered_value);
-                }
-                // TODO: what to do if filtered_object is empty and no key was inserted? (maybe because of an error in the children queries
-                // inside arrays...)
-                Ok(Value::Object(filtered_object))
-            }
-            Value::Array(old_array) => {
-                let filtered_array = old_array
-                    .into_iter()
-                    .enumerate()
-                    .map(|(index, value)| {
-                        let index_context = context.push(JsonPathEntry::Index(index));
-                        self.do_apply(value, index_context)
-                    })
-                    .flat_map(|result| {
-                        let array_path = context.path.to_owned();
-                        // TODO: maybe this error reporting is no necessary, since if we are inside an array,
-                        // the children should not raise errors and jsut log warns... this branch should never occur
-                        result.map_err(|error| {
-                            log::warn!("{error} while filtering array at '{array_path}'");
-                        })
-                    })
-                    // TODO: collect this again into `.collect::<Result<Vec<Value>, Error>>()?`, the children are
-                    // the ones that should return
-                    .collect::<Vec<Value>>();
-                Ok(Value::Array(filtered_array))
-            }
-            // TODO: handle error if there are more children left...
-            _ => Ok(json),
+        match value {
+            Value::Object(object) => self.do_apply_object(object, context),
+            Value::Array(old_array) => self.do_apply_array(old_array, context),
+            // TODO: this should fail, since there are children defined but the json is not an object or an array
+            // But, if in the context we are inside an array, we should just log a warning and return the json as is
+            _ => Ok(value),
         }
+    }
+
+    fn do_apply_object(
+        &self,
+        mut object: Map<String, Value>,
+        context: Context,
+    ) -> Result<Value, Error> {
+        let mut filtered_object = serde_json::Map::new();
+        for child in self.children() {
+            let Some(QueryKey(child_query_key)) = *child.key() else {
+                panic!("children query must have a key");
+            };
+            let child_context = context.push(JsonPathEntry::Key(child_query_key));
+
+            let child_entry_result = object
+                .remove_entry(child_query_key)
+                .ok_or(InternalError::KeyNotFound(child_context.path));
+
+            let (child_key, child_value) = match (child_entry_result, child_context.array_context) {
+                (Ok(entry), _) => entry,
+                (Err(internal_error), None) => return Err(Error::from(internal_error)),
+                (Err(internal_error), Some(array_context)) => {
+                    let array_error =
+                        InternalError::InsideArray(Box::new(internal_error), array_context.path);
+                    log::warn!("{array_error}");
+                    continue;
+                }
+            };
+            let child_filtered_value = child.do_apply(child_value, child_context)?;
+            // TODO: do not insert empty child objects? and empty child arrays?
+            filtered_object.insert(child_key, child_filtered_value);
+        }
+        Ok(Value::Object(filtered_object))
+    }
+
+    fn do_apply_array(&self, array: Vec<Value>, context: Context) -> Result<Value, Error> {
+        let array_context = context.enter_array();
+        array
+            .into_iter()
+            .enumerate()
+            .map(|(index, value)| {
+                let index_context = array_context.push(JsonPathEntry::Index(index));
+                self.do_apply(value, index_context)
+            })
+            // TODO: filter empty objects? and what about nested empty arrays?
+            .collect::<Result<Vec<Value>, Error>>()
+            .map(Value::Array)
+            .map_err(|item_error| {
+                // Unrecoverable errors inside the array should not happen,
+                // since all errors within the array filtering should be caught and logged as a warning...
+                Error::InsideArray(Box::new(item_error), array_context.path.to_owned())
+            })
     }
 }
