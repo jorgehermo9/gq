@@ -24,7 +24,7 @@ export default function RootLayout({
         )}
       >
         <Toaster
-          offset={"16px"}
+          offset="16px"
           toastOptions={{
             unstyled: true,
             classNames: {

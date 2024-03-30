@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import styles from "./editor.module.css";
 import { useCallback, useEffect, useState } from "react";
 import { js_beautify as format } from "js-beautify";
-import ActionButton from "../action-button/actionButton";
+import ActionButton from "../action-button/action-button";
 
 interface Props {
   className?: string;
