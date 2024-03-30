@@ -21,7 +21,7 @@ const SettingsSheet = ({ className }: Props) => {
 
   return (
     <Sheet>
-      <SheetTrigger className={className}>
+      <SheetTrigger className={className} asChild>
         <ActionButton description="Show playground settings">
           <Settings />
         </ActionButton>

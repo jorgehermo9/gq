@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Montserrat } from "next/font/google";
 import { Toaster } from "sonner";
 import { SettingsProvider } from "@/providers/settings-provider";
+import { useEffect, useRef } from "react";
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
