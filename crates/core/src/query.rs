@@ -1,6 +1,7 @@
 use std::{
     borrow::Borrow,
     fmt::{self, Display, Formatter},
+    rc::Rc,
 };
 
 use derive_getters::Getters;
@@ -101,16 +102,23 @@ pub enum OwnedJsonPathEntry {
     Index(usize),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum JsonPath<'a> {
     Root,
     Node {
         entry: JsonPathEntry<'a>,
-        parent: &'a JsonPath<'a>,
+        parent: Rc<JsonPath<'a>>,
     },
 }
 
 impl<'a> JsonPath<'a> {
+    pub fn push(&self, entry: JsonPathEntry<'a>) -> Self {
+        return Self::Node {
+            entry,
+            parent: Rc::new(self.clone()),
+        };
+    }
+
     pub fn to_owned(&self) -> OwnedJsonPath {
         let mut path = Vec::new();
         let mut current = self;
@@ -158,12 +166,12 @@ impl Display for OwnedJsonPath {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ArrayContext<'a> {
     path: JsonPath<'a>,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Context<'a> {
     path: JsonPath<'a>,
     array_context: Option<ArrayContext<'a>>,
@@ -174,20 +182,19 @@ impl<'a> Context<'a> {
         Self::default()
     }
 
-    pub fn push(&'a self, entry: JsonPathEntry<'a>) -> Self {
+    pub fn push(&self, entry: JsonPathEntry<'a>) -> Context<'a> {
         Self {
-            path: JsonPath::Node {
-                entry,
-                parent: &self.path,
-            },
-            ..*self
+            path: self.path.push(entry),
+            ..self.clone()
         }
     }
 
     pub fn enter_array(&'a self) -> Self {
         Self {
-            array_context: Some(ArrayContext { path: self.path }),
-            ..*self
+            array_context: Some(ArrayContext {
+                path: self.path.clone(),
+            }),
+            ..self.clone()
         }
     }
 }
@@ -211,17 +218,21 @@ impl Query<'_> {
                 let new_root_json = root_json
                     .get_mut(key)
                     .map(Value::take)
-                    .ok_or(InternalError::KeyNotFound(new_context.path))?;
+                    .ok_or(InternalError::KeyNotFound(new_context.path.clone()))?;
 
                 (new_root_json, new_context)
             }
             None => (root_json, root_context),
         };
 
-        self.do_apply(root_json, root_context)
+        Ok(self.do_apply(root_json, root_context)?)
     }
 
-    fn do_apply<'a>(&'a self, value: Value, context: Context<'a>) -> Result<Value, Error> {
+    fn do_apply<'a>(
+        &'a self,
+        value: Value,
+        context: Context<'a>,
+    ) -> Result<Value, InternalError<'a>> {
         // TODO: maybe we should make a differece while representing `field1{ }` and `field1`, since in the fist case
         // the intent might be to filter an object... but the way we are representing it now, it is the same as `field1`,
         // which is just using empty children... given the following json `{"field1": 1}` and the query `{field1{}}` we should
@@ -239,11 +250,11 @@ impl Query<'_> {
         }
     }
 
-    fn do_apply_object(
-        &self,
+    fn do_apply_object<'a>(
+        &'a self,
         mut object: Map<String, Value>,
-        context: Context,
-    ) -> Result<Value, Error> {
+        context: Context<'a>,
+    ) -> Result<Value, InternalError<'a>> {
         let mut filtered_object = serde_json::Map::new();
         for child in self.children() {
             let Some(QueryKey(child_query_key)) = *child.key() else {
@@ -253,35 +264,38 @@ impl Query<'_> {
 
             let child_entry_result = object
                 .remove_entry(child_query_key)
-                .ok_or(InternalError::KeyNotFound(child_context.path));
+                .ok_or(InternalError::KeyNotFound(child_context.path.clone()));
 
-            let (child_key, child_value) = match (child_entry_result, child_context.array_context) {
+            let (child_key, child_value) = match (child_entry_result, &child_context.array_context)
+            {
                 (Ok(entry), _) => entry,
-                (Err(internal_error), None) => return Err(Error::from(internal_error)),
+                (Err(internal_error), None) => return Err(internal_error),
                 (Err(internal_error), Some(array_context)) => {
-                    let array_error =
-                        InternalError::InsideArray(Box::new(internal_error), array_context.path);
+                    let array_error = InternalError::InsideArray(
+                        Box::new(internal_error),
+                        array_context.path.clone(),
+                    );
                     // TODO: Check if displaying the borrowed JsonPath is too expensive,
                     // since it will be doing a recursive call to display the whole path
                     log::warn!("{array_error}");
                     continue;
                 }
             };
-            let child_filtered_value_result = child.do_apply(child_value, child_context);
-            let child_filtered_value =
-                match (child_filtered_value_result, child_context.array_context) {
-                    (Ok(value), _) => value,
-                    (Err(child_error), None) => return Err(child_error),
-                    (Err(child_error), Some(array_context)) => {
-                        // TODO: this conversion is expensive?
-                        let array_error = Error::InsideArray(
-                            Box::new(child_error),
-                            array_context.path.to_owned(),
-                        );
-                        log::warn!("{array_error}");
-                        continue;
-                    }
-                };
+            let child_filtered_value_result = child.do_apply(child_value, child_context.clone());
+            let child_filtered_value = match (
+                child_filtered_value_result,
+                child_context.array_context.clone(),
+            ) {
+                (Ok(value), _) => value,
+                (Err(child_error), None) => return Err(child_error),
+                (Err(child_error), Some(array_context)) => {
+                    // TODO: this conversion is expensive?
+                    let array_error =
+                        InternalError::InsideArray(Box::new(child_error), array_context.path);
+                    log::warn!("{array_error}");
+                    continue;
+                }
+            };
 
             // TODO: do not insert empty child objects? and empty child arrays?
             // do as the array
@@ -304,7 +318,7 @@ impl Query<'_> {
                     .map_err(|error| {
                         //TODO: this conversion is expensive?
                         let array_error =
-                            Error::InsideArray(Box::new(error), array_context.path.to_owned());
+                            InternalError::InsideArray(Box::new(error), array_context.path.clone());
                         log::warn!("{array_error}");
                     })
                     .ok()
