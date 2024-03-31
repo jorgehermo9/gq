@@ -113,10 +113,10 @@ pub enum JsonPath<'a> {
 
 impl<'a> JsonPath<'a> {
     pub fn push(&self, entry: JsonPathEntry<'a>) -> Self {
-        return Self::Node {
+        Self::Node {
             entry,
             parent: Rc::new(self.clone()),
-        };
+        }
     }
 
     pub fn to_owned(&self) -> OwnedJsonPath {
