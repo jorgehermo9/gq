@@ -47,7 +47,7 @@ pub enum Error {
     #[error("{0} while filtering inside array '{1}'")]
     InsideArray(Box<Self>, OwnedJsonPath),
     // TODO: display the children keys in errors?
-    #[error("tried to index a non-indexable value (neither object nor array) '{0}'")]
+    #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(OwnedJsonPath),
 }
 
@@ -56,10 +56,10 @@ pub enum Error {
 pub enum InternalError<'a> {
     #[error("key '{0}' not found")]
     KeyNotFound(JsonPath<'a>),
+    // TODO: Think about the usefulness of this error
     #[error("{0} while filtering inside array '{1}'")]
     InsideArray(Box<Self>, JsonPath<'a>),
-    // TODO: log the children keys in errors?
-    #[error("tried to index a non-indexable value (neither object nor array) '{0}'")]
+    #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(JsonPath<'a>),
 }
 
@@ -116,14 +116,9 @@ impl<'a> JsonPath<'a> {
     pub fn to_owned(&self) -> OwnedJsonPath {
         let mut path = Vec::new();
         let mut current = self;
-        loop {
-            match current {
-                JsonPath::Root => break,
-                JsonPath::Node { entry, parent } => {
-                    path.push(entry.to_owned());
-                    current = parent;
-                }
-            }
+        while let JsonPath::Node { entry, parent } = current {
+            path.push(entry.to_owned());
+            current = parent;
         }
         path.reverse();
         OwnedJsonPath(path)
@@ -133,7 +128,7 @@ impl<'a> JsonPath<'a> {
 impl Display for JsonPath<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            JsonPath::Root => Ok(()),
+            JsonPath::Root => write!(f, "$"),
             JsonPath::Node { entry, parent } => {
                 parent.fmt(f)?;
                 match entry {
@@ -150,6 +145,7 @@ pub struct OwnedJsonPath(Vec<OwnedJsonPathEntry>);
 
 impl Display for OwnedJsonPath {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "$")?;
         for entry in &self.0 {
             match entry {
                 OwnedJsonPathEntry::Key(key) => write!(f, ".{key}")?,
@@ -203,23 +199,25 @@ impl Default for Context<'_> {
 }
 
 impl Query<'_> {
-    pub fn apply(&self, mut root_json: Value) -> Result<Value, Error> {
+    pub fn apply(&self, root_json: Value) -> Result<Value, Error> {
         let root_context = Context::new();
-        let (root_json, root_context) = match self.key() {
-            // TODO: check if json is an object
-            Some(QueryKey(key)) => {
+        let (new_root_json, root_context) = match (self.key(), root_json) {
+            // TODO: maybe this is not the right way to do it...
+            (Some(QueryKey(key)), Value::Object(mut root_json)) => {
                 let new_context = root_context.push(JsonPathEntry::Key(key));
                 let new_root_json = root_json
-                    .get_mut(key)
+                    .get_mut(*key)
                     .map(Value::take)
                     .ok_or(InternalError::KeyNotFound(new_context.path.clone()))?;
 
                 (new_root_json, new_context)
             }
-            None => (root_json, root_context),
+            (Some(QueryKey(_)), Value::Array(_)) => todo!("array compression"),
+            (Some(QueryKey(_)), _) => Err(InternalError::NonIndexableValue(root_context.path))?,
+            (None, root_json) => (root_json, root_context),
         };
 
-        Ok(self.do_apply(root_json, root_context)?)
+        Ok(self.do_apply(new_root_json, root_context)?)
     }
 
     fn do_apply<'a>(
@@ -238,8 +236,6 @@ impl Query<'_> {
         match value {
             Value::Object(object) => self.do_apply_object(object, context),
             Value::Array(array) => Ok(self.do_apply_array(array, context)),
-            // TODO: Maybe the conversion each time to an owned error is too expensive? We should find
-            // a way to return a borrowed error, or to always use the owned one but in other way...
             _ => Err(InternalError::NonIndexableValue(context.path))?,
         }
     }
@@ -256,6 +252,8 @@ impl Query<'_> {
             };
             let child_context = context.push(JsonPathEntry::Key(child_query_key));
             let child_entry_result = object
+                // TODO: maybe the entry removal is not okay. for example, for queries like
+                // { bill bill: bill2}, where we would like to access the bill field twice...
                 .remove_entry(child_query_key)
                 .ok_or(InternalError::KeyNotFound(child_context.path.clone()));
 
@@ -268,30 +266,24 @@ impl Query<'_> {
                         Box::new(internal_error),
                         array_context.path.clone(),
                     );
-                    // TODO: Check if displaying the borrowed JsonPath is too expensive,
-                    // since it will be doing a recursive call to display the whole path
                     log::warn!("{array_error}");
                     continue;
                 }
             };
             let child_filtered_value_result = child.do_apply(child_value, child_context.clone());
-            let child_filtered_value = match (
-                child_filtered_value_result,
-                child_context.array_context.clone(),
-            ) {
-                (Ok(value), _) => value,
-                (Err(child_error), None) => return Err(child_error),
-                (Err(child_error), Some(array_context)) => {
-                    // TODO: this conversion is expensive?
-                    let array_error =
-                        InternalError::InsideArray(Box::new(child_error), array_context.path);
-                    log::warn!("{array_error}");
-                    continue;
-                }
-            };
-
-            // TODO: do not insert empty child objects? and empty child arrays?
-            // do as the array
+            let child_filtered_value =
+                match (child_filtered_value_result, &child_context.array_context) {
+                    (Ok(value), _) => value,
+                    (Err(child_error), None) => return Err(child_error),
+                    (Err(child_error), Some(array_context)) => {
+                        let array_error = InternalError::InsideArray(
+                            Box::new(child_error),
+                            array_context.path.clone(),
+                        );
+                        log::warn!("{array_error}");
+                        continue;
+                    }
+                };
             filtered_object.insert(child_key, child_filtered_value);
         }
         Ok(Value::Object(filtered_object))
@@ -302,41 +294,24 @@ impl Query<'_> {
         let filtered_array = array
             .into_iter()
             .enumerate()
-            .map(|(index, value)| {
-                let index_context = array_context.push(JsonPathEntry::Index(index));
-                self.do_apply(value, index_context)
+            .map(|(index, item)| {
+                let item_context = array_context.push(JsonPathEntry::Index(index));
+                self.do_apply(item, item_context)
             })
             .flat_map(|result| {
                 result
                     .map_err(|error| {
-                        //TODO: this conversion is expensive?
                         let array_error =
                             InternalError::InsideArray(Box::new(error), array_context.path.clone());
                         log::warn!("{array_error}");
                     })
                     .ok()
             })
-            // TODO: just filter empty objects or also empty arrays?
-            // TODO: filter empty objects? and what about nested empty arrays?
-            .filter(|v| !v.is_empty_object())
-            .collect::<Vec<Value>>();
+            .filter(|value| match value {
+                Value::Object(object) => !object.is_empty(),
+                _ => true,
+            })
+            .collect();
         Value::Array(filtered_array)
-    }
-}
-
-trait IsEmptyObject {
-    fn is_empty_object(&self) -> bool;
-}
-
-impl IsEmptyObject for Value {
-    fn is_empty_object(&self) -> bool {
-        match self {
-            Value::Null => false,
-            Value::Bool(_) => false,
-            Value::Number(_) => false,
-            Value::String(_) => false,
-            Value::Array(array) => false,
-            Value::Object(object) => object.is_empty(),
-        }
     }
 }

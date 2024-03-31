@@ -114,6 +114,7 @@ name = "gq-web"
 version = "0.1.0"
 dependencies = [
  "gq-core",
+ "serde_json",
  "wasm-bindgen",
 ]
 

@@ -19,9 +19,9 @@ pub enum Error {
 // TODO: be more generic over the input. Maybe someone wants to call this with an already
 // constructed Value, (for example, a web server) and we should not force them to
 // serialize it to a string and then parse it again.
-pub fn entrypoint(query: &str, json: &str) -> Result<String, Error> {
+pub fn entrypoint(query: &str, json: &str) -> Result<Value, Error> {
     let query = Parser::new(query).parse()?;
     let json: Value = serde_json::from_str(json)?;
     let query_result = query.apply(json)?;
-    Ok(query_result.to_string())
+    Ok(query_result)
 }
