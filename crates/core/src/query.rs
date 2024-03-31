@@ -12,12 +12,6 @@ use thiserror::Error;
 #[derive(Debug)]
 pub struct QueryKey<'a>(&'a str);
 
-impl Display for QueryKey<'_> {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{0}", self.0)
-    }
-}
-
 // TODO: create a print method for Query, to print the query in the same format
 // as it would be parsed, and add tests for it so we can test that the parser
 // and the printer are inverses of each other. generate random queries
@@ -261,7 +255,6 @@ impl Query<'_> {
                 panic!("children query must have a key");
             };
             let child_context = context.push(JsonPathEntry::Key(child_query_key));
-
             let child_entry_result = object
                 .remove_entry(child_query_key)
                 .ok_or(InternalError::KeyNotFound(child_context.path.clone()));
