@@ -33,7 +33,9 @@ const Home = () => {
       gqWorker
         .postMessage({ query: inputQuery, json: inputJson })
         .then((res) => setOutputJson(res))
-        .finally(() => toast.success("Query applied to JSON", { id: toastId }));
+        .finally(() =>
+          toast.success("Query applied to JSON", { id: toastId, duration: 1000 })
+        );
     },
     [inputJson, inputQuery, gqWorker]
   );

@@ -71,6 +71,10 @@ const Editor = ({
           editable={editable}
           onCopyToClipboard={copyToClipboard}
           onFormatCode={formatCode}
+          onImportFile={(value) => {
+            console.log(value);
+            onChange?.(value);
+          }}
         />
       </div>
 

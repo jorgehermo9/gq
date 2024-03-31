@@ -5,19 +5,40 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Clipboard, EllipsisVertical, Sparkles } from "lucide-react";
-import ActionButton from "../action-button/action-button";
+import { Clipboard, EllipsisVertical, Import, Sparkles } from "lucide-react";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { useRef } from "react";
 
 interface Props {
   editable: boolean;
   onCopyToClipboard: () => void;
   onFormatCode: () => void;
+  onImportFile: (content: string) => void;
 }
 
-const EditorMenu = ({ editable, onCopyToClipboard, onFormatCode }: Props) => {
+const EditorMenu = ({
+  editable,
+  onCopyToClipboard,
+  onFormatCode,
+  onImportFile,
+}: Props) => {
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const content = reader.result as string;
+      onImportFile(content);
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -29,7 +50,7 @@ const EditorMenu = ({ editable, onCopyToClipboard, onFormatCode }: Props) => {
         <DropdownMenuItem onClick={onCopyToClipboard}>
           <div className="flex items-center gap-2">
             <Clipboard className="w-4 h-4" />
-            <span>Copy All</span>
+            <span>Copy</span>
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onFormatCode} disabled={!editable}>
@@ -38,6 +59,28 @@ const EditorMenu = ({ editable, onCopyToClipboard, onFormatCode }: Props) => {
             <span>Format</span>
           </div>
           <DropdownMenuShortcut>Ctrl + S</DropdownMenuShortcut>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="p-0"
+          disabled={!editable}
+          onSelect={(e) => e.preventDefault()}
+        >
+          <input
+            id="file-import"
+            hidden
+            type="file"
+            onChange={(e) => {
+              handleImportFile(e);
+            }}
+          />
+          <Label
+            htmlFor="file-import"
+            className="flex items-center gap-2 px-2 py-1.5 w-full h-full cursor-pointer text-sm font-normal"
+          >
+            <Import className="w-4 h-4" />
+            <span>Import file</span>
+          </Label>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
