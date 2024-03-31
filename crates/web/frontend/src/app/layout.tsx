@@ -28,6 +28,7 @@ export default function RootLayout({
         <Toaster
           offset="16px"
           toastOptions={{
+            closeButton: true,
             unstyled: true,
             classNames: {
               toast:
@@ -35,6 +36,7 @@ export default function RootLayout({
               title: "text-foreground text-sm",
               actionButton:
                 "min-w-max bg-foreground text-background text-xs px-2 py-1 rounded-md justify-self-end",
+              closeButton: "text-foreground hover:text-accent bg-background transition-colors h-4 w-4",
             },
           }}
         />

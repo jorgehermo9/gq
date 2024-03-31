@@ -69,7 +69,9 @@
 @layer base {
   * {
     @apply border-border;
-  }
+    scrollbar-color: hsl(var(--accent)) hsl(var(--background));
+    scrollbar-width: thin;
+   }
   body {
     @apply bg-background text-foreground;
   }
