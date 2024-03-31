@@ -28,7 +28,7 @@ export default function RootLayout({
         <Toaster
           offset="16px"
           toastOptions={{
-            closeButton: true,
+            closeButton: false,
             unstyled: true,
             classNames: {
               toast:

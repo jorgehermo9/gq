@@ -7,6 +7,7 @@ interface MessageContent {
 	json: string;
 }
 
-init();
-
-registerWebworker(async (message: MessageContent) => format(gq(message.query, message.json)));
+registerWebworker(async (message: MessageContent) => {
+	await init();
+	return format(gq(message.query, message.json))
+});

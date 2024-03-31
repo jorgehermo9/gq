@@ -10,7 +10,7 @@ const useDebounce = (
   useEffect(() => {
     timer.current && clearTimeout(timer.current);
     timer.current = setTimeout(() => callback(), delay);
-  }, dependencies);
+  }, [...dependencies]);
 };
 
 export default useDebounce;

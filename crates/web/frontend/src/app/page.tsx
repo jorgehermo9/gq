@@ -15,19 +15,14 @@ const Home = () => {
   const [inputQuery, setInputQuery] = useState<string>("{}");
   const [outputJson, setOutputJson] = useState<string>("");
   const { settings } = useSettings();
-
-  const receiveMessage = useCallback(
-    (event: MessageEvent<string>) => setOutputJson(event.data),
-    []
-  );
-
   const gqWorker = useGq();
 
   const updateOutputJson = useCallback(
     (notify: boolean) => {
+      if (!gqWorker) return;
       if (!notify) {
         gqWorker
-          ?.postMessage({ query: inputQuery, json: inputJson })
+          .postMessage({ query: inputQuery, json: inputJson })
           .then((res) => {
             console.log(res);
             setOutputJson(res);
@@ -36,17 +31,18 @@ const Home = () => {
       }
       const toastId = toast.loading("Applying query to JSON...");
       gqWorker
-        ?.postMessage({ query: inputQuery, json: inputJson })
+        .postMessage({ query: inputQuery, json: inputJson })
         .then((res) => setOutputJson(res))
         .finally(() => toast.success("Query applied to JSON", { id: toastId }));
     },
     [inputJson, inputQuery, gqWorker]
   );
 
-  useDebounce(() => settings.autoApply && updateOutputJson(false), 1000, [
-    inputJson,
-    inputQuery,
-  ]);
+  useDebounce(
+    () => settings.autoApply && updateOutputJson(true),
+    settings.debounceTime,
+    [inputJson, inputQuery]
+  );
 
   return (
     <main className="flex flex-col items-center p-8 h-screen">

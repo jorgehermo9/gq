@@ -22,7 +22,7 @@ const ApplyButton = ({ autoApply, onClick }: Props) => {
       onClick={onClick}
       description="Apply the query to the provided JSON"
     >
-      <Play />
+      <Play className="w-5 h-5"/>
     </ActionButton>
   );
 };
