@@ -4,6 +4,6 @@ use wasm_bindgen::prelude::*;
 pub fn gq(query: &str, json: &str) -> String {
     match gq_core::entrypoint(query, json) {
         Ok(result) => serde_json::to_string_pretty(&result).expect("Failed to serialize result"),
-        Err(_) => "Invalid GQ".to_string(),
+        Err(e) => e.to_string(),
     }
 }
