@@ -1,4 +1,7 @@
-use std::fmt::{self, Display, Formatter};
+use std::{
+    borrow::Borrow,
+    fmt::{self, Display, Formatter},
+};
 
 use derive_getters::Getters;
 use derive_more::Constructor;
@@ -7,6 +10,12 @@ use thiserror::Error;
 
 #[derive(Debug)]
 pub struct QueryKey<'a>(&'a str);
+
+impl Display for QueryKey<'_> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{0}", self.0)
+    }
+}
 
 // TODO: create a print method for Query, to print the query in the same format
 // as it would be parsed, and add tests for it so we can test that the parser
@@ -42,6 +51,9 @@ pub enum Error {
     KeyNotFound(OwnedJsonPath),
     #[error("{0} while filtering inside array '{1}'")]
     InsideArray(Box<Self>, OwnedJsonPath),
+    // TODO: display the children keys in errors?
+    #[error("tried to index a non-indexable value (neither object nor array) '{0}'")]
+    NonIndexableValue(OwnedJsonPath),
 }
 
 //TODO: maybe this is useless, it is only useful for the '?' syntax to convert a borrowed error into an owned error
@@ -51,6 +63,9 @@ pub enum InternalError<'a> {
     KeyNotFound(JsonPath<'a>),
     #[error("{0} while filtering inside array '{1}'")]
     InsideArray(Box<Self>, JsonPath<'a>),
+    // TODO: log the children keys in errors?
+    #[error("tried to index a non-indexable value (neither object nor array) '{0}'")]
+    NonIndexableValue(JsonPath<'a>),
 }
 
 impl From<InternalError<'_>> for Error {
@@ -60,6 +75,7 @@ impl From<InternalError<'_>> for Error {
             InternalError::InsideArray(internal_error, path) => {
                 Error::InsideArray(Box::new(Error::from(*internal_error)), path.to_owned())
             }
+            InternalError::NonIndexableValue(path) => Error::NonIndexableValue(path.to_owned()),
         }
     }
 }
@@ -114,7 +130,16 @@ impl<'a> JsonPath<'a> {
 
 impl Display for JsonPath<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        self.to_owned().fmt(f)
+        match self {
+            JsonPath::Root => Ok(()),
+            JsonPath::Node { entry, parent } => {
+                parent.fmt(f)?;
+                match entry {
+                    JsonPathEntry::Key(key) => write!(f, ".{key}"),
+                    JsonPathEntry::Index(index) => write!(f, "[{index}]"),
+                }
+            }
+        }
     }
 }
 
@@ -197,16 +222,20 @@ impl Query<'_> {
     }
 
     fn do_apply<'a>(&'a self, value: Value, context: Context<'a>) -> Result<Value, Error> {
+        // TODO: maybe we should make a differece while representing `field1{ }` and `field1`, since in the fist case
+        // the intent might be to filter an object... but the way we are representing it now, it is the same as `field1`,
+        // which is just using empty children... given the following json `{"field1": 1}` and the query `{field1{}}` we should
+        // fail? it is different from `{field1}`?
         if self.children().is_empty() {
             return Ok(value);
         }
 
         match value {
             Value::Object(object) => self.do_apply_object(object, context),
-            Value::Array(old_array) => self.do_apply_array(old_array, context),
-            // TODO: this should fail, since there are children defined but the json is not an object or an array
-            // But, if in the context we are inside an array, we should just log a warning and return the json as is
-            _ => Ok(value),
+            Value::Array(array) => Ok(self.do_apply_array(array, context)),
+            // TODO: Maybe the conversion each time to an owned error is too expensive? We should find
+            // a way to return a borrowed error, or to always use the owned one but in other way...
+            _ => Err(InternalError::NonIndexableValue(context.path))?,
         }
     }
 
@@ -232,33 +261,75 @@ impl Query<'_> {
                 (Err(internal_error), Some(array_context)) => {
                     let array_error =
                         InternalError::InsideArray(Box::new(internal_error), array_context.path);
+                    // TODO: Check if displaying the borrowed JsonPath is too expensive,
+                    // since it will be doing a recursive call to display the whole path
                     log::warn!("{array_error}");
                     continue;
                 }
             };
-            let child_filtered_value = child.do_apply(child_value, child_context)?;
+            let child_filtered_value_result = child.do_apply(child_value, child_context);
+            let child_filtered_value =
+                match (child_filtered_value_result, child_context.array_context) {
+                    (Ok(value), _) => value,
+                    (Err(child_error), None) => return Err(child_error),
+                    (Err(child_error), Some(array_context)) => {
+                        // TODO: this conversion is expensive?
+                        let array_error = Error::InsideArray(
+                            Box::new(child_error),
+                            array_context.path.to_owned(),
+                        );
+                        log::warn!("{array_error}");
+                        continue;
+                    }
+                };
+
             // TODO: do not insert empty child objects? and empty child arrays?
+            // do as the array
             filtered_object.insert(child_key, child_filtered_value);
         }
         Ok(Value::Object(filtered_object))
     }
 
-    fn do_apply_array(&self, array: Vec<Value>, context: Context) -> Result<Value, Error> {
+    fn do_apply_array(&self, array: Vec<Value>, context: Context) -> Value {
         let array_context = context.enter_array();
-        array
+        let filtered_array = array
             .into_iter()
             .enumerate()
             .map(|(index, value)| {
                 let index_context = array_context.push(JsonPathEntry::Index(index));
                 self.do_apply(value, index_context)
             })
-            // TODO: filter empty objects? and what about nested empty arrays?
-            .collect::<Result<Vec<Value>, Error>>()
-            .map(Value::Array)
-            .map_err(|item_error| {
-                // Unrecoverable errors inside the array should not happen,
-                // since all errors within the array filtering should be caught and logged as a warning...
-                Error::InsideArray(Box::new(item_error), array_context.path.to_owned())
+            .flat_map(|result| {
+                result
+                    .map_err(|error| {
+                        //TODO: this conversion is expensive?
+                        let array_error =
+                            Error::InsideArray(Box::new(error), array_context.path.to_owned());
+                        log::warn!("{array_error}");
+                    })
+                    .ok()
             })
+            // TODO: just filter empty objects or also empty arrays?
+            // TODO: filter empty objects? and what about nested empty arrays?
+            .filter(|v| !v.is_empty_object())
+            .collect::<Vec<Value>>();
+        Value::Array(filtered_array)
+    }
+}
+
+trait IsEmptyObject {
+    fn is_empty_object(&self) -> bool;
+}
+
+impl IsEmptyObject for Value {
+    fn is_empty_object(&self) -> bool {
+        match self {
+            Value::Null => false,
+            Value::Bool(_) => false,
+            Value::Number(_) => false,
+            Value::String(_) => false,
+            Value::Array(array) => false,
+            Value::Object(object) => object.is_empty(),
+        }
     }
 }
