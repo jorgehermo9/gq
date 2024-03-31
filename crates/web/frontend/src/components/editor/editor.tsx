@@ -4,13 +4,12 @@ import CodeMirror from "@uiw/react-codemirror";
 import { langs } from "@uiw/codemirror-extensions-langs";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { Clipboard, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import styles from "./editor.module.css";
 import { useCallback, useEffect, useState } from "react";
-import { js_beautify as format } from "js-beautify";
 import ActionButton from "../action-button/action-button";
+import useFormat from "@/hooks/useFormat";
 
 interface Props {
   className?: string;
@@ -28,16 +27,25 @@ const Editor = ({
   editable = true,
 }: Props) => {
   const [isFocused, setIsFocused] = useState(false);
+  const formatWorker = useFormat();
+
+  const format = useCallback(() => {
+    const toastId = toast.loading("Formatting code...");
+    formatWorker
+      ?.postMessage(value)
+      .then((res) => onChange?.(res))
+      .finally(() => toast.success("Code formatted!", { id: toastId }));
+  }, [value, onChange, formatWorker]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (!isFocused) return;
       if (event.ctrlKey && event.key === "s") {
         event.preventDefault();
-        onChange?.(format(value));
+        format();
       }
     },
-    [value, onChange, isFocused]
+    [isFocused, format]
   );
 
   useEffect(() => {
@@ -73,10 +81,7 @@ const Editor = ({
       >
         <div className="absolute z-10 top-4 right-4 flex gap-2 group-hover:opacity-100 opacity-0 transition-opacity duration-200 ">
           {editable && (
-            <ActionButton
-              description="Format code (Ctrl + S)"
-              onClick={() => onChange?.(format(value))}
-            >
+            <ActionButton description="Format code (Ctrl + S)" onClick={format}>
               <Sparkles className="w-4 h-4" />
             </ActionButton>
           )}

@@ -2,13 +2,13 @@
 
 import Editor from "@/components/editor/editor";
 import { Badge } from "@/components/ui/badge";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import ApplyButton from "@/components/apply-button/apply-button";
-import { js_beautify as format } from "js-beautify";
 import SettingsSheet from "@/components/settings-sheet/settings-sheet";
 import { useSettings } from "@/providers/settings-provider";
 import useDebounce from "@/hooks/useDebounce";
-import useWorker from "@/hooks/useWorker";
+import useGq from "@/hooks/useGq";
+import { toast } from "sonner";
 
 const Home = () => {
   const [inputJson, setInputJson] = useState<string>('{"test": 1213}');
@@ -21,22 +21,29 @@ const Home = () => {
     []
   );
 
-  const worker = useWorker(receiveMessage);
+  const gqWorker = useGq();
 
   const updateOutputJson = useCallback(
     (notify: boolean) => {
       if (!notify) {
-        worker?.postMessage({ query: inputQuery, json: inputJson });
+        gqWorker
+          ?.postMessage({ query: inputQuery, json: inputJson })
+          .then((res) => {
+            console.log(res);
+            setOutputJson(res);
+          });
         return;
       }
-      // const toastId = toast.loading("Applying query to JSON...");
-      worker?.postMessage({ query: inputQuery, json: inputJson });
-      // toast.success("Query applied to JSON", { id: toastId });
+      const toastId = toast.loading("Applying query to JSON...");
+      gqWorker
+        ?.postMessage({ query: inputQuery, json: inputJson })
+        .then((res) => setOutputJson(res))
+        .finally(() => toast.success("Query applied to JSON", { id: toastId }));
     },
-    [inputJson, inputQuery, worker]
+    [inputJson, inputQuery, gqWorker]
   );
 
-  useDebounce(() => settings.autoApply && updateOutputJson(true), 1000, [
+  useDebounce(() => settings.autoApply && updateOutputJson(false), 1000, [
     inputJson,
     inputQuery,
   ]);
