@@ -33,7 +33,9 @@ const Editor = ({
     formatWorker
       ?.postMessage(value)
       .then((res) => onChange?.(res))
-      .finally(() => toast.success("Code formatted!", { id: toastId }));
+      .finally(() =>
+        toast.success("Code formatted!", { id: toastId, duration: 1000 })
+      );
   }, [value, onChange, formatWorker]);
 
   const copyToClipboard = useCallback(() => {

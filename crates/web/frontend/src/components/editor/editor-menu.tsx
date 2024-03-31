@@ -70,6 +70,7 @@ const EditorMenu = ({
             id="file-import"
             hidden
             type="file"
+            accept=".json,.gq"
             onChange={(e) => {
               handleImportFile(e);
             }}
