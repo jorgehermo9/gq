@@ -204,3 +204,11 @@ impl<'src> Parser<'src> {
         }
     }
 }
+
+impl<'a> TryFrom<&'a str> for Query<'a> {
+    type Error = Error;
+
+    fn try_from(value: &'a str) -> Result<Self> {
+        Parser::new(value).parse()
+    }
+}

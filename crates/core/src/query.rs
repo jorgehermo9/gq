@@ -313,3 +313,52 @@ impl Query<'_> {
         Value::Array(filtered_array)
     }
 }
+
+impl Display for Query<'_> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let formatted = self.pretty_format(2);
+        write!(f, "{formatted}")
+    }
+}
+
+impl Query<'_> {
+    pub fn pretty_format(&self, indent: usize) -> String {
+        let mut result = String::new();
+
+        let sep = if indent == 0 { ' ' } else { '\n' };
+
+        match self.key() {
+            Some(_) => self.do_pretty_format(&mut result, indent, 0, sep),
+            None => {
+                if self.children().is_empty() {
+                    return "{}".to_string();
+                }
+                result.push_str(&format!("{{{sep}"));
+                for child in self.children() {
+                    child.do_pretty_format(&mut result, indent, 1, sep);
+                }
+                result.push('}');
+            }
+        }
+        result
+    }
+
+    fn do_pretty_format(&self, result: &mut String, indent: usize, level: usize, sep: char) {
+        let indentation = " ".repeat(indent * level);
+
+        let Some(QueryKey(key)) = self.key() else {
+            panic!("children query must have a key");
+        };
+
+        result.push_str(&format!("{indentation}{key}"));
+        if !self.children().is_empty() {
+            result.push_str(&format!(" {{{sep}"));
+            for child in self.children() {
+                child.do_pretty_format(result, indent, level + 1, sep);
+            }
+            result.push_str(&format!("{indentation}}}{sep}"));
+        } else {
+            result.push(sep);
+        }
+    }
+}
