@@ -1,5 +1,4 @@
 use std::{
-    borrow::Borrow,
     fmt::{self, Display, Formatter},
     rc::Rc,
 };
@@ -242,7 +241,7 @@ impl Query<'_> {
 
     fn do_apply_object<'a>(
         &'a self,
-        mut object: Map<String, Value>,
+        object: Map<String, Value>,
         context: Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
         let mut filtered_object = serde_json::Map::new();
@@ -252,10 +251,9 @@ impl Query<'_> {
             };
             let child_context = context.push(JsonPathEntry::Key(child_query_key));
             let child_entry_result = object
-                // TODO: maybe the entry removal is not okay. for example, for queries like
-                // { bill bill: bill2}, where we would like to access the bill field twice...
-                .remove_entry(child_query_key)
-                .ok_or(InternalError::KeyNotFound(child_context.path.clone()));
+                .get(child_query_key)
+                .ok_or(InternalError::KeyNotFound(child_context.path.clone()))
+                .map(|value| (child_query_key.to_string(), value.clone()));
 
             let (child_key, child_value) = match (child_entry_result, &child_context.array_context)
             {
