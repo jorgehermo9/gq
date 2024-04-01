@@ -9,16 +9,22 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Clipboard, EllipsisVertical, Import, Sparkles } from "lucide-react";
-import { Input } from "../ui/input";
+import {
+  Clipboard,
+  Download,
+  DownloadCloud,
+  EllipsisVertical,
+  Import,
+  Sparkles,
+} from "lucide-react";
 import { Label } from "../ui/label";
-import { useRef } from "react";
 
 interface Props {
   editable: boolean;
   onCopyToClipboard: () => void;
   onFormatCode: () => void;
   onImportFile: (content: string) => void;
+  onExportFile: () => void;
 }
 
 const EditorMenu = ({
@@ -26,6 +32,7 @@ const EditorMenu = ({
   onCopyToClipboard,
   onFormatCode,
   onImportFile,
+  onExportFile,
 }: Props) => {
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,9 +78,7 @@ const EditorMenu = ({
             hidden
             type="file"
             accept=".json,.gq"
-            onChange={(e) => {
-              handleImportFile(e);
-            }}
+            onChange={handleImportFile}
           />
           <Label
             htmlFor="file-import"
@@ -82,6 +87,12 @@ const EditorMenu = ({
             <Import className="w-4 h-4" />
             <span>Import file</span>
           </Label>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onExportFile}>
+          <div className="flex items-center gap-2">
+            <DownloadCloud className="w-4 h-4" />
+            <span>Export file</span>
+          </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

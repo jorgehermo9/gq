@@ -4,9 +4,10 @@ import registerWebworker from "webworker-promise/lib/register";
 interface MessageContent {
 	query: string;
 	json: string;
+	indent: number;
 }
 
-registerWebworker(async (message: MessageContent) => {
+registerWebworker(async ({ query, json, indent }: MessageContent) => {
 	await init();
-	return gq(message.query, message.json)
+	return gq(query, json, indent)
 });

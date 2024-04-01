@@ -9,39 +9,59 @@ import styles from "./editor.module.css";
 import { useCallback, useEffect, useState } from "react";
 import useFormat from "@/hooks/useFormat";
 import EditorMenu from "./editor-menu";
+import FileType from "@/model/file-type";
+import { useSettings } from "@/providers/settings-provider";
 
 interface Props {
-  className?: string;
   value: string;
-  onChange?: (value: string) => void;
   title: string;
+  filename: string;
+  type: FileType;
+  onChange?: (value: string) => void;
+  className?: string;
   editable?: boolean;
 }
 
 const Editor = ({
-  className,
   value,
-  onChange,
   title,
+  filename,
+  type,
+  onChange,
+  className,
   editable = true,
 }: Props) => {
   const [isFocused, setIsFocused] = useState(false);
   const formatWorker = useFormat();
+  const {
+    settings: { indentSize },
+  } = useSettings();
 
   const formatCode = useCallback(() => {
     const toastId = toast.loading("Formatting code...");
     formatWorker
-      ?.postMessage(value)
+      ?.postMessage({ data: value, indent: indentSize, type: type })
       .then((res) => onChange?.(res))
+      .catch((err) => console.error(err))
       .finally(() =>
         toast.success("Code formatted!", { id: toastId, duration: 1000 })
       );
-  }, [value, onChange, formatWorker]);
+  }, [value, onChange, formatWorker, type, indentSize]);
 
   const copyToClipboard = useCallback(() => {
     navigator.clipboard.writeText(value);
     toast.success("Copied to your clipboard!");
   }, [value]);
+
+  const exportFile = useCallback(() => {
+    const blob = new Blob([value], { type: `application/${type}` });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.${type}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [value, filename, type]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -73,10 +93,8 @@ const Editor = ({
           editable={editable}
           onCopyToClipboard={copyToClipboard}
           onFormatCode={formatCode}
-          onImportFile={(value) => {
-            console.log(value);
-            onChange?.(value);
-          }}
+          onImportFile={(value) => onChange?.(value)}
+          onExportFile={exportFile}
         />
       </div>
 

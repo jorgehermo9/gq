@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { useSettings } from "@/providers/settings-provider";
 import { ContextMenuSeparator } from "../ui/context-menu";
 import { Input } from "../ui/input";
+import { Slider } from "../ui/slider";
 
 interface Props {
   className?: string;
@@ -38,7 +39,7 @@ const SettingsSheet = ({ className }: Props) => {
         <ContextMenuSeparator />
         <div className="flex flex-col gap-4">
           <div className="flex gap-4 items-center">
-            <Label htmlFor="auto-apply" className="text-md">
+            <Label htmlFor="auto-apply" className="text-md font-semibold">
               Auto apply
             </Label>
             <Switch
@@ -70,6 +71,19 @@ const SettingsSheet = ({ className }: Props) => {
               Debounce time (ms)
             </Label>
           </div>
+        </div>
+        <ContextMenuSeparator />
+        <div className="flex flex-col gap-4">
+          <h2 className="text-md font-semibold">Formatting</h2>
+          <Slider
+            onValueChange={(value) =>
+              setSettings({ ...settings, indentSize: value[0] })
+            }
+            value={[settings.indentSize]}
+            max={4}
+            min={0}
+            step={2}
+          />
         </div>
       </SheetContent>
     </Sheet>

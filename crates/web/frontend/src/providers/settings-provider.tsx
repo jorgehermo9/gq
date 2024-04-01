@@ -27,6 +27,7 @@ export const SettingsProvider = ({ children }: Props) => {
   const [settings, setSettings] = useState<Settings>({
     autoApply: true,
     debounceTime: 1000,
+    indentSize: 2,
   });
 
   return (

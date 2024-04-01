@@ -9,12 +9,15 @@ import { useSettings } from "@/providers/settings-provider";
 import useDebounce from "@/hooks/useDebounce";
 import useGq from "@/hooks/useGq";
 import { toast } from "sonner";
+import FileType from "@/model/file-type";
 
 const Home = () => {
   const [inputJson, setInputJson] = useState<string>('{"test": 1213}');
   const [inputQuery, setInputQuery] = useState<string>("{}");
   const [outputJson, setOutputJson] = useState<string>("");
-  const { settings } = useSettings();
+  const {
+    settings: { autoApply, debounceTime, indentSize },
+  } = useSettings();
   const gqWorker = useGq();
 
   const updateOutputJson = useCallback(
@@ -22,29 +25,33 @@ const Home = () => {
       if (!gqWorker) return;
       if (!notify) {
         gqWorker
-          .postMessage({ query: inputQuery, json: inputJson })
-          .then((res) => {
-            console.log(res);
-            setOutputJson(res);
-          });
+          .postMessage({
+            query: inputQuery,
+            json: inputJson,
+            indent: indentSize,
+          })
+          .catch((err) => console.error(err))
+          .then((res) => setOutputJson(res));
         return;
       }
       const toastId = toast.loading("Applying query to JSON...");
       gqWorker
-        .postMessage({ query: inputQuery, json: inputJson })
+        .postMessage({ query: inputQuery, json: inputJson, indent: indentSize })
         .then((res) => setOutputJson(res))
         .finally(() =>
-          toast.success("Query applied to JSON", { id: toastId, duration: 1000 })
+          toast.success("Query applied to JSON", {
+            id: toastId,
+            duration: 1000,
+          })
         );
     },
-    [inputJson, inputQuery, gqWorker]
+    [inputJson, inputQuery, gqWorker, indentSize]
   );
 
-  useDebounce(
-    () => settings.autoApply && updateOutputJson(true),
-    settings.debounceTime,
-    [inputJson, inputQuery]
-  );
+  useDebounce(() => autoApply && updateOutputJson(true), debounceTime, [
+    inputJson,
+    inputQuery,
+  ]);
 
   return (
     <main className="flex flex-col items-center p-8 h-screen">
@@ -65,16 +72,20 @@ const Home = () => {
             value={inputJson}
             onChange={setInputJson}
             title="Input JSON"
+            filename="data"
+            type={FileType.JSON}
           />
           <Editor
             className="w-[44vw] h-[40vh] max-h-[40vh]"
             value={inputQuery}
             onChange={setInputQuery}
             title="Input Query"
+            filename="query"
+            type={FileType.GQ}
           />
         </aside>
         <ApplyButton
-          autoApply={settings.autoApply}
+          autoApply={autoApply}
           onClick={() => updateOutputJson(true)}
         />
         <aside className="w-[44vw] h-[80vh] flex flex-col">
@@ -83,6 +94,8 @@ const Home = () => {
             value={outputJson}
             title="Output JSON"
             editable={false}
+            filename="output"
+            type={FileType.JSON}
           />
         </aside>
       </section>
