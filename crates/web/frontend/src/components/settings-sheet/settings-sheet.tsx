@@ -7,12 +7,20 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import ActionButton from "../action-button/action-button";
+import ActionButton from "@/components/action-button/action-button";
 import { Settings } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useSettings } from "@/providers/settings-provider";
-import { ContextMenuSeparator } from "../ui/context-menu";
-import { Input } from "../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Slider } from "../ui/slider";
 
 interface Props {
@@ -36,7 +44,7 @@ const SettingsSheet = ({ className }: Props) => {
             Configure the playground settings to your liking.
           </SheetDescription>
         </SheetHeader>
-        <ContextMenuSeparator />
+        <Separator />
         <div className="flex flex-col gap-4">
           <div className="flex gap-4 items-center">
             <Label htmlFor="auto-apply" className="text-md font-semibold">
@@ -52,38 +60,72 @@ const SettingsSheet = ({ className }: Props) => {
             />
           </div>
           <div className="ml-4">
-            <Input
-              id="debounce-time"
-              disabled={!settings.autoApply}
-              type="number"
-              value={settings.debounceTime}
-              onChange={(e) =>
-                setSettings({
-                  ...settings,
-                  debounceTime: Number(e.target.value),
-                })
-              }
-            />
             <Label
               htmlFor="debounce-time"
               variant={settings.autoApply ? "default" : "disabled"}
             >
               Debounce time (ms)
             </Label>
+            <Slider
+              id="debounce-time"
+              disabled={!settings.autoApply}
+              onValueChange={(value) =>
+                setSettings({ ...settings, debounceTime: value[0] })
+              }
+              value={[settings.debounceTime]}
+              max={5000}
+              min={0}
+              step={500}
+            />
           </div>
         </div>
-        <ContextMenuSeparator />
-        <div className="flex flex-col gap-4">
+        <Separator />
+        <div className="flex flex-col gap-4 w-full">
           <h2 className="text-md font-semibold">Formatting</h2>
-          <Slider
-            onValueChange={(value) =>
-              setSettings({ ...settings, indentSize: value[0] })
-            }
-            value={[settings.indentSize]}
-            max={4}
-            min={0}
-            step={2}
-          />
+          <div className="flex gap-8 ml-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="json-tab-size">JSON indent</Label>
+              <Select
+                value={settings.jsonTabSize.toString()}
+                onValueChange={(value) =>
+                  setSettings({ ...settings, jsonTabSize: Number(value) })
+                }
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue id="json-tab-size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Tab size</SelectLabel>
+                    <SelectItem value="0">0</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="query-tab-size">Query indent</Label>
+              <Select
+                value={settings.queryTabSize.toString()}
+                onValueChange={(value) =>
+                  setSettings({ ...settings, queryTabSize: Number(value) })
+                }
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue id="query-tab-size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Tab size</SelectLabel>
+                    <SelectItem value="0">0</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

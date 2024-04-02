@@ -16,9 +16,10 @@ const Home = () => {
   const [inputQuery, setInputQuery] = useState<string>("{}");
   const [outputJson, setOutputJson] = useState<string>("");
   const {
-    settings: { autoApply, debounceTime, indentSize },
+    settings: { autoApply, debounceTime, jsonTabSize, queryTabSize },
   } = useSettings();
   const gqWorker = useGq();
+  const indentSize = inputQuery ? queryTabSize : jsonTabSize;
 
   const updateOutputJson = useCallback(
     (notify: boolean) => {
@@ -73,7 +74,7 @@ const Home = () => {
             onChange={setInputJson}
             title="Input JSON"
             filename="data"
-            type={FileType.JSON}
+            fileType={FileType.JSON}
           />
           <Editor
             className="w-[44vw] h-[40vh] max-h-[40vh]"
@@ -81,7 +82,7 @@ const Home = () => {
             onChange={setInputQuery}
             title="Input Query"
             filename="query"
-            type={FileType.GQ}
+            fileType={FileType.GQ}
           />
         </aside>
         <ApplyButton
@@ -95,7 +96,7 @@ const Home = () => {
             title="Output JSON"
             editable={false}
             filename="output"
-            type={FileType.JSON}
+            fileType={FileType.JSON}
           />
         </aside>
       </section>

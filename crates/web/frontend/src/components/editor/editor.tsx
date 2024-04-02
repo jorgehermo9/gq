@@ -16,7 +16,7 @@ interface Props {
   value: string;
   title: string;
   filename: string;
-  type: FileType;
+  fileType: FileType;
   onChange?: (value: string) => void;
   className?: string;
   editable?: boolean;
@@ -26,7 +26,7 @@ const Editor = ({
   value,
   title,
   filename,
-  type,
+  fileType,
   onChange,
   className,
   editable = true,
@@ -34,19 +34,20 @@ const Editor = ({
   const [isFocused, setIsFocused] = useState(false);
   const formatWorker = useFormat();
   const {
-    settings: { indentSize },
+    settings: { jsonTabSize, queryTabSize },
   } = useSettings();
+  const indentSize = fileType === FileType.JSON ? jsonTabSize : queryTabSize;
 
   const formatCode = useCallback(() => {
     const toastId = toast.loading("Formatting code...");
     formatWorker
-      ?.postMessage({ data: value, indent: indentSize, type: type })
+      ?.postMessage({ data: value, indent: indentSize, type: fileType })
       .then((res) => onChange?.(res))
       .catch((err) => console.error(err))
       .finally(() =>
         toast.success("Code formatted!", { id: toastId, duration: 1000 })
       );
-  }, [value, onChange, formatWorker, type, indentSize]);
+  }, [value, onChange, formatWorker, fileType, indentSize]);
 
   const copyToClipboard = useCallback(() => {
     navigator.clipboard.writeText(value);
@@ -54,14 +55,14 @@ const Editor = ({
   }, [value]);
 
   const exportFile = useCallback(() => {
-    const blob = new Blob([value], { type: `application/${type}` });
+    const blob = new Blob([value], { type: `application/${fileType}` });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${filename}.${type}`;
+    a.download = `${filename}.${fileType}`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [value, filename, type]);
+  }, [value, filename, fileType]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
