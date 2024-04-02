@@ -21,7 +21,6 @@ pub enum Error {
 // serialize it to a string and then parse it again.
 pub fn entrypoint(query: &str, json: &str) -> Result<Value, Error> {
     let query = Query::try_from(query)?;
-    print!("{}", query);
     let json: Value = serde_json::from_str(json)?;
     let query_result = query.apply(json)?;
     Ok(query_result)

@@ -15,33 +15,29 @@ pub enum Error {
 #[logos(skip r"[ \t\r\n\f]+")]
 #[logos(error = Error)]
 pub enum Token<'src> {
-    // TODO: rename this to LBrace and RBrace?
     #[token("{")]
-    BraceOpen,
-
+    LBrace,
     #[token("}")]
-    BraceClose,
-
-    // TODO: rename this to LParen and RParen?
+    RBrace,
     #[token("(")]
-    ParenOpen,
-
+    LParen,
     #[token(")")]
-    ParenClose,
-
+    RParen,
+    #[token(".")]
+    Dot,
     // TODO: allow for more chars
     #[regex(r"[a-zA-Z_]\w*")]
     Key(&'src str),
-
     EOF,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum OwnedToken {
-    BraceOpen,
-    BraceClose,
-    ParenOpen,
-    ParenClose,
+    LBrace,
+    RBrace,
+    LParen,
+    RParen,
+    Dot,
     Key(String),
     EOF,
 }
@@ -49,11 +45,12 @@ pub enum OwnedToken {
 impl Display for OwnedToken {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            OwnedToken::BraceOpen => write!(f, "{{"),
-            OwnedToken::BraceClose => write!(f, "}}"),
-            OwnedToken::ParenOpen => write!(f, "("),
-            OwnedToken::ParenClose => write!(f, ")"),
-            OwnedToken::Key(key) => write!(f, "{}", key),
+            OwnedToken::LBrace => write!(f, "{{"),
+            OwnedToken::RBrace => write!(f, "}}"),
+            OwnedToken::LParen => write!(f, "("),
+            OwnedToken::RParen => write!(f, ")"),
+            OwnedToken::Dot => write!(f, "."),
+            OwnedToken::Key(key) => write!(f, "{key}"),
             OwnedToken::EOF => write!(f, "EOF"),
         }
     }
@@ -62,10 +59,11 @@ impl Display for OwnedToken {
 impl From<Token<'_>> for OwnedToken {
     fn from(token: Token) -> Self {
         match token {
-            Token::BraceOpen => OwnedToken::BraceOpen,
-            Token::BraceClose => OwnedToken::BraceClose,
-            Token::ParenOpen => OwnedToken::ParenOpen,
-            Token::ParenClose => OwnedToken::ParenClose,
+            Token::LBrace => OwnedToken::LBrace,
+            Token::RBrace => OwnedToken::RBrace,
+            Token::LParen => OwnedToken::LParen,
+            Token::RParen => OwnedToken::RParen,
+            Token::Dot => OwnedToken::Dot,
             Token::Key(key) => OwnedToken::Key(key.to_string()),
             Token::EOF => OwnedToken::EOF,
         }

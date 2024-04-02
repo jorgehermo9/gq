@@ -8,14 +8,25 @@ use derive_more::Constructor;
 use serde_json::{Map, Value};
 use thiserror::Error;
 
-#[derive(Debug)]
-pub struct QueryKey<'a>(&'a str);
+#[derive(Debug, Constructor)]
+pub struct AtomicQueryKey<'a>(&'a str);
 
-// TODO: create a print method for Query, to print the query in the same format
-// as it would be parsed, and add tests for it so we can test that the parser
-// and the printer are inverses of each other. generate random queries
-// with some crate and then parse them and print them and check that the printed
-// query is the same as the original query.
+impl Display for AtomicQueryKey<'_> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{0}", self.0)
+    }
+}
+
+#[derive(Debug, Constructor, Getters)]
+pub struct QueryKey<'a> {
+    keys: Vec<AtomicQueryKey<'a>>,
+}
+
+impl QueryKey<'_> {
+    pub fn last_key(&self) -> &AtomicQueryKey {
+        self.keys().last().expect("query key cannot be empty")
+    }
+}
 
 // TODO: make the invalid states irrepresentable, the children could never be None...
 // maybe the Query struct should have a children field that is a Vec<ChildrenQuery>, which
@@ -29,11 +40,11 @@ impl<'a> Query<'a> {
     pub fn unnamed_with_children(children: Vec<Self>) -> Self {
         Self::new(None, children)
     }
-    pub fn named_empty(name: &'a str) -> Self {
-        Self::new(Some(QueryKey(name)), Vec::new())
+    pub fn named_empty(query_key: QueryKey<'a>) -> Self {
+        return Self::named_with_children(query_key, Vec::new());
     }
-    pub fn named_with_children(name: &'a str, children: Vec<Self>) -> Self {
-        Self::new(Some(QueryKey(name)), children)
+    pub fn named_with_children(query_key: QueryKey<'a>, children: Vec<Self>) -> Self {
+        Self::new(Some(query_key), children)
     }
 }
 
@@ -112,6 +123,7 @@ impl<'a> JsonPath<'a> {
         }
     }
 
+    // TODO: Change all of this `to_owned` to `From` trait
     pub fn to_owned(&self) -> OwnedJsonPath {
         let mut path = Vec::new();
         let mut current = self;
@@ -171,14 +183,25 @@ impl<'a> Context<'a> {
         Self::default()
     }
 
-    pub fn push(&self, entry: JsonPathEntry<'a>) -> Context<'a> {
+    pub fn push_entry(&self, entry: JsonPathEntry<'a>) -> Context<'a> {
         Self {
             path: self.path.push(entry),
             ..self.clone()
         }
     }
 
-    pub fn enter_array(&'a self) -> Self {
+    pub fn push_query_key(&self, query_key: &QueryKey<'a>) -> Context<'a> {
+        let mut path = self.path.clone();
+        for AtomicQueryKey(key) in &query_key.keys {
+            path = path.push(JsonPathEntry::Key(key));
+        }
+        Self {
+            path,
+            ..self.clone()
+        }
+    }
+
+    pub fn enter_array(&self) -> Self {
         Self {
             array_context: Some(ArrayContext {
                 path: self.path.clone(),
@@ -197,22 +220,24 @@ impl Default for Context<'_> {
     }
 }
 
+// TODO: do a validation of the final key collision. Aliases would be need so this errors can be resolved.
+// For example, this query:
+// ```{
+//  actor.login
+//  payload.pull_request.head.repo.owner.login
+//}
+//```
 impl Query<'_> {
     pub fn apply(&self, root_json: Value) -> Result<Value, Error> {
         let root_context = Context::new();
         let (new_root_json, root_context) = match (self.key(), root_json) {
             // TODO: maybe this is not the right way to do it...
-            (Some(QueryKey(key)), Value::Object(mut root_json)) => {
-                let new_context = root_context.push(JsonPathEntry::Key(key));
-                let new_root_json = root_json
-                    .get_mut(*key)
-                    .map(Value::take)
-                    .ok_or(InternalError::KeyNotFound(new_context.path.clone()))?;
-
+            (Some(query_key), value) => {
+                // let new_root_json = QueryKeyGet::get(&value, query_key, root_context)?;
+                let new_root_json = query_key.inspect(&value, &root_context)?;
+                let new_context = root_context.push_query_key(query_key);
                 (new_root_json, new_context)
             }
-            (Some(QueryKey(_)), Value::Array(_)) => todo!("array compression"),
-            (Some(QueryKey(_)), _) => Err(InternalError::NonIndexableValue(root_context.path))?,
             (None, root_json) => (root_json, root_context),
         };
 
@@ -245,19 +270,18 @@ impl Query<'_> {
         context: Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
         let mut filtered_object = serde_json::Map::new();
+        // TODO: check if this is necessary
+        let value = &Value::Object(object);
         for child in self.children() {
-            let Some(QueryKey(child_query_key)) = *child.key() else {
+            let Some(child_query_key) = child.key() else {
                 panic!("children query must have a key");
             };
-            let child_context = context.push(JsonPathEntry::Key(child_query_key));
-            let child_entry_result = object
-                .get(child_query_key)
-                .ok_or(InternalError::KeyNotFound(child_context.path.clone()))
-                .map(|value| (child_query_key.to_string(), value.clone()));
 
-            let (child_key, child_value) = match (child_entry_result, &child_context.array_context)
-            {
-                (Ok(entry), _) => entry,
+            let child_value_result = child_query_key.inspect(value, &context);
+            let child_context = context.push_query_key(child_query_key);
+
+            let child_value = match (child_value_result, &child_context.array_context) {
+                (Ok(value), _) => value,
                 (Err(internal_error), None) => return Err(internal_error),
                 (Err(internal_error), Some(array_context)) => {
                     let array_error = InternalError::InsideArray(
@@ -268,6 +292,7 @@ impl Query<'_> {
                     continue;
                 }
             };
+
             let child_filtered_value_result = child.do_apply(child_value, child_context.clone());
             let child_filtered_value =
                 match (child_filtered_value_result, &child_context.array_context) {
@@ -282,7 +307,7 @@ impl Query<'_> {
                         continue;
                     }
                 };
-            filtered_object.insert(child_key, child_filtered_value);
+            filtered_object.insert(child_query_key.last_key().to_string(), child_filtered_value);
         }
         Ok(Value::Object(filtered_object))
     }
@@ -293,7 +318,7 @@ impl Query<'_> {
             .into_iter()
             .enumerate()
             .map(|(index, item)| {
-                let item_context = array_context.push(JsonPathEntry::Index(index));
+                let item_context = array_context.push_entry(JsonPathEntry::Index(index));
                 self.do_apply(item, item_context)
             })
             .flat_map(|result| {
@@ -344,21 +369,76 @@ impl Query<'_> {
     }
 
     fn do_pretty_format(&self, result: &mut String, indent: usize, level: usize, sep: char) {
-        let indentation = " ".repeat(indent * level);
+        // TODO: implement this
+        todo!();
+        // let indentation = " ".repeat(indent * level);
 
-        let Some(QueryKey(key)) = self.key() else {
-            panic!("children query must have a key");
+        // let Some(QueryKey(key)) = self.key() else {
+        //     panic!("children query must have a key");
+        // };
+
+        // result.push_str(&format!("{indentation}{key}"));
+        // if !self.children().is_empty() {
+        //     result.push_str(&format!(" {{{sep}"));
+        //     for child in self.children() {
+        //         child.do_pretty_format(result, indent, level + 1, sep);
+        //     }
+        //     result.push_str(&format!("{indentation}}}{sep}"));
+        // } else {
+        //     result.push(sep);
+        // }
+    }
+}
+
+impl<'a> QueryKey<'a> {
+    pub fn inspect(
+        &self,
+        value: &Value,
+        context: &Context<'a>,
+    ) -> Result<Value, InternalError<'a>> {
+        Self::do_inspect(value, &self.keys, context)
+    }
+    fn do_inspect(
+        value: &Value,
+        keys: &[AtomicQueryKey<'a>],
+        context: &Context<'a>,
+    ) -> Result<Value, InternalError<'a>> {
+        let Some((AtomicQueryKey(current_key), rest)) = keys.split_first() else {
+            return Ok(value.clone());
         };
+        let new_context = context.push_entry(JsonPathEntry::Key(current_key));
 
-        result.push_str(&format!("{indentation}{key}"));
-        if !self.children().is_empty() {
-            result.push_str(&format!(" {{{sep}"));
-            for child in self.children() {
-                child.do_pretty_format(result, indent, level + 1, sep);
+        match value {
+            Value::Object(object) => {
+                let current = object
+                    .get(*current_key)
+                    .ok_or(InternalError::KeyNotFound(new_context.path.clone()))?;
+                Self::do_inspect(current, rest, &new_context)
             }
-            result.push_str(&format!("{indentation}}}{sep}"));
-        } else {
-            result.push(sep);
+            Value::Array(array) => {
+                let array_context = context.enter_array();
+                let indexed_array = array
+                    .iter()
+                    .enumerate()
+                    .map(|(index, item)| {
+                        let item_context = array_context.push_entry(JsonPathEntry::Index(index));
+                        Self::do_inspect(item, keys, &item_context)
+                    })
+                    .flat_map(|result| {
+                        result
+                            .map_err(|error| {
+                                let array_error = InternalError::InsideArray(
+                                    Box::new(error),
+                                    array_context.path.clone(),
+                                );
+                                log::warn!("{array_error}");
+                            })
+                            .ok()
+                    })
+                    .collect();
+                Ok(Value::Array(indexed_array))
+            }
+            _ => Err(InternalError::NonIndexableValue(new_context.path)),
         }
     }
 }
