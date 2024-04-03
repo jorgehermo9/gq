@@ -10,7 +10,7 @@ const labelVariants = cva("text-sm leading-none", {
   variants: {
     variant: {
       default: "opacity-100",
-      disabled: "opacity-70 select-none",
+      disabled: "opacity-50 select-none",
     },
   },
   defaultVariants: {

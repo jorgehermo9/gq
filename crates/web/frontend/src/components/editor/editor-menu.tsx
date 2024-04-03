@@ -17,7 +17,7 @@ import {
   Import,
   Sparkles,
 } from "lucide-react";
-import { Label } from "../ui/label";
+import { Label } from "@/components/ui/label";
 
 interface Props {
   editable: boolean;

@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { Montserrat } from "next/font/google";
+import { Montserrat, Neuton } from "next/font/google";
 import { Toaster } from "sonner";
 import { SettingsProvider } from "@/providers/settings-provider";
 import { useEffect, useRef } from "react";
+
+const neuton = Neuton({
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
+  variable: "--font-neuton",
+});
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
@@ -18,25 +24,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
         className={cn(
-          "min-h-screen font-sans antialiased",
-          montserrat.variable
+          "min-h-screen antialiased",
+          montserrat.variable,
+          neuton.variable
         )}
       >
         <Toaster
-          offset="16px"
+          offset="32px"
+          duration={2000}
           toastOptions={{
             closeButton: false,
             unstyled: true,
             classNames: {
               toast:
-                "w-full flex gap-4 bg-background items-center border border-accent p-4 rounded-md shadow-md",
+                "w-full flex gap-4 bg-background items-center border border-foreground p-4 rounded-md shadow-md",
               title: "text-foreground text-sm",
               actionButton:
                 "min-w-max bg-foreground text-background text-xs px-2 py-1 rounded-md justify-self-end",
-              closeButton: "text-foreground hover:text-accent bg-background transition-colors h-4 w-4",
+              closeButton:
+                "text-foreground hover:text-accent bg-background transition-colors h-4 w-4",
+              icon: "",
             },
           }}
         />

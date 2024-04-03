@@ -2,7 +2,7 @@
 
 import Editor from "@/components/editor/editor";
 import { Badge } from "@/components/ui/badge";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ApplyButton from "@/components/apply-button/apply-button";
 import SettingsSheet from "@/components/settings-sheet/settings-sheet";
 import { useSettings } from "@/providers/settings-provider";
@@ -10,16 +10,16 @@ import useDebounce from "@/hooks/useDebounce";
 import useGq from "@/hooks/useGq";
 import { toast } from "sonner";
 import FileType from "@/model/file-type";
+import Terminal from "@/components/terminal/terminal";
 
 const Home = () => {
   const [inputJson, setInputJson] = useState<string>('{"test": 1213}');
   const [inputQuery, setInputQuery] = useState<string>("{}");
   const [outputJson, setOutputJson] = useState<string>("");
   const {
-    settings: { autoApply, debounceTime, jsonTabSize, queryTabSize },
+    settings: { autoApply, debounceTime, jsonTabSize },
   } = useSettings();
   const gqWorker = useGq();
-  const indentSize = inputQuery ? queryTabSize : jsonTabSize;
 
   const updateOutputJson = useCallback(
     (notify: boolean) => {
@@ -29,24 +29,28 @@ const Home = () => {
           .postMessage({
             query: inputQuery,
             json: inputJson,
-            indent: indentSize,
+            indent: jsonTabSize,
           })
-          .catch((err) => console.error(err))
-          .then((res) => setOutputJson(res));
+          .then(setOutputJson)
+          .catch((err) => toast.error(err.message, { duration: 5000 }));
         return;
       }
       const toastId = toast.loading("Applying query to JSON...");
       gqWorker
-        .postMessage({ query: inputQuery, json: inputJson, indent: indentSize })
-        .then((res) => setOutputJson(res))
-        .finally(() =>
-          toast.success("Query applied to JSON", {
-            id: toastId,
-            duration: 1000,
-          })
+        .postMessage({
+          query: inputQuery,
+          json: inputJson,
+          indent: jsonTabSize,
+        })
+        .then((res) => {
+          toast.success("Query applied to JSON", { id: toastId });
+          setOutputJson(res);
+        })
+        .catch((err) =>
+          toast.error(err.message, { id: toastId, duration: 5000 })
         );
     },
-    [inputJson, inputQuery, gqWorker, indentSize]
+    [inputJson, inputQuery, gqWorker, jsonTabSize]
   );
 
   useDebounce(() => autoApply && updateOutputJson(true), debounceTime, [
@@ -57,8 +61,10 @@ const Home = () => {
   return (
     <main className="flex flex-col items-center p-8 h-screen">
       <div className="w-full flex items-center justify-center">
-        <h1 className="mx-auto flex gap-4 pb-4 items-end text-5xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
-          GQ Playground{" "}
+        <h1 className="mx-auto flex gap-4 pb-8 items-end text-7xl font-extrabold">
+          <span className="neuton">
+            GQ <span className="font-normal">Playground</span>
+          </span>
           <Badge variant="secondary" className="mb-2">
             beta
           </Badge>
@@ -93,6 +99,7 @@ const Home = () => {
           <Editor
             className="w-[44vw] h-[80vh]"
             value={outputJson}
+            onChange={setOutputJson}
             title="Output JSON"
             editable={false}
             filename="output"
@@ -100,6 +107,8 @@ const Home = () => {
           />
         </aside>
       </section>
+
+      <Terminal />
     </main>
   );
 };

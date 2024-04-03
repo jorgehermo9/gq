@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, step, value, max, ...props }, ref) => (
-  <div>
+>(({ className, step, value, max, disabled, ...props }, ref) => (
+  <div className={cn("flex flex-col gap-2", disabled && "opacity-50 pointer-events-none")}>
     <SliderPrimitive.Root
       ref={ref}
       className={cn(
@@ -22,12 +22,12 @@ const Slider = React.forwardRef<
       max={max}
       {...props}
     >
-      <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
-        <SliderPrimitive.Range className="absolute h-full bg-primary" />
+      <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-accent">
+        <SliderPrimitive.Range className="absolute h-full bg-foreground" />
       </SliderPrimitive.Track>
-      <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50" />
+      <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border-2 border-foreground shadow-md bg-background cursor-pointer ring-offset-background transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50" />
     </SliderPrimitive.Root>
-    <span className="mt-4 text-xs">{value![0]}</span>
+    <span className="text-xs">{value![0]}</span>
   </div>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;

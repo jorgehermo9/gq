@@ -1,6 +1,7 @@
 import { CirclePlay, Play } from "lucide-react";
 import ActionButton from "@/components/action-button/action-button";
 import { useSettings } from "@/providers/settings-provider";
+import { useCallback, useEffect } from "react";
 
 interface Props {
   autoApply: boolean;
@@ -8,6 +9,21 @@ interface Props {
 }
 
 const ApplyButton = ({ autoApply, onClick }: Props) => {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.altKey && e.key === "Enter") {
+        e.preventDefault();
+        onClick();
+      }
+    },
+    [onClick]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
   return autoApply ? (
     <ActionButton
       disabled
@@ -20,9 +36,9 @@ const ApplyButton = ({ autoApply, onClick }: Props) => {
     <ActionButton
       className="rounded-full"
       onClick={onClick}
-      description="Apply the query to the provided JSON"
+      description="Apply the query to the provided JSON (Alt + Enter)"
     >
-      <Play className="w-5 h-5"/>
+      <Play className="w-5 h-5" />
     </ActionButton>
   );
 };

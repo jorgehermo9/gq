@@ -17,7 +17,7 @@ interface Props {
   title: string;
   filename: string;
   fileType: FileType;
-  onChange?: (value: string) => void;
+  onChange: (value: string) => void;
   className?: string;
   editable?: boolean;
 }
@@ -42,10 +42,12 @@ const Editor = ({
     const toastId = toast.loading("Formatting code...");
     formatWorker
       ?.postMessage({ data: value, indent: indentSize, type: fileType })
-      .then((res) => onChange?.(res))
-      .catch((err) => console.error(err))
-      .finally(() =>
-        toast.success("Code formatted!", { id: toastId, duration: 1000 })
+      .then((res) => {
+        toast.success("Code formatted!", { id: toastId });
+        onChange(res);
+      })
+      .catch((err) =>
+        toast.error(err.message, { id: toastId, duration: 5000 })
       );
   }, [value, onChange, formatWorker, fileType, indentSize]);
 
@@ -77,10 +79,7 @@ const Editor = ({
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
   return (
@@ -94,16 +93,16 @@ const Editor = ({
           editable={editable}
           onCopyToClipboard={copyToClipboard}
           onFormatCode={formatCode}
-          onImportFile={(value) => onChange?.(value)}
+          onImportFile={onChange}
           onExportFile={exportFile}
         />
       </div>
 
       <CodeMirror
         data-focus={isFocused}
-        className={`${styles.editor} relative h-full rounded-lg overflow-hidden group text-sm`}
+        className={`${styles.editor} relative h-full rounded-lg overflow-hidden group text-sm shadow-md`}
         value={value}
-        onChange={(value, _) => onChange?.(value)}
+        onChange={onChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         height="100%"

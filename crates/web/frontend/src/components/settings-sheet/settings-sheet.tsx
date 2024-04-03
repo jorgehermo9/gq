@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Slider } from "../ui/slider";
+import { Slider } from "@/components/ui/slider";
 
 interface Props {
   className?: string;
@@ -47,7 +47,10 @@ const SettingsSheet = ({ className }: Props) => {
         <Separator />
         <div className="flex flex-col gap-4">
           <div className="flex gap-4 items-center">
-            <Label htmlFor="auto-apply" className="text-md font-semibold">
+            <Label
+              htmlFor="auto-apply"
+              className="text-md font-semibold cursor-pointer"
+            >
               Auto apply
             </Label>
             <Switch

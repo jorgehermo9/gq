@@ -3,9 +3,9 @@
 }
 
 .editor[data-focus="true"] {
-	border: 2px solid hsl(var(--accent));
+	border: 2px solid var(--primary-foreground);
 }
 
 .editor[data-focus="false"] {
-	border: 2px solid hsl(var(--muted));
+	border: 2px solid var(--accent);
 }

@@ -6,16 +6,18 @@ import {
 } from "@/components/ui/hover-card";
 
 interface Props {
-  onClick?: () => void;
   description: string;
+  side?: "top" | "bottom" | "left" | "right";
+  onClick?: () => void;
   disabled?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 const ActionButton = ({
-  onClick,
   description,
+  side = "bottom",
+  onClick,
   disabled = false,
   children,
   className,
@@ -33,7 +35,7 @@ const ActionButton = ({
           {children}
         </Button>
       </HoverCardTrigger>
-      <HoverCardContent className="max-w-96 w-fit text-sm p-2">
+      <HoverCardContent side={side} className="max-w-96 w-fit text-sm p-2">
         {description}
       </HoverCardContent>
     </HoverCard>
