@@ -239,7 +239,9 @@ impl<'a> QueryKey<'a> {
         keys: &[AtomicQueryKey<'a>],
         context: &Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
-        let Some((AtomicQueryKey(current_key), rest)) = keys.split_first() else {
+        let Some((AtomicQueryKey(current_key), rest)) = keys.split_first() else {\
+            // TODO: try to return a reference here and clone in the caller, so this is more flexible for
+            // callers that only needs a reference
             return Ok(value.clone());
         };
         let new_context = context.push_entry(JsonPathEntry::Key(current_key));
