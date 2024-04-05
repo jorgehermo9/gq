@@ -1,12 +1,18 @@
-use std::{
-    fmt::{self, Display, Formatter},
-    rc::Rc,
-};
+use std::fmt::{self, Display, Formatter};
 
+use self::{
+    context::{Context, JsonPathEntry},
+    error::InternalError,
+};
 use derive_getters::Getters;
 use derive_more::Constructor;
 use serde_json::{Map, Value};
-use thiserror::Error;
+
+mod context;
+mod error;
+
+pub use self::context::OwnedJsonPath;
+pub use self::error::Error;
 
 #[derive(Debug, Constructor)]
 pub struct AtomicQueryKey<'a>(&'a str);
@@ -45,178 +51,6 @@ impl<'a> Query<'a> {
     }
     pub fn named_with_children(query_key: QueryKey<'a>, children: Vec<Self>) -> Self {
         Self::new(Some(query_key), children)
-    }
-}
-
-// TODO: move errors into their own module
-#[derive(Debug, Error)]
-pub enum Error {
-    // TODO: 'key' should be in lowercase or capitalized?
-    #[error("key '{0}' not found")]
-    KeyNotFound(OwnedJsonPath),
-    #[error("{0} while filtering inside array '{1}'")]
-    InsideArray(Box<Self>, OwnedJsonPath),
-    // TODO: display the children keys in errors?
-    #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
-    NonIndexableValue(OwnedJsonPath),
-}
-
-//TODO: maybe this is useless, it is only useful for the '?' syntax to convert a borrowed error into an owned error
-#[derive(Debug, Error)]
-pub enum InternalError<'a> {
-    #[error("key '{0}' not found")]
-    KeyNotFound(JsonPath<'a>),
-    // TODO: Think about the usefulness of this error
-    #[error("{0} while filtering inside array '{1}'")]
-    InsideArray(Box<Self>, JsonPath<'a>),
-    #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
-    NonIndexableValue(JsonPath<'a>),
-}
-
-impl From<InternalError<'_>> for Error {
-    fn from(internal_error: InternalError) -> Self {
-        match internal_error {
-            InternalError::KeyNotFound(path) => Error::KeyNotFound(path.to_owned()),
-            InternalError::InsideArray(internal_error, path) => {
-                Error::InsideArray(Box::new(Error::from(*internal_error)), path.to_owned())
-            }
-            InternalError::NonIndexableValue(path) => Error::NonIndexableValue(path.to_owned()),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum JsonPathEntry<'a> {
-    Key(&'a str),
-    Index(usize),
-}
-
-impl<'a> JsonPathEntry<'a> {
-    pub fn to_owned(&self) -> OwnedJsonPathEntry {
-        match self {
-            JsonPathEntry::Key(key) => OwnedJsonPathEntry::Key(key.to_string()),
-            JsonPathEntry::Index(index) => OwnedJsonPathEntry::Index(*index),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum OwnedJsonPathEntry {
-    Key(String),
-    Index(usize),
-}
-
-#[derive(Debug, Clone)]
-pub enum JsonPath<'a> {
-    Root,
-    Node {
-        entry: JsonPathEntry<'a>,
-        parent: Rc<JsonPath<'a>>,
-    },
-}
-
-impl<'a> JsonPath<'a> {
-    pub fn push(&self, entry: JsonPathEntry<'a>) -> Self {
-        Self::Node {
-            entry,
-            parent: Rc::new(self.clone()),
-        }
-    }
-
-    // TODO: Change all of this `to_owned` to `From` trait
-    pub fn to_owned(&self) -> OwnedJsonPath {
-        let mut path = Vec::new();
-        let mut current = self;
-        while let JsonPath::Node { entry, parent } = current {
-            path.push(entry.to_owned());
-            current = parent;
-        }
-        path.reverse();
-        OwnedJsonPath(path)
-    }
-}
-
-impl Display for JsonPath<'_> {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        match self {
-            JsonPath::Root => write!(f, "$"),
-            JsonPath::Node { entry, parent } => {
-                parent.fmt(f)?;
-                match entry {
-                    JsonPathEntry::Key(key) => write!(f, ".{key}"),
-                    JsonPathEntry::Index(index) => write!(f, "[{index}]"),
-                }
-            }
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct OwnedJsonPath(Vec<OwnedJsonPathEntry>);
-
-impl Display for OwnedJsonPath {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "$")?;
-        for entry in &self.0 {
-            match entry {
-                OwnedJsonPathEntry::Key(key) => write!(f, ".{key}")?,
-                OwnedJsonPathEntry::Index(index) => write!(f, "[{index}]")?,
-            }
-        }
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ArrayContext<'a> {
-    path: JsonPath<'a>,
-}
-
-#[derive(Debug, Clone)]
-pub struct Context<'a> {
-    path: JsonPath<'a>,
-    array_context: Option<ArrayContext<'a>>,
-}
-
-impl<'a> Context<'a> {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn push_entry(&self, entry: JsonPathEntry<'a>) -> Context<'a> {
-        Self {
-            path: self.path.push(entry),
-            ..self.clone()
-        }
-    }
-
-    pub fn push_query_key(&self, query_key: &QueryKey<'a>) -> Context<'a> {
-        let mut path = self.path.clone();
-        for AtomicQueryKey(key) in &query_key.keys {
-            path = path.push(JsonPathEntry::Key(key));
-        }
-        Self {
-            path,
-            ..self.clone()
-        }
-    }
-
-    pub fn enter_array(&self) -> Self {
-        Self {
-            array_context: Some(ArrayContext {
-                path: self.path.clone(),
-            }),
-            ..self.clone()
-        }
-    }
-}
-
-impl Default for Context<'_> {
-    fn default() -> Self {
-        Self {
-            path: JsonPath::Root,
-            array_context: None,
-        }
     }
 }
 
@@ -260,7 +94,7 @@ impl Query<'_> {
         match value {
             Value::Object(object) => self.do_apply_object(object, context),
             Value::Array(array) => Ok(self.do_apply_array(array, context)),
-            _ => Err(InternalError::NonIndexableValue(context.path))?,
+            _ => Err(InternalError::NonIndexableValue(context.path().clone()))?,
         }
     }
 
@@ -280,13 +114,13 @@ impl Query<'_> {
             let child_value_result = child_query_key.inspect(value, &context);
             let child_context = context.push_query_key(child_query_key);
 
-            let child_value = match (child_value_result, &child_context.array_context) {
+            let child_value = match (child_value_result, child_context.array_context()) {
                 (Ok(value), _) => value,
                 (Err(internal_error), None) => return Err(internal_error),
                 (Err(internal_error), Some(array_context)) => {
                     let array_error = InternalError::InsideArray(
                         Box::new(internal_error),
-                        array_context.path.clone(),
+                        array_context.path().clone(),
                     );
                     log::warn!("{array_error}");
                     continue;
@@ -295,13 +129,13 @@ impl Query<'_> {
 
             let child_filtered_value_result = child.do_apply(child_value, child_context.clone());
             let child_filtered_value =
-                match (child_filtered_value_result, &child_context.array_context) {
+                match (child_filtered_value_result, child_context.array_context()) {
                     (Ok(value), _) => value,
                     (Err(child_error), None) => return Err(child_error),
                     (Err(child_error), Some(array_context)) => {
                         let array_error = InternalError::InsideArray(
                             Box::new(child_error),
-                            array_context.path.clone(),
+                            array_context.path().clone(),
                         );
                         log::warn!("{array_error}");
                         continue;
@@ -324,8 +158,10 @@ impl Query<'_> {
             .flat_map(|result| {
                 result
                     .map_err(|error| {
-                        let array_error =
-                            InternalError::InsideArray(Box::new(error), array_context.path.clone());
+                        let array_error = InternalError::InsideArray(
+                            Box::new(error),
+                            array_context.path().clone(),
+                        );
                         log::warn!("{array_error}");
                     })
                     .ok()
@@ -412,7 +248,7 @@ impl<'a> QueryKey<'a> {
             Value::Object(object) => {
                 let current = object
                     .get(*current_key)
-                    .ok_or(InternalError::KeyNotFound(new_context.path.clone()))?;
+                    .ok_or(InternalError::KeyNotFound(new_context.path().clone()))?;
                 Self::do_inspect(current, rest, &new_context)
             }
             Value::Array(array) => {
@@ -429,7 +265,7 @@ impl<'a> QueryKey<'a> {
                             .map_err(|error| {
                                 let array_error = InternalError::InsideArray(
                                     Box::new(error),
-                                    array_context.path.clone(),
+                                    array_context.path().clone(),
                                 );
                                 log::warn!("{array_error}");
                             })
@@ -438,7 +274,7 @@ impl<'a> QueryKey<'a> {
                     .collect();
                 Ok(Value::Array(indexed_array))
             }
-            _ => Err(InternalError::NonIndexableValue(new_context.path)),
+            _ => Err(InternalError::NonIndexableValue(new_context.path().clone())),
         }
     }
 }
