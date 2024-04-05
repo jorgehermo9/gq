@@ -11,6 +11,7 @@ import useGq from "@/hooks/useGq";
 import { toast } from "sonner";
 import FileType from "@/model/file-type";
 import Terminal from "@/components/terminal/terminal";
+import Header from "@/components/header/header";
 
 const Home = () => {
   const [inputJson, setInputJson] = useState<string>('{"test": 1213}');
@@ -60,20 +61,9 @@ const Home = () => {
 
   return (
     <main className="flex flex-col items-center p-8 h-screen">
-      <div className="w-full flex items-center justify-center">
-        <h1 className="mx-auto flex gap-4 pb-8 items-end text-7xl font-extrabold">
-          <span className="neuton">
-            GQ <span className="font-normal">Playground</span>
-          </span>
-          <Badge variant="secondary" className="mb-2">
-            beta
-          </Badge>
-        </h1>
-        <SettingsSheet />
-      </div>
-
+      <Header />
       <section className="mt-4 flex gap-8 items-center justify-center w-full h-[80vh]">
-        <aside className="w-[44vw] h-[80vh] flex flex-col gap-4">
+        <aside className="w-[44vw] h-[80vh] flex flex-col gap-8">
           <Editor
             className="w-[44vw] h-[40vh] max-h-[40vh]"
             value={inputJson}
@@ -107,8 +97,6 @@ const Home = () => {
           />
         </aside>
       </section>
-
-      <Terminal />
     </main>
   );
 };

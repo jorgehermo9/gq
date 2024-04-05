@@ -1,11 +1,13 @@
 .editor {
-	transition: border-color 0.2s;
+	transition: border-color 0.1s, box-shadow 0.1s;
 }
 
 .editor[data-focus="true"] {
-	border: 2px solid var(--primary-foreground);
+	border: 2px solid var(--secondary-foreground);
+	@apply shadow-lg;
 }
 
 .editor[data-focus="false"] {
 	border: 2px solid var(--accent);
+	@apply shadow-md;
 }

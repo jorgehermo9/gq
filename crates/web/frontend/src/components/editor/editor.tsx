@@ -100,7 +100,7 @@ const Editor = ({
 
       <CodeMirror
         data-focus={isFocused}
-        className={`${styles.editor} relative h-full rounded-lg overflow-hidden group text-sm shadow-md`}
+        className={`${styles.editor} relative h-full rounded-lg overflow-hidden group text-sm`}
         value={value}
         onChange={onChange}
         onFocus={() => setIsFocused(true)}

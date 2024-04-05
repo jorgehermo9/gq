@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import ActionButton from "../action-button/action-button";
 
 interface Props {
   editable: boolean;
@@ -47,55 +48,89 @@ const EditorMenu = ({
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button className="w-6 h-6" variant="outline" size="icon">
-          <EllipsisVertical className="w-3 h-3" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" side="right" sideOffset={8}>
-        <DropdownMenuItem onClick={onCopyToClipboard}>
-          <div className="flex items-center gap-2">
-            <Clipboard className="w-4 h-4" />
-            <span>Copy</span>
-          </div>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onFormatCode} disabled={!editable}>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            <span>Format</span>
-          </div>
-          <DropdownMenuShortcut>Ctrl + S</DropdownMenuShortcut>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="p-0"
-          disabled={!editable}
-          onSelect={(e) => e.preventDefault()}
+    <>
+      <div className="hidden sm:flex ml-auto pr-2 items-center gap-2">
+        <ActionButton
+          className="w-8 h-8"
+          description="Copy to clipboard"
+          onClick={onCopyToClipboard}
         >
-          <input
-            id="file-import"
-            hidden
-            type="file"
-            accept=".json,.gq"
-            onChange={handleImportFile}
-          />
-          <Label
-            htmlFor="file-import"
-            className="flex items-center gap-2 px-2 py-1.5 w-full h-full cursor-pointer text-sm font-normal"
+          <Clipboard className="w-4 h-4" />
+        </ActionButton>
+        <ActionButton
+          className="w-8 h-8"
+          description="Format code"
+          onClick={onFormatCode}
+          disabled={!editable}
+        >
+          <Sparkles className="w-4 h-4" />
+        </ActionButton>
+        <ActionButton
+          className="w-8 h-8"
+          description="Import file"
+          onClick={() => document.getElementById("file-import")?.click()}
+          disabled={!editable}
+        >
+          <Import className="w-4 h-4" />
+        </ActionButton>
+        <ActionButton
+          className="w-8 h-8"
+          description="Export file"
+          onClick={onExportFile}
+        >
+          <DownloadCloud className="w-4 h-4" />
+        </ActionButton>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className="w-6 h-6 sm:hidden" variant="outline" size="icon">
+            <EllipsisVertical className="w-3 h-3" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" side="right" sideOffset={8}>
+          <DropdownMenuItem onClick={onCopyToClipboard}>
+            <div className="flex items-center gap-2">
+              <Clipboard className="w-4 h-4" />
+              <span>Copy</span>
+            </div>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onFormatCode} disabled={!editable}>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              <span>Format</span>
+            </div>
+            <DropdownMenuShortcut>Ctrl + S</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="p-0"
+            disabled={!editable}
+            onSelect={(e) => e.preventDefault()}
           >
-            <Import className="w-4 h-4" />
-            <span>Import file</span>
-          </Label>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onExportFile}>
-          <div className="flex items-center gap-2">
-            <DownloadCloud className="w-4 h-4" />
-            <span>Export file</span>
-          </div>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+            <input
+              id="file-import"
+              hidden
+              type="file"
+              accept=".json,.gq"
+              onChange={handleImportFile}
+            />
+            <Label
+              htmlFor="file-import"
+              className="flex items-center gap-2 px-2 py-1.5 w-full h-full cursor-pointer text-sm font-normal"
+            >
+              <Import className="w-4 h-4" />
+              <span>Import file</span>
+            </Label>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onExportFile}>
+            <div className="flex items-center gap-2">
+              <DownloadCloud className="w-4 h-4" />
+              <span>Export file</span>
+            </div>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 };
 

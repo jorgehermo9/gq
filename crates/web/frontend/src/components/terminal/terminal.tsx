@@ -15,10 +15,7 @@ import { CircleAlert } from "lucide-react";
 const Terminal = () => {
   return (
     <Drawer>
-      <DrawerTrigger
-        className="absolute left-auto right-auto bottom-[5vh]"
-        asChild
-      >
+      <DrawerTrigger asChild>
         <ActionButton description="Check notification errors">
           <CircleAlert />
         </ActionButton>

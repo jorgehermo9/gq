@@ -78,7 +78,7 @@ const SettingsSheet = ({ className }: Props) => {
               value={[settings.debounceTime]}
               max={5000}
               min={0}
-              step={500}
+              step={250}
             />
           </div>
         </div>
