@@ -305,7 +305,7 @@ impl<'a> QueryKey<'a> {
                             })
                             .ok()
                     })
-                    // A filter here is not needed since the object index will fail and not
+                    // A filter here is not needed since the object indexing will fail and not
                     // warn if the key is missing. This case is different from the Query::do_apply_array
                     .collect();
                 Ok(Value::Array(indexed_array))
