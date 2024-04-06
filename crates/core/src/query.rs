@@ -19,7 +19,7 @@ pub struct AtomicQueryKey<'a>(&'a str);
 
 impl Display for AtomicQueryKey<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{0}", self.0)
+        self.0.fmt(f)
     }
 }
 
@@ -60,15 +60,24 @@ impl<'a> Query<'a> {
     pub fn unnamed_with_children(children: Vec<Self>) -> Self {
         Self::new(None, None, children)
     }
-    pub fn named_empty(query_alias: AtomicQueryKey<'a>, query_key: QueryKey<'a>) -> Self {
+    pub fn named_empty(query_alias: Option<AtomicQueryKey<'a>>, query_key: QueryKey<'a>) -> Self {
         return Self::named_with_children(query_alias, query_key, Vec::new());
     }
     pub fn named_with_children(
-        query_alias: AtomicQueryKey<'a>,
+        query_alias: Option<AtomicQueryKey<'a>>,
         query_key: QueryKey<'a>,
         children: Vec<Self>,
     ) -> Self {
-        Self::new(Some(query_alias), Some(query_key), children)
+        Self::new(query_alias, Some(query_key), children)
+    }
+
+    pub fn output_key(&self) -> &AtomicQueryKey {
+        self.alias().as_ref().unwrap_or_else(|| {
+            self.key()
+                .as_ref()
+                .expect("query key cannot be empty")
+                .last_key()
+        })
     }
 }
 
@@ -79,6 +88,7 @@ impl<'a> Query<'a> {
 //  payload.pull_request.head.repo.owner.login
 //}
 //```
+// TODO: when the root query has an alias, it should fail
 impl Query<'_> {
     pub fn apply(&self, root_json: Value) -> Result<Value, Error> {
         let root_context = Context::new();
@@ -128,9 +138,6 @@ impl Query<'_> {
             let Some(child_query_key) = child.key() else {
                 panic!("children query must have a key");
             };
-            let Some(child_query_alias) = child.alias() else {
-                panic!("children query must have an alias");
-            };
 
             let child_value_result = child_query_key.inspect(value, &context);
             let child_context = context.push_query_key(child_query_key);
@@ -162,7 +169,7 @@ impl Query<'_> {
                         continue;
                     }
                 };
-            filtered_object.insert(child_query_alias.to_string(), child_filtered_value);
+            filtered_object.insert(child.output_key().to_string(), child_filtered_value);
         }
         Ok(Value::Object(filtered_object))
     }
@@ -204,6 +211,8 @@ impl Display for Query<'_> {
 }
 
 impl Query<'_> {
+    // TODO: do a test for this function, so parsing a formatted query, outputs the
+    // same original query...
     pub fn pretty_format(&self, indent: usize) -> String {
         let mut result = String::new();
 
@@ -233,6 +242,10 @@ impl Query<'_> {
         };
 
         result.push_str(&format!("{indentation}{query_key}"));
+        if let Some(alias) = self.alias() {
+            result.push_str(&format!(": {alias}"));
+        }
+
         if !self.children().is_empty() {
             result.push_str(&format!(" {{{sep}"));
             for child in self.children() {

@@ -122,9 +122,7 @@ impl<'src> Parser<'src> {
     /// `QUERY -> QUERY_KEY QUERY_ALIAS| QUERY_KEY QUERY_ALIAS { QUERY_CONTENT }
     fn parse_query(&mut self) -> Result<Query<'src>> {
         let query_key = self.parse_query_key()?;
-        let query_alias = self
-            .parse_query_alias()?
-            .unwrap_or(query_key.last_key().clone());
+        let query_alias = self.parse_query_alias()?;
 
         match self.peek()? {
             (Token::LBrace, _) => {
