@@ -18,11 +18,14 @@ pub enum Error {
 impl From<InternalError<'_>> for Error {
     fn from(internal_error: InternalError) -> Self {
         match internal_error {
-            InternalError::KeyNotFound(path) => Error::KeyNotFound(path.to_owned()),
-            InternalError::InsideArray(internal_error, path) => {
-                Error::InsideArray(Box::new(Error::from(*internal_error)), path.to_owned())
+            InternalError::KeyNotFound(path) => Error::KeyNotFound(OwnedJsonPath::from(&path)),
+            InternalError::InsideArray(internal_error, path) => Error::InsideArray(
+                Box::new(Error::from(*internal_error)),
+                OwnedJsonPath::from(&path),
+            ),
+            InternalError::NonIndexableValue(path) => {
+                Error::NonIndexableValue(OwnedJsonPath::from(&path))
             }
-            InternalError::NonIndexableValue(path) => Error::NonIndexableValue(path.to_owned()),
         }
     }
 }

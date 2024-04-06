@@ -13,19 +13,19 @@ pub enum JsonPathEntry<'a> {
     Index(usize),
 }
 
-impl<'a> JsonPathEntry<'a> {
-    pub fn to_owned(&self) -> OwnedJsonPathEntry {
-        match self {
-            JsonPathEntry::Key(key) => OwnedJsonPathEntry::Key(key.to_string()),
-            JsonPathEntry::Index(index) => OwnedJsonPathEntry::Index(*index),
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub enum OwnedJsonPathEntry {
     Key(String),
     Index(usize),
+}
+
+impl From<&JsonPathEntry<'_>> for OwnedJsonPathEntry {
+    fn from(entry: &JsonPathEntry) -> Self {
+        match entry {
+            JsonPathEntry::Key(key) => OwnedJsonPathEntry::Key(key.to_string()),
+            JsonPathEntry::Index(index) => OwnedJsonPathEntry::Index(*index),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -43,18 +43,6 @@ impl<'a> JsonPath<'a> {
             entry,
             parent: Rc::new(self.clone()),
         }
-    }
-
-    // TODO: Change all of this `to_owned` to `From` trait
-    pub fn to_owned(&self) -> OwnedJsonPath {
-        let mut path = Vec::new();
-        let mut current = self;
-        while let JsonPath::Node { entry, parent } = current {
-            path.push(entry.to_owned());
-            current = parent;
-        }
-        path.reverse();
-        OwnedJsonPath(path)
     }
 }
 
@@ -75,6 +63,19 @@ impl Display for JsonPath<'_> {
 
 #[derive(Debug, Clone)]
 pub struct OwnedJsonPath(Vec<OwnedJsonPathEntry>);
+
+impl From<&JsonPath<'_>> for OwnedJsonPath {
+    fn from(json_path: &JsonPath) -> Self {
+        let mut key_path = Vec::new();
+        let mut current = json_path;
+        while let JsonPath::Node { entry, parent } = current {
+            key_path.push(OwnedJsonPathEntry::from(entry));
+            current = parent;
+        }
+        key_path.reverse();
+        OwnedJsonPath(key_path)
+    }
+}
 
 impl Display for OwnedJsonPath {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {

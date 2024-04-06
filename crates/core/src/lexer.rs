@@ -25,6 +25,8 @@ pub enum Token<'src> {
     RParen,
     #[token(".")]
     Dot,
+    #[token(":")]
+    Colon,
     // TODO: allow for more chars
     #[regex(r"[a-zA-Z_]\w*")]
     Key(&'src str),
@@ -38,6 +40,7 @@ pub enum OwnedToken {
     LParen,
     RParen,
     Dot,
+    Colon,
     Key(String),
     EOF,
 }
@@ -50,6 +53,7 @@ impl Display for OwnedToken {
             OwnedToken::LParen => write!(f, "("),
             OwnedToken::RParen => write!(f, ")"),
             OwnedToken::Dot => write!(f, "."),
+            OwnedToken::Colon => write!(f, ":"),
             OwnedToken::Key(key) => write!(f, "{key}"),
             OwnedToken::EOF => write!(f, "EOF"),
         }
@@ -64,6 +68,7 @@ impl From<Token<'_>> for OwnedToken {
             Token::LParen => OwnedToken::LParen,
             Token::RParen => OwnedToken::RParen,
             Token::Dot => OwnedToken::Dot,
+            Token::Colon => OwnedToken::Colon,
             Token::Key(key) => OwnedToken::Key(key.to_string()),
             Token::EOF => OwnedToken::EOF,
         }

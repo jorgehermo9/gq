@@ -119,17 +119,21 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `QUERY -> QUERY_KEY | QUERY_KEY { QUERY_CONTENT }
+    /// `QUERY -> QUERY_KEY QUERY_ALIAS| QUERY_KEY QUERY_ALIAS { QUERY_CONTENT }
     fn parse_query(&mut self) -> Result<Query<'src>> {
         let query_key = self.parse_query_key()?;
+        let query_alias = self
+            .parse_query_alias()?
+            .unwrap_or(query_key.last_key().clone());
+
         match self.peek()? {
             (Token::LBrace, _) => {
                 self.consume();
                 let children = self.parse_query_content(&Token::RBrace)?;
                 self.consume();
-                Ok(Query::named_with_children(query_key, children))
+                Ok(Query::named_with_children(query_alias, query_key, children))
             }
-            _ => Ok(Query::named_empty(query_key)),
+            _ => Ok(Query::named_empty(query_alias, query_key)),
         }
     }
 
@@ -137,7 +141,6 @@ impl<'src> Parser<'src> {
     /// QUERY_KEY -> key . QUERY_KEY | key
     fn parse_query_key(&mut self) -> Result<QueryKey<'src>> {
         let mut keys = Vec::new();
-
         loop {
             match self.next_token()? {
                 (Token::Key(key), _) => keys.push(AtomicQueryKey::new(key)),
@@ -155,6 +158,24 @@ impl<'src> Parser<'src> {
                 }
                 _ => return Ok(QueryKey::new(keys)),
             }
+        }
+    }
+
+    /// # Grammar
+    /// QUERY_ALIAS -> : key | ε
+    fn parse_query_alias(&mut self) -> Result<Option<AtomicQueryKey<'src>>> {
+        match self.peek()? {
+            (Token::Colon, _) => {
+                self.consume();
+                match self.next_token()? {
+                    (Token::Key(key), _) => Ok(Some(AtomicQueryKey::new(key))),
+                    (unexpected_token, span) => Err(Error::UnexpectedToken {
+                        found: unexpected_token.into(),
+                        span,
+                    }),
+                }
+            }
+            _ => Ok(None),
         }
     }
 }

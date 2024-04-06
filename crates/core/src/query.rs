@@ -14,7 +14,7 @@ mod error;
 pub use self::context::OwnedJsonPath;
 pub use self::error::Error;
 
-#[derive(Debug, Constructor)]
+#[derive(Debug, Clone, Constructor)]
 pub struct AtomicQueryKey<'a>(&'a str);
 
 impl Display for AtomicQueryKey<'_> {
@@ -23,7 +23,7 @@ impl Display for AtomicQueryKey<'_> {
     }
 }
 
-#[derive(Debug, Constructor, Getters)]
+#[derive(Debug, Clone, Constructor, Getters)]
 pub struct QueryKey<'a> {
     keys: Vec<AtomicQueryKey<'a>>,
 }
@@ -40,8 +40,8 @@ impl Display for QueryKey<'_> {
     }
 }
 
-impl QueryKey<'_> {
-    pub fn last_key(&self) -> &AtomicQueryKey {
+impl<'a> QueryKey<'a> {
+    pub fn last_key(&self) -> &AtomicQueryKey<'a> {
         self.keys().last().expect("query key cannot be empty")
     }
 }
@@ -49,20 +49,26 @@ impl QueryKey<'_> {
 // TODO: make the invalid states irrepresentable, the children could never be None...
 // maybe the Query struct should have a children field that is a Vec<ChildrenQuery>, which
 // cannot allow to unnamed keys...
+// Maybe we should have a RootQuery and a ChildQuery... inside a Query enum...
 #[derive(Constructor, Getters, Debug)]
 pub struct Query<'a> {
+    alias: Option<AtomicQueryKey<'a>>,
     key: Option<QueryKey<'a>>,
     children: Vec<Self>,
 }
 impl<'a> Query<'a> {
     pub fn unnamed_with_children(children: Vec<Self>) -> Self {
-        Self::new(None, children)
+        Self::new(None, None, children)
     }
-    pub fn named_empty(query_key: QueryKey<'a>) -> Self {
-        return Self::named_with_children(query_key, Vec::new());
+    pub fn named_empty(query_alias: AtomicQueryKey<'a>, query_key: QueryKey<'a>) -> Self {
+        return Self::named_with_children(query_alias, query_key, Vec::new());
     }
-    pub fn named_with_children(query_key: QueryKey<'a>, children: Vec<Self>) -> Self {
-        Self::new(Some(query_key), children)
+    pub fn named_with_children(
+        query_alias: AtomicQueryKey<'a>,
+        query_key: QueryKey<'a>,
+        children: Vec<Self>,
+    ) -> Self {
+        Self::new(Some(query_alias), Some(query_key), children)
     }
 }
 
@@ -122,6 +128,9 @@ impl Query<'_> {
             let Some(child_query_key) = child.key() else {
                 panic!("children query must have a key");
             };
+            let Some(child_query_alias) = child.alias() else {
+                panic!("children query must have an alias");
+            };
 
             let child_value_result = child_query_key.inspect(value, &context);
             let child_context = context.push_query_key(child_query_key);
@@ -153,7 +162,7 @@ impl Query<'_> {
                         continue;
                     }
                 };
-            filtered_object.insert(child_query_key.last_key().to_string(), child_filtered_value);
+            filtered_object.insert(child_query_alias.to_string(), child_filtered_value);
         }
         Ok(Value::Object(filtered_object))
     }
@@ -283,6 +292,8 @@ impl<'a> QueryKey<'a> {
                             })
                             .ok()
                     })
+                    // A filter here is not needed since the object index will fail and not
+                    // warn if the key is missing. This case is different from the Query::do_apply_array
                     .collect();
                 Ok(Value::Array(indexed_array))
             }
