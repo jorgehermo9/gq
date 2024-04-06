@@ -5,7 +5,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 
-interface Props {
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   description: string;
   side?: "top" | "bottom" | "left" | "right";
   onClick?: () => void;
@@ -21,6 +21,7 @@ const ActionButton = ({
   disabled = false,
   children,
   className,
+  ...props
 }: Props) => {
   return (
     <HoverCard openDelay={1200}>
@@ -31,6 +32,7 @@ const ActionButton = ({
           size="icon"
           disabled={disabled}
           onClick={onClick}
+          {...props}
         >
           {children}
         </Button>

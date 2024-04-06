@@ -14,6 +14,7 @@ import {
   Download,
   DownloadCloud,
   EllipsisVertical,
+  FileUp,
   Import,
   Sparkles,
 } from "lucide-react";
@@ -57,22 +58,36 @@ const EditorMenu = ({
         >
           <Clipboard className="w-4 h-4" />
         </ActionButton>
-        <ActionButton
-          className="w-8 h-8"
-          description="Format code"
-          onClick={onFormatCode}
-          disabled={!editable}
-        >
-          <Sparkles className="w-4 h-4" />
-        </ActionButton>
-        <ActionButton
-          className="w-8 h-8"
-          description="Import file"
-          onClick={() => document.getElementById("file-import")?.click()}
-          disabled={!editable}
-        >
-          <Import className="w-4 h-4" />
-        </ActionButton>
+        {editable && (
+          <ActionButton
+            className="w-8 h-8"
+            description="Format code"
+            onClick={onFormatCode}
+          >
+            <Sparkles className="w-4 h-4" />
+          </ActionButton>
+        )}
+        {editable && (
+          <ActionButton
+            className="w-8 h-8 p-0"
+            description="Import file"
+            hidden={!editable}
+          >
+            <input
+              id="file-import"
+              hidden
+              type="file"
+              accept=".json,.gq"
+              onChange={handleImportFile}
+            />
+            <Label
+              htmlFor="file-import"
+              className="w-full h-full grid place-items-center cursor-pointer"
+            >
+              <FileUp className="w-4 h-4" />
+            </Label>
+          </ActionButton>
+        )}
         <ActionButton
           className="w-8 h-8"
           description="Export file"
@@ -118,7 +133,7 @@ const EditorMenu = ({
               htmlFor="file-import"
               className="flex items-center gap-2 px-2 py-1.5 w-full h-full cursor-pointer text-sm font-normal"
             >
-              <Import className="w-4 h-4" />
+              <FileUp className="w-4 h-4" />
               <span>Import file</span>
             </Label>
           </DropdownMenuItem>

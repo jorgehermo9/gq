@@ -2,7 +2,7 @@
 	position: absolute;
 	border-radius: 50%;
 	background-color: var(--muted);
-	animation: ripple 0.5s linear forwards;
+	animation: ripple 0.5s ease-out forwards;
 }
 
 @keyframes ripple {
