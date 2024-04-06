@@ -28,6 +28,18 @@ pub struct QueryKey<'a> {
     keys: Vec<AtomicQueryKey<'a>>,
 }
 
+impl Display for QueryKey<'_> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let keys = self
+            .keys()
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<String>>()
+            .join(".");
+        write!(f, "{keys}")
+    }
+}
+
 impl QueryKey<'_> {
     pub fn last_key(&self) -> &AtomicQueryKey {
         self.keys().last().expect("query key cannot be empty")
@@ -205,24 +217,22 @@ impl Query<'_> {
     }
 
     fn do_pretty_format(&self, result: &mut String, indent: usize, level: usize, sep: char) {
-        // TODO: implement this
-        todo!();
-        // let indentation = " ".repeat(indent * level);
+        let indentation = " ".repeat(indent * level);
 
-        // let Some(QueryKey(key)) = self.key() else {
-        //     panic!("children query must have a key");
-        // };
+        let Some(query_key) = self.key() else {
+            panic!("children query must have a key");
+        };
 
-        // result.push_str(&format!("{indentation}{key}"));
-        // if !self.children().is_empty() {
-        //     result.push_str(&format!(" {{{sep}"));
-        //     for child in self.children() {
-        //         child.do_pretty_format(result, indent, level + 1, sep);
-        //     }
-        //     result.push_str(&format!("{indentation}}}{sep}"));
-        // } else {
-        //     result.push(sep);
-        // }
+        result.push_str(&format!("{indentation}{query_key}"));
+        if !self.children().is_empty() {
+            result.push_str(&format!(" {{{sep}"));
+            for child in self.children() {
+                child.do_pretty_format(result, indent, level + 1, sep);
+            }
+            result.push_str(&format!("{indentation}}}{sep}"));
+        } else {
+            result.push(sep);
+        }
     }
 }
 
