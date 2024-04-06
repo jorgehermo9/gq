@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import ActionButton from "../action-button/action-button";
+import { motion } from "framer-motion";
 
 interface Props {
   editable: boolean;
@@ -50,9 +51,13 @@ const EditorMenu = ({
 
   return (
     <>
-      <div className="hidden sm:flex ml-auto pr-2 items-center gap-2">
+      <motion.div
+        layout
+        className="hidden sm:flex pr-2 ml-auto items-center gap-4"
+        transition={{ duration: 0.2 }}
+      >
         <ActionButton
-          className="w-8 h-8"
+          className="h-8"
           description="Copy to clipboard"
           onClick={onCopyToClipboard}
         >
@@ -60,7 +65,7 @@ const EditorMenu = ({
         </ActionButton>
         {editable && (
           <ActionButton
-            className="w-8 h-8"
+            className="h-8"
             description="Format code"
             onClick={onFormatCode}
           >
@@ -69,7 +74,7 @@ const EditorMenu = ({
         )}
         {editable && (
           <ActionButton
-            className="w-8 h-8 p-0"
+            className="h-8 p-0"
             description="Import file"
             hidden={!editable}
           >
@@ -89,13 +94,13 @@ const EditorMenu = ({
           </ActionButton>
         )}
         <ActionButton
-          className="w-8 h-8"
           description="Export file"
           onClick={onExportFile}
+          className="h-8"
         >
           <DownloadCloud className="w-4 h-4" />
         </ActionButton>
-      </div>
+      </motion.div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button className="w-6 h-6 sm:hidden" variant="outline" size="icon">

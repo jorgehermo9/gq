@@ -4,7 +4,7 @@ import { createTheme, CreateThemeOptions } from '@uiw/codemirror-themes';
 export const defaultSetting: CreateThemeOptions['settings'] = {
   background: 'var(--background)',
   foreground: 'var(--foreground)',
-  caret: 'var(--accent-foreground)',
+  caret: 'var(--foreground)',
   selection: 'var(--accent)',
   selectionMatch: 'var(--accent)',
   lineHighlight: 'var(--muted-transparent)',

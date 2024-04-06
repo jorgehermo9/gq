@@ -24,7 +24,7 @@ const ActionButton = ({
   ...props
 }: Props) => {
   return (
-    <HoverCard openDelay={1200}>
+    <HoverCard openDelay={800}>
       <HoverCardTrigger>
         <Button
           className={className}

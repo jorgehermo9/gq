@@ -1,20 +1,22 @@
 import { Badge } from "@/components/ui/badge";
 import SettingsSheet from "@/components/settings-sheet/settings-sheet";
 import Terminal from "@/components/terminal/terminal";
+import ThemeButton from "@/components/theme-button/theme-button";
 
 const Header = () => {
   return (
-    <header className="w-full px-8 flex items-center justify-center">
-      <h1 className="mx-auto flex gap-4 pb-8 items-end text-7xl font-extrabold">
+    <header className="w-full px-8 flex items-center justify-between pb-8">
+      <h1 className="relative mx-auto items-end text-7xl font-extrabold">
         <span className="neuton">
           GQ <span className="font-normal">Playground</span>
         </span>
-        <Badge variant="secondary" className="mb-2">
+        <Badge variant="secondary" className="absolute left-full bottom-4 ml-4">
           beta
         </Badge>
       </h1>
+
       <div className="flex gap-4">
-        <Terminal />
+        <ThemeButton />
         <SettingsSheet />
       </div>
     </header>

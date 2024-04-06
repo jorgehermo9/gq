@@ -1,7 +1,7 @@
 .ripple {
 	position: absolute;
 	border-radius: 50%;
-	background-color: var(--muted);
+	background-color: var(--secondary-foreground);
 	animation: ripple 0.5s ease-out forwards;
 }
 

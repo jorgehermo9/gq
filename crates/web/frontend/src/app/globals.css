@@ -7,29 +7,11 @@
     --background: hsl(49 27% 92);
     --foreground: hsl(48 19% 18%);
 
-    --card: hsl(49 27% 92);
-    --card-foreground: hsl(222.2 84% 4.9%);
-
-    --popover: hsl(49 27% 92);
-    --popover-foreground: hsl(48 19% 18%);
-
-    --primary: hsl(222.2 47.4% 11.2%);
-    --primary-foreground: #6E6649;
-
-    --secondary: hsl(210 40% 96.1%);
-    --secondary-foreground: #D19781;
-
-    --tertiary: hsl(210 40% 96.1%);
-    --tertiary-foreground: #B46141;
-
     --muted: hsl(42, 12%, 84%);
     --muted-foreground: hsl(215.4 16.3% 46.9%);
 
     --accent: hsl(42, 15%, 83%);
     --accent-foreground: hsl(17 22% 24%);
-
-    --destructive: hsl(0 84.2% 60.2%);
-    --destructive-foreground: hsl(210 40% 98%);
 
     --success: #8BAE82;
     --error: #f8d7da;
@@ -40,37 +22,47 @@
 
     --muted-transparent: hsla(47, 4%, 59%, 0.1);
 
+    --primary: hsl(222.2 47.4% 11.2%);
+    --primary-foreground: #6E6649;
+
+    --secondary: hsl(210 40% 96.1%);
+    --secondary-foreground: #D19781;
+
+    --tertiary: hsl(210 40% 96.1%);
+    --tertiary-foreground: #B46141;
+
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: hsl(53, 15%, 10%);
+    --foreground: hsl(48, 52%, 89%);
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --muted: hsl(42, 12%, 84%);
+    --muted-foreground: hsl(215.4 16.3% 46.9%);
+    
+    --accent: hsl(17 22% 24%);
+    --accent-foreground: hsl(42, 15%, 83%);
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --success: #8BAE82;
+    --error: #f8d7da;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --border: hsl(17 22% 24%);
+    --input: hsl(17 22% 24%);
+    --ring: hsl(17 22% 24%);
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210, 85%, 56%;
+    --muted-transparent: hsla(47, 4%, 59%, 0.1);
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --primary: hsl(222.2 47.4% 11.2%);
+    --primary-foreground: #c5bfaa;
+   
+    --secondary:  #433e3c;
+    --secondary-foreground: #D19781;
 
-    --accent: 218, 17%, 28%;
-    --accent-foreground: 210 40% 98%;
+    --tertiary: hsl(210 40% 96.1%);
+    --tertiary-foreground: #B46141;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 218, 17%, 28%;
+    --radius: 0.5rem;
   }
 }
 
@@ -102,6 +94,7 @@ body::before {
   z-index: -1;
   background: url(https://grainy-gradients.vercel.app/noise.svg);
   filter: blur(0.5px);
+  opacity: 0.2;
 }
 
 [data-type="success"] > [data-icon] {

@@ -5,6 +5,7 @@ import { Montserrat, Neuton } from "next/font/google";
 import { Toaster } from "sonner";
 import { SettingsProvider } from "@/providers/settings-provider";
 import { useEffect, useRef } from "react";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 const neuton = Neuton({
   subsets: ["latin"],
@@ -50,7 +51,15 @@ export default function RootLayout({
             },
           }}
         />
-        <SettingsProvider>{children}</SettingsProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          themes={["light", "dark"]}
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SettingsProvider>{children}</SettingsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
