@@ -22,7 +22,9 @@ pub enum Error {
 // TODO: make the invalid states irrepresentable, the children could never be None...
 // maybe the Query struct should have a children field that is a Vec<ChildrenQuery>, which
 // cannot allow to unnamed keys...
-// Maybe we should have a RootQuery and a ChildQuery... inside a Query enum...
+// Maybe we should have a RootQuery and a ChildQuery structs... The RootQuery should have a field
+// children which are of type ChildQuery and a key field. the ChildQuery should have all the fields the query now have
+// The RootQuery should not have an alias...
 
 #[derive(Getters, Debug)]
 pub struct Query<'a> {
@@ -33,6 +35,7 @@ pub struct Query<'a> {
 impl<'a> Query<'a> {
     pub fn unnamed_with_children(children: Vec<Self>) -> Result<Self, Error> {
         // TODO: fix this, it is a bad design
+        //
         Self::validate_children(None, &children)?;
         Ok(Self {
             alias: None,
@@ -42,6 +45,7 @@ impl<'a> Query<'a> {
     }
 
     pub fn named_empty(query_alias: Option<AtomicQueryKey<'a>>, query_key: QueryKey<'a>) -> Self {
+        // Validate that name root queries does not have alias. Maybe we should make that state irrepresentable...
         Self {
             alias: query_alias,
             key: Some(query_key),

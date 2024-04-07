@@ -91,6 +91,7 @@ impl<'src> Parser<'src> {
         let spanned_token = self
             .lexer
             .next()
+            // TODO: return this error or just output the EOF token as the peek fn does?
             .ok_or_else(|| Error::UnexpectedEndOfInput(self.last_span()))?;
 
         let (token, span) = spanned_token;
