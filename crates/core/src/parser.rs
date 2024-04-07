@@ -11,8 +11,8 @@ type SpannedTokenRef<'a, 'src> = (&'a Token<'src>, Span);
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("Unexpected token '{found}'")]
-    UnexpectedToken { found: OwnedToken, span: Span },
+    #[error("Unexpected token '{0}'")]
+    UnexpectedToken(OwnedToken, Span),
     #[error("Unexpected end of input")]
     UnexpectedEndOfInput(Span),
     #[error("Unexpected token after root query")]
@@ -26,7 +26,7 @@ pub enum Error {
 impl Error {
     pub fn span(&self) -> &Span {
         match self {
-            Self::UnexpectedToken { span, .. } => span,
+            Self::UnexpectedToken(_, span) => span,
             Self::UnexpectedEndOfInput(span) => span,
             Self::UnexpectedTokenAfterRootQuery(span) => span,
             Self::Lexer(_, span) => span,
@@ -64,11 +64,10 @@ impl<'src> Parser<'src> {
     }
 
     fn current_span(&mut self) -> Result<Span> {
-        let (_, span) = self.peek()?;
-        Ok(span)
+        self.peek().map(|(_, span)| span)
     }
 
-    fn span_between(&self, start: Span, end: Span) -> Span {
+    fn span_between(start: Span, end: Span) -> Span {
         start.start..end.end
     }
 
@@ -84,8 +83,8 @@ impl<'src> Parser<'src> {
         }
     }
 
-    fn consume(&mut self) {
-        let _ = self.next_token();
+    fn consume(&mut self) -> Result<Span> {
+        self.next_token().map(|(_, span)| span)
     }
 
     fn next_token(&mut self) -> Result<SpannedToken<'src>> {
@@ -104,12 +103,12 @@ impl<'src> Parser<'src> {
     fn parse_root_query(&mut self) -> Result<Query<'src>> {
         match self.peek()? {
             (Token::LBrace, root_query_start_span) => {
-                self.consume();
+                self.consume()?;
                 let children = self.parse_query_content(&Token::RBrace)?;
-                let root_query_end_span = self.current_span()?;
-                self.consume();
+                let root_query_end_span = self.consume()?;
 
-                let root_query_span = self.span_between(root_query_start_span, root_query_end_span);
+                let root_query_span =
+                    Self::span_between(root_query_start_span, root_query_end_span);
                 Query::unnamed_with_children(children)
                     .map_err(|err| Error::Construction(err, root_query_span))
             }
@@ -142,12 +141,11 @@ impl<'src> Parser<'src> {
 
         match self.peek()? {
             (Token::LBrace, _) => {
-                self.consume();
+                self.consume()?;
                 let children = self.parse_query_content(&Token::RBrace)?;
-                let query_span_end = self.current_span()?;
-                self.consume();
+                let query_span_end = self.consume()?;
 
-                let query_span = self.span_between(query_span_start, query_span_end);
+                let query_span = Self::span_between(query_span_start, query_span_end);
                 Query::named_with_children(query_alias, query_key, children)
                     .map_err(|err| Error::Construction(err, query_span))
             }
@@ -163,16 +161,13 @@ impl<'src> Parser<'src> {
             match self.next_token()? {
                 (Token::Key(key), _) => keys.push(AtomicQueryKey::new(Cow::Borrowed(key))),
                 (unexpected_token, span) => {
-                    return Err(Error::UnexpectedToken {
-                        found: unexpected_token.into(),
-                        span,
-                    })
+                    return Err(Error::UnexpectedToken(unexpected_token.into(), span))
                 }
             }
 
             match self.peek()? {
                 (Token::Dot, _) => {
-                    self.consume();
+                    self.consume()?;
                 }
                 _ => return Ok(QueryKey::new(keys)),
             }
@@ -184,13 +179,12 @@ impl<'src> Parser<'src> {
     fn parse_query_alias(&mut self) -> Result<Option<AtomicQueryKey<'src>>> {
         match self.peek()? {
             (Token::Colon, _) => {
-                self.consume();
+                self.consume()?;
                 match self.next_token()? {
                     (Token::Key(key), _) => Ok(Some(AtomicQueryKey::new(Cow::Borrowed(key)))),
-                    (unexpected_token, span) => Err(Error::UnexpectedToken {
-                        found: unexpected_token.into(),
-                        span,
-                    }),
+                    (unexpected_token, span) => {
+                        Err(Error::UnexpectedToken(unexpected_token.into(), span))
+                    }
                 }
             }
             _ => Ok(None),

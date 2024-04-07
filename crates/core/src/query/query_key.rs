@@ -6,11 +6,14 @@ use std::{
 use derive_getters::Getters;
 use derive_more::Constructor;
 
+pub type OwnedAtomicQueryKey = AtomicQueryKey<'static>;
+pub type OwnedQueryKey = QueryKey<'static>;
+
 #[derive(Debug, Clone, Constructor, PartialEq, Eq, Hash)]
 pub struct AtomicQueryKey<'a>(pub Cow<'a, str>);
 
 impl AtomicQueryKey<'_> {
-    pub fn into_owned(self) -> AtomicQueryKey<'static> {
+    pub fn into_owned(self) -> OwnedAtomicQueryKey {
         AtomicQueryKey(Cow::Owned(self.0.into_owned()))
     }
 }
@@ -24,6 +27,18 @@ impl Display for AtomicQueryKey<'_> {
 #[derive(Debug, Clone, Constructor, Getters)]
 pub struct QueryKey<'a> {
     keys: Vec<AtomicQueryKey<'a>>,
+}
+
+impl QueryKey<'_> {
+    pub fn into_owned(self) -> OwnedQueryKey {
+        QueryKey {
+            keys: self
+                .keys
+                .into_iter()
+                .map(AtomicQueryKey::into_owned)
+                .collect(),
+        }
+    }
 }
 
 impl Display for QueryKey<'_> {

@@ -18,8 +18,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut colors = ColorGenerator::new();
 
             let a = colors.next();
-            // let span = err.span().clone();
-            let span = 0..0;
+            let span = if let gq_core::Error::Parser(err) = &err {
+                err.span().clone()
+            } else {
+                0..0
+            };
             Report::build(ReportKind::Error, &query_file, span.start)
                 .with_message("Invalid GQ".to_string())
                 .with_label(

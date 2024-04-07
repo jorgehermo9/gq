@@ -9,12 +9,14 @@ mod context;
 mod query_key;
 
 pub use self::context::OwnedJsonPath;
-pub use self::query_key::{AtomicQueryKey, QueryKey};
+pub use self::query_key::{AtomicQueryKey, OwnedAtomicQueryKey, OwnedQueryKey, QueryKey};
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("key '{0}' not found")]
-    DuplicatedOutputKey(AtomicQueryKey<'static>),
+    #[error("query '{0}' has children with duplicated output keys: '{1}'")]
+    DuplicatedOutputKey(OwnedQueryKey, OwnedAtomicQueryKey),
+    #[error("root query has children with duplicated output keys: '{0}'")]
+    DuplicatedOutputKeyInRoot(OwnedAtomicQueryKey),
 }
 
 // TODO: make the invalid states irrepresentable, the children could never be None...
@@ -30,7 +32,8 @@ pub struct Query<'a> {
 }
 impl<'a> Query<'a> {
     pub fn unnamed_with_children(children: Vec<Self>) -> Result<Self, Error> {
-        Self::validate_children(&children)?;
+        // TODO: fix this, it is a bad design
+        Self::validate_children(None, &children)?;
         Ok(Self {
             alias: None,
             key: None,
@@ -51,7 +54,7 @@ impl<'a> Query<'a> {
         query_key: QueryKey<'a>,
         children: Vec<Self>,
     ) -> Result<Self, Error> {
-        Self::validate_children(&children)?;
+        Self::validate_children(Some(&query_key), &children)?;
         Ok(Self {
             alias: query_alias,
             key: Some(query_key),
@@ -59,12 +62,25 @@ impl<'a> Query<'a> {
         })
     }
 
-    fn validate_children(children: &[Self]) -> Result<(), Error> {
+    fn validate_children(query_key: Option<&QueryKey<'a>>, children: &[Self]) -> Result<(), Error> {
         let mut output_keys = HashSet::new();
         for child in children {
             let output_key = child.output_key();
             if !output_keys.insert(output_key) {
-                return Err(Error::DuplicatedOutputKey(output_key.clone().into_owned()));
+                match query_key {
+                    Some(query_key) => {
+                        // TODO: improve the cloning?
+                        return Err(Error::DuplicatedOutputKey(
+                            query_key.clone().into_owned(),
+                            output_key.clone().into_owned(),
+                        ));
+                    }
+                    None => {
+                        return Err(Error::DuplicatedOutputKeyInRoot(
+                            output_key.clone().into_owned(),
+                        ));
+                    }
+                }
             }
         }
         Ok(())
@@ -79,9 +95,6 @@ impl<'a> Query<'a> {
         })
     }
 }
-
-// TODO: move validate and apply into each submodule, with their own type of errors?
-// Validation does not need to have an InternalError...
 
 impl Display for Query<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
