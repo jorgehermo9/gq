@@ -8,12 +8,13 @@ pub mod query;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Parser error: {0}")]
+    // TODO: change this construction error? that groups parsing + validation errors?
+    #[error("Error while parsing query: {0}")]
     Parser(#[from] parser::Error),
     #[error("Error while deserializing json: {0}")]
     Serde(#[from] serde_json::Error),
-    #[error("Query error: {0}")]
-    Query(#[from] query::Error),
+    #[error("Error while applying query: {0}")]
+    ApplyQuery(#[from] query::apply::Error),
 }
 
 // TODO: be more generic over the input. Maybe someone wants to call this with an already

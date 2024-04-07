@@ -1,6 +1,7 @@
 use crate::lexer::{self, OwnedToken, Token};
 use crate::query::{AtomicQueryKey, Query, QueryKey};
 use logos::{Logos, Span, SpannedIter};
+use std::borrow::Cow;
 use std::iter::Peekable;
 use thiserror::Error;
 
@@ -18,6 +19,8 @@ pub enum Error {
     UnexpectedTokenAfterRootQuery(Span),
     #[error("Lexer Error: {0}")]
     Lexer(lexer::Error, Span),
+    #[error("Query construction error: {0}")]
+    Construction(crate::query::Error, Span),
 }
 
 impl Error {
@@ -27,6 +30,7 @@ impl Error {
             Self::UnexpectedEndOfInput(span) => span,
             Self::UnexpectedTokenAfterRootQuery(span) => span,
             Self::Lexer(_, span) => span,
+            Self::Construction(_, span) => span,
         }
     }
 }
@@ -57,6 +61,15 @@ impl<'src> Parser<'src> {
 
     fn last_span(&self) -> Span {
         self.source.len()..self.source.len()
+    }
+
+    fn current_span(&mut self) -> Result<Span> {
+        let (_, span) = self.peek()?;
+        Ok(span)
+    }
+
+    fn span_between(&self, start: Span, end: Span) -> Span {
+        start.start..end.end
     }
 
     fn peek<'a>(&'a mut self) -> Result<SpannedTokenRef<'a, 'src>> {
@@ -90,14 +103,16 @@ impl<'src> Parser<'src> {
     /// `S -> QUERY | { QUERY_CONTENT }`
     fn parse_root_query(&mut self) -> Result<Query<'src>> {
         match self.peek()? {
-            (Token::LBrace, _) => {
+            (Token::LBrace, root_query_start_span) => {
                 self.consume();
                 let children = self.parse_query_content(&Token::RBrace)?;
-                // We know the next token is a closing brace, so we can consume it
+                let root_query_end_span = self.current_span()?;
                 self.consume();
-                Ok(Query::unnamed_with_children(children))
+
+                let root_query_span = self.span_between(root_query_start_span, root_query_end_span);
+                Query::unnamed_with_children(children)
+                    .map_err(|err| Error::Construction(err, root_query_span))
             }
-            // If the next token is not a brace, we try to parse a query
             _ => self.parse_query(),
         }
     }
@@ -121,6 +136,7 @@ impl<'src> Parser<'src> {
     /// # Grammar
     /// `QUERY -> QUERY_KEY QUERY_ALIAS| QUERY_KEY QUERY_ALIAS { QUERY_CONTENT }
     fn parse_query(&mut self) -> Result<Query<'src>> {
+        let query_span_start = self.current_span()?;
         let query_key = self.parse_query_key()?;
         let query_alias = self.parse_query_alias()?;
 
@@ -128,8 +144,12 @@ impl<'src> Parser<'src> {
             (Token::LBrace, _) => {
                 self.consume();
                 let children = self.parse_query_content(&Token::RBrace)?;
+                let query_span_end = self.current_span()?;
                 self.consume();
-                Ok(Query::named_with_children(query_alias, query_key, children))
+
+                let query_span = self.span_between(query_span_start, query_span_end);
+                Query::named_with_children(query_alias, query_key, children)
+                    .map_err(|err| Error::Construction(err, query_span))
             }
             _ => Ok(Query::named_empty(query_alias, query_key)),
         }
@@ -141,7 +161,7 @@ impl<'src> Parser<'src> {
         let mut keys = Vec::new();
         loop {
             match self.next_token()? {
-                (Token::Key(key), _) => keys.push(AtomicQueryKey::new(key)),
+                (Token::Key(key), _) => keys.push(AtomicQueryKey::new(Cow::Borrowed(key))),
                 (unexpected_token, span) => {
                     return Err(Error::UnexpectedToken {
                         found: unexpected_token.into(),
@@ -166,7 +186,7 @@ impl<'src> Parser<'src> {
             (Token::Colon, _) => {
                 self.consume();
                 match self.next_token()? {
-                    (Token::Key(key), _) => Ok(Some(AtomicQueryKey::new(key))),
+                    (Token::Key(key), _) => Ok(Some(AtomicQueryKey::new(Cow::Borrowed(key)))),
                     (unexpected_token, span) => Err(Error::UnexpectedToken {
                         found: unexpected_token.into(),
                         span,

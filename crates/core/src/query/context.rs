@@ -13,6 +13,7 @@ pub enum JsonPathEntry<'a> {
     Index(usize),
 }
 
+// TODO: use Cow instead of an owned version like the AtomicQueryKey
 #[derive(Debug, Clone)]
 pub enum OwnedJsonPathEntry {
     Key(String),
@@ -48,6 +49,8 @@ impl<'a> JsonPath<'a> {
 
 impl Display for JsonPath<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        // TODO: if empty &self.0, just print '.' instead of $? maybe this should be done
+        // without recursion so we knowthe length..
         match self {
             JsonPath::Root => write!(f, "$"),
             JsonPath::Node { entry, parent } => {
@@ -62,7 +65,7 @@ impl Display for JsonPath<'_> {
 }
 
 #[derive(Debug, Clone)]
-pub struct OwnedJsonPath(Vec<OwnedJsonPathEntry>);
+pub struct OwnedJsonPath(pub Vec<OwnedJsonPathEntry>);
 
 impl From<&JsonPath<'_>> for OwnedJsonPath {
     fn from(json_path: &JsonPath) -> Self {
@@ -79,6 +82,7 @@ impl From<&JsonPath<'_>> for OwnedJsonPath {
 
 impl Display for OwnedJsonPath {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        // TODO: if empty &self.0, just print '.' instead of $?
         write!(f, "$")?;
         for entry in &self.0 {
             match entry {
@@ -113,7 +117,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    pub fn push_query_key(&self, query_key: &QueryKey<'a>) -> Context<'a> {
+    pub fn push_query_key(&self, query_key: &'a QueryKey<'a>) -> Context<'a> {
         let mut path = self.path.clone();
         for AtomicQueryKey(key) in query_key.keys() {
             path = path.push(JsonPathEntry::Key(key));
