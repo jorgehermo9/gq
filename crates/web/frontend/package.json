@@ -6,7 +6,7 @@
         "dev": "just build-wasm && npm i gq-web && next dev",
         "build": "just build-wasm && npm i gq-web && next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "biome lint ./src"
     },
     "dependencies": {
         "@monaco-editor/react": "^4.6.0",
