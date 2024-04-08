@@ -4,72 +4,46 @@
 
 @layer base {
   :root {
-    --background: hsl(49 27% 92);
-    --foreground: hsl(48 19% 18%);
-
-    --muted: hsl(42, 12%, 84%);
-    --muted-foreground: hsl(215.4 16.3% 46.9%);
-
-    --accent: hsl(42, 15%, 83%);
-    --accent-foreground: hsl(17 22% 24%);
+    --background: #f0eee5;
+    --foreground: #373325;
+    --accent: #D19781;
+    --accent-background: #d1c2bb;
+    --muted: #dbd8d1;
+    
+    --code-primary: #6E6649;
+    --code-secondary: #D19781;
+    --code-tertiary: #B46141;
 
     --success: #8BAE82;
     --error: #f8d7da;
-
-    --border: hsl(17 22% 24%);
-    --input: hsl(17 22% 24%);
-    --ring: hsl(17 22% 24%);
-
-    --muted-transparent: hsla(47, 4%, 59%, 0.1);
-
-    --primary: hsl(222.2 47.4% 11.2%);
-    --primary-foreground: #6E6649;
-
-    --secondary: hsl(210 40% 96.1%);
-    --secondary-foreground: #D19781;
-
-    --tertiary: hsl(210 40% 96.1%);
-    --tertiary-foreground: #B46141;
+    
+    --muted-transparent: #9b99921a;
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: hsl(53, 15%, 10%);
-    --foreground: hsl(48, 52%, 89%);
+    --background: #1d1c16;
+    --foreground: #f2ecd4;
+    --accent: #D19781;
+    --accent-background: #4b3730;
+    --muted: #3e3d34;
 
-    --muted: hsl(42, 12%, 84%);
-    --muted-foreground: hsl(215.4 16.3% 46.9%);
-    
-    --accent: hsl(17 22% 24%);
-    --accent-foreground: hsl(42, 15%, 83%);
+    --code-primary: #c5bfaa;
+    --code-secondary: #D19781;
+    --code-tertiary: #B46141;
 
     --success: #8BAE82;
-    --error: #f8d7da;
-
-    --border: hsl(17 22% 24%);
-    --input: hsl(17 22% 24%);
-    --ring: hsl(17 22% 24%);
-
-    --muted-transparent: hsla(47, 4%, 59%, 0.1);
-
-    --primary: hsl(222.2 47.4% 11.2%);
-    --primary-foreground: #c5bfaa;
-   
-    --secondary:  #433e3c;
-    --secondary-foreground: #D19781;
-
-    --tertiary: hsl(210 40% 96.1%);
-    --tertiary-foreground: #B46141;
-
-    --radius: 0.5rem;
+    --error: #7a2b2b;
+    
+    --muted-transparent: #9b99921a;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
-    scrollbar-color: var(--primary-foreground) var(--background);
+    @apply border-accent-background;
+    scrollbar-color: var(--foreground) var(--muted-transparent);
     scrollbar-width: thin;
    }
   body {
@@ -104,64 +78,3 @@ body::before {
 [data-type="error"] {
   background-color: var(--error);
 }
-
-/* 
-body {
-	background-image: radial-gradient(hsl(var(--foreground)) 1.5px, transparent 1.5px), radial-gradient(hsl(var(--foreground)) 1.5px, hsl(var(--background)) 1.5px);
-	background-size: 5rem 5rem;
-	background-position: 0 0, 2.5rem 2.5rem;
-  animation: bg 1s linear infinite;
-  background-color: hsl(var(--background));
-} */
-
-/* body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: -20%;
-  width: 120%;
-  height: 100%;
-  z-index: -1;
-  opacity: 0.8;
-  background: linear-gradient(to right, transparent, hsl(var(--background)) 5%);
-
-  animation: before 8s ease-in-out infinite;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  right: 120%;
-  width: 120%;
-  height: 100%;
-  z-index: -1;
-  opacity: 0.8;
-  background: linear-gradient(to left, transparent, hsl(var(--background)) 5%);
-
-  animation: after 8s ease-in-out infinite;
-} */
-/* 
-@keyframes before {
-  0% {
-    left: -20%;
-  }
-  80% {
-    left: 120%;
-  }
-  100% {
-    left: 120%;
-  }
-}
-
-@keyframes after {
-  0% {
-    right: 130%;
-  }
-  80% {
-    right: -10%;
-  }
-  100% {
-    right: -10%;
-  } */
-/* } */

@@ -3,11 +3,11 @@
 }
 
 .editor[data-focus="true"] {
-	border: 2px solid var(--secondary-foreground);
+	border: 2px solid var(--accent);
 	@apply shadow-lg;
 }
 
 .editor[data-focus="false"] {
-	border: 2px solid var(--accent);
+	border: 2px solid var(--accent-background);
 	@apply shadow-md;
 }

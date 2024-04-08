@@ -1,16 +1,16 @@
 import { useEffect, useRef } from "react";
 
 const useDebounce = (
-  callback: Function,
-  delay: number,
-  dependencies: any[]
+	callback: () => void,
+	delay: number,
+	dependencies: any[],
 ) => {
-  const timer = useRef<NodeJS.Timeout | null>(null);
+	const timer = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    timer.current && clearTimeout(timer.current);
-    timer.current = setTimeout(() => callback(), delay);
-  }, [...dependencies]);
+	useEffect(() => {
+		timer.current && clearTimeout(timer.current);
+		timer.current = setTimeout(() => callback(), delay);
+	}, [callback, ...dependencies]);
 };
 
 export default useDebounce;
