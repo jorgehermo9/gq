@@ -9,5 +9,5 @@ interface MessageContent {
 
 registerWebworker(async ({ query, json, indent }: MessageContent) => {
 	await init();
-	return gq(query, json, indent)
+	return gq(query, json, indent);
 });

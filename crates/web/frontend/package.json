@@ -6,7 +6,7 @@
         "dev": "just build-wasm && npm i gq-web && next dev",
         "build": "just build-wasm && npm i gq-web && next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "biome lint ./src"
     },
     "dependencies": {
         "@monaco-editor/react": "^4.6.0",
@@ -43,6 +43,7 @@
         "webworker-promise": "^0.5.1"
     },
     "devDependencies": {
+        "@biomejs/biome": "1.6.4",
         "@types/node": "^20",
         "@types/react": "^18",
         "@types/react-dom": "^18",

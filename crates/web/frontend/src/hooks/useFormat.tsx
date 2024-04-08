@@ -2,16 +2,16 @@ import { useEffect, useRef } from "react";
 import PromiseWorker from "webworker-promise";
 
 const useFormat = () => {
-  const workerRef = useRef<PromiseWorker>();
+	const workerRef = useRef<PromiseWorker>();
 
-  useEffect(() => {
-    workerRef.current = new PromiseWorker(
-      new Worker(new URL("../lib/format.ts", import.meta.url))
-    );
-    return () => workerRef.current?.terminate();
-  }, []);
+	useEffect(() => {
+		workerRef.current = new PromiseWorker(
+			new Worker(new URL("../lib/format.ts", import.meta.url)),
+		);
+		return () => workerRef.current?.terminate();
+	}, []);
 
-  return workerRef.current;
+	return workerRef.current;
 };
 
 export default useFormat;
