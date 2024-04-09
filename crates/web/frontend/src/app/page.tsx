@@ -25,47 +25,30 @@ const Home = () => {
 	} = useSettings();
 	const gqWorker = useGq();
 
-	const updateOutputJson = useCallback(
-		(notify: boolean) => {
-			if (!gqWorker) return;
-			if (!notify) {
-				gqWorker
-					.postMessage({
-						query: inputQuery,
-						json: inputJson,
-						indent: jsonTabSize,
-					})
-					.then((res) => {
-						setErrorMessage(undefined);
-						setOutputJson(res);
-					})
-					.catch((err) => setErrorMessage(err.message));
-				return;
-			}
-			const toastId = toast.loading("Applying query to JSON...");
-			gqWorker
-				.postMessage({
-					query: inputQuery,
-					json: inputJson,
-					indent: jsonTabSize,
-				})
-				.then((res) => {
-					toast.success("Query applied to JSON", { id: toastId });
-					setErrorMessage(undefined);
-					setOutputJson(res);
-				})
-				.catch((err) => {
-					setErrorMessage(err.message);
-					toast.error("Error while applying query to JSON", {
-						id: toastId,
-						duration: 5000,
-					});
+	const updateOutputJson = useCallback(() => {
+		if (!gqWorker) return;
+		const toastId = toast.loading("Applying query to JSON...");
+		gqWorker
+			.postMessage({
+				query: inputQuery,
+				json: inputJson,
+				indent: jsonTabSize,
+			})
+			.then((res) => {
+				toast.success("Query applied to JSON", { id: toastId });
+				setErrorMessage(undefined);
+				setOutputJson(res);
+			})
+			.catch((err) => {
+				toast.error("Error while applying query to JSON", {
+					id: toastId,
+					duration: 5000,
 				});
-		},
-		[inputJson, inputQuery, gqWorker, jsonTabSize],
-	);
+				setErrorMessage(err.message);
+			});
+	}, [inputJson, inputQuery, gqWorker, jsonTabSize]);
 
-	useDebounce(() => autoApply && updateOutputJson(true), debounceTime, [
+	useDebounce(() => autoApply && updateOutputJson(), debounceTime, [
 		inputJson,
 		inputQuery,
 	]);
@@ -80,7 +63,7 @@ const Home = () => {
 						value={inputJson}
 						onChange={setInputJson}
 						title="Input JSON"
-						filename="data"
+						filename="input"
 						fileType={FileType.JSON}
 					/>
 					<Editor
@@ -92,10 +75,7 @@ const Home = () => {
 						fileType={FileType.GQ}
 					/>
 				</aside>
-				<ApplyButton
-					autoApply={autoApply}
-					onClick={() => updateOutputJson(true)}
-				/>
+				<ApplyButton autoApply={autoApply} onClick={updateOutputJson} />
 				<aside className="w-[44vw] h-[80vh] flex flex-col">
 					<Editor
 						className="w-[44vw] h-[80vh]"

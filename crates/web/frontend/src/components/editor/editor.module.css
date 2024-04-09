@@ -28,13 +28,11 @@
 	z-index: 10;
 	left: 0;
 	height: 3rem;
+	padding-left: 2rem;
 	width: 100%;
 	background-color: var(--error);
 	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-	padding-left: 2rem;
-	justify-content: center;
+	align-items: center;
 	font-size: 1rem;
 	transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
 }

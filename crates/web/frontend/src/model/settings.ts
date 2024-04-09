@@ -13,7 +13,7 @@ export type FormattingSettings = {
 	queryTabSize: number;
 };
 
-export const getDefaultSettings = (): Settings => {
+const getDefaultSettings = (): Settings => {
 	return {
 		autoApplySettings: {
 			autoApply: true,
@@ -26,10 +26,7 @@ export const getDefaultSettings = (): Settings => {
 	};
 };
 
-export const setAutoApply = (
-	settings: Settings,
-	autoApply: boolean,
-): Settings => {
+const setAutoApply = (settings: Settings, autoApply: boolean): Settings => {
 	return {
 		...settings,
 		autoApplySettings: {
@@ -39,7 +36,7 @@ export const setAutoApply = (
 	};
 };
 
-export const setDebounceTime = (
+const setDebounceTime = (
 	settings: Settings,
 	debounceTime: number,
 ): Settings => {
@@ -52,10 +49,7 @@ export const setDebounceTime = (
 	};
 };
 
-export const setJsonTabSize = (
-	settings: Settings,
-	jsonTabSize: number,
-): Settings => {
+const setJsonTabSize = (settings: Settings, jsonTabSize: number): Settings => {
 	return {
 		...settings,
 		formattingSettings: {
@@ -65,7 +59,7 @@ export const setJsonTabSize = (
 	};
 };
 
-export const setQueryTabSize = (
+const setQueryTabSize = (
 	settings: Settings,
 	queryTabSize: number,
 ): Settings => {
@@ -76,4 +70,12 @@ export const setQueryTabSize = (
 			queryTabSize,
 		},
 	};
+};
+
+export {
+	getDefaultSettings,
+	setAutoApply,
+	setDebounceTime,
+	setJsonTabSize,
+	setQueryTabSize,
 };

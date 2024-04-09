@@ -1,15 +1,14 @@
 "use client";
 
-import { getDefaultSettings, type Settings } from "@/model/settings";
+import { type Settings, getDefaultSettings } from "@/model/settings";
 import {
 	type Dispatch,
 	type SetStateAction,
 	createContext,
 	useContext,
-	useState,
 	useEffect,
-	useMemo,
 	useRef,
+	useState,
 } from "react";
 
 export const SettingsContext = createContext<

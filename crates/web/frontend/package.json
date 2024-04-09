@@ -9,6 +9,7 @@
         "check": "biome check ./src --apply"
     },
     "dependencies": {
+        "@codemirror/lang-json": "^6.0.1",
         "@monaco-editor/react": "^4.6.0",
         "@radix-ui/react-context-menu": "^2.1.5",
         "@radix-ui/react-dialog": "^1.0.5",
@@ -22,7 +23,6 @@
         "@radix-ui/react-switch": "^1.0.3",
         "@radix-ui/react-toast": "^1.1.5",
         "@types/js-beautify": "^1.14.3",
-        "@uiw/codemirror-extensions-langs": "^4.21.25",
         "@uiw/codemirror-themes": "^4.21.25",
         "@uiw/react-codemirror": "^4.21.25",
         "@wasm-tool/wasm-pack-plugin": "^1.7.0",

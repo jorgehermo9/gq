@@ -20,25 +20,28 @@ const ActionButton = ({
 	disabled = false,
 	children,
 	className,
+	hidden,
 	...props
 }: Props) => {
 	return (
-		<HoverCard openDelay={800}>
-			<HoverCardTrigger>
-				<Button
-					className={cn("w-fit h-fit", className)}
-					variant="outline"
-					size="icon"
-					disabled={disabled}
-					{...props}
-				>
-					{children}
-				</Button>
-			</HoverCardTrigger>
-			<HoverCardContent side={side} className="max-w-96 w-fit text-sm p-2">
-				{description}
-			</HoverCardContent>
-		</HoverCard>
+		!hidden && (
+			<HoverCard openDelay={800}>
+				<HoverCardTrigger>
+					<Button
+						className={cn("w-fit h-fit", className)}
+						variant="outline"
+						size="icon"
+						disabled={disabled}
+						{...props}
+					>
+						{children}
+					</Button>
+				</HoverCardTrigger>
+				<HoverCardContent side={side} className="max-w-96 w-fit text-sm p-2">
+					{description}
+				</HoverCardContent>
+			</HoverCard>
+		)
 	);
 };
 

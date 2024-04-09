@@ -5,7 +5,7 @@ const useDebounce = (
 	delay: number,
 	dependencies: unknown[],
 ) => {
-	const timer = useRef<NodeJS.Timeout | null>(null);
+	const timer = useRef<NodeJS.Timeout>();
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: We want to avoid that the callback is called when the delay time changes
 	useEffect(() => {

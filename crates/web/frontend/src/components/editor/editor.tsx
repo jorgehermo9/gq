@@ -5,7 +5,7 @@ import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
-import { langs } from "@uiw/codemirror-extensions-langs";
+import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
 import { Eraser } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -52,15 +52,15 @@ const Editor = ({
 		if (!formatWorker) return;
 		const toastId = toast.loading("Formatting code...");
 		formatWorker
-			?.postMessage({ data: value, indent: indentSize, type: fileType })
+			.postMessage({ data: value, indent: indentSize, type: fileType })
 			.then((res) => {
 				toast.success("Code formatted!", { id: toastId });
 				setFormatErrorMessage(undefined);
 				onChange(res);
 			})
 			.catch((err) => {
-				setFormatErrorMessage(err.message);
 				toast.error(err.message, { id: toastId, duration: 5000 });
+				setFormatErrorMessage(err.message);
 			});
 	}, [value, onChange, formatWorker, fileType, indentSize]);
 
@@ -77,6 +77,7 @@ const Editor = ({
 		a.download = `${filename}.${fileType}`;
 		a.click();
 		URL.revokeObjectURL(url);
+		toast.success("File exported succesfully!");
 	}, [value, filename, fileType]);
 
 	const handleKeyDown = useCallback(
@@ -134,7 +135,7 @@ const Editor = ({
 						onChange={onChange}
 						height="100%"
 						theme={gqTheme}
-						extensions={[langs.json()]}
+						extensions={[json()]}
 						editable={editable}
 						basicSetup={{
 							lineNumbers: true,
