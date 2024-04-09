@@ -27,7 +27,7 @@
 	position: absolute;
 	z-index: 10;
 	left: 0;
-	height: 4rem;
+	height: 3rem;
 	width: 100%;
 	background-color: var(--error);
 	display: flex;
@@ -45,7 +45,7 @@
 }
 
 .error-content[data-visible="false"] {
-	bottom: -4rem;
+	bottom: -3rem;
 	opacity: 0;
 }
 

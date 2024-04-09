@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 
 const Header = () => {
 	return (
-		<header className="w-full px-8 flex items-center justify-between pb-8">
+		<header className="w-full px-8 flex items-center justify-between mb-12">
 			<h1 className="relative mx-auto items-end text-7xl font-extrabold">
 				<span className="neuton">
 					GQ <span className="font-normal">Playground</span>
