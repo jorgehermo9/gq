@@ -14,6 +14,9 @@ const Home = () => {
 	const [inputJson, setInputJson] = useState<string>('{"test": 1213}');
 	const [inputQuery, setInputQuery] = useState<string>("{}");
 	const [outputJson, setOutputJson] = useState<string>("");
+	const [errorMessage, setErrorMessage] = useState<string | undefined>(
+		undefined,
+	);
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
@@ -32,8 +35,11 @@ const Home = () => {
 						json: inputJson,
 						indent: jsonTabSize,
 					})
-					.then(setOutputJson)
-					.catch((err) => toast.error(err.message, { duration: 5000 }));
+					.then((res) => {
+						setErrorMessage(undefined);
+						setOutputJson(res);
+					})
+					.catch((err) => setErrorMessage(err.message));
 				return;
 			}
 			const toastId = toast.loading("Applying query to JSON...");
@@ -45,11 +51,16 @@ const Home = () => {
 				})
 				.then((res) => {
 					toast.success("Query applied to JSON", { id: toastId });
+					setErrorMessage(undefined);
 					setOutputJson(res);
 				})
-				.catch((err) =>
-					toast.error(err.message, { id: toastId, duration: 5000 }),
-				);
+				.catch((err) => {
+					setErrorMessage(err.message);
+					toast.error("Error while applying query to JSON", {
+						id: toastId,
+						duration: 5000,
+					});
+				});
 		},
 		[inputJson, inputQuery, gqWorker, jsonTabSize],
 	);
@@ -94,6 +105,7 @@ const Home = () => {
 						editable={false}
 						filename="output"
 						fileType={FileType.JSON}
+						errorMessage={errorMessage}
 					/>
 				</aside>
 			</section>
