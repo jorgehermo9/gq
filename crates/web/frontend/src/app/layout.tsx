@@ -41,7 +41,7 @@ export default function RootLayout({
 						unstyled: true,
 						classNames: {
 							toast:
-								"w-full flex gap-4 bg-background items-center border border-foreground p-4 rounded-md shadow-md",
+								"w-full flex gap-4 bg-background items-center border border-accent-background p-4 rounded-md shadow-md",
 							title: "text-foreground text-sm",
 							actionButton:
 								"min-w-max bg-foreground text-background text-xs px-2 py-1 rounded-md justify-self-end",
