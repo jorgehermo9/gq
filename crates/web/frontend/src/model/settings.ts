@@ -13,6 +13,19 @@ export type FormattingSettings = {
 	queryTabSize: number;
 };
 
+export const getDefaultSettings = (): Settings => {
+	return {
+		autoApplySettings: {
+			autoApply: true,
+			debounceTime: 1000,
+		},
+		formattingSettings: {
+			jsonTabSize: 2,
+			queryTabSize: 2,
+		},
+	};
+};
+
 export const setAutoApply = (
 	settings: Settings,
 	autoApply: boolean,
