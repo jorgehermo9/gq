@@ -6,13 +6,57 @@ import { cn } from "@/lib/utils";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { json } from "@codemirror/lang-json";
-import CodeMirror from "@uiw/react-codemirror";
+import { MatchDecorator } from "@codemirror/view";
+import CodeMirror, {
+	Decoration,
+	ViewPlugin,
+	WidgetType,
+} from "@uiw/react-codemirror";
 import { Eraser } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
 import styles from "./editor.module.css";
+
+class UrlWidget extends WidgetType {
+	value: string;
+
+	constructor(value: string) {
+		super();
+		this.value = value;
+	}
+
+	toDOM() {
+		const node = document.createElement("a");
+		node.classList.add("underline", "text-accent", "cmt-url");
+		node.href = this.value;
+		node.textContent = this.value;
+		node.target = "_blank";
+		node.rel = "noopener noreferrer";
+		return node;
+	}
+}
+
+const urlDecorator = new MatchDecorator({
+	regexp: /https?:\/\/[^"]*/g,
+	decoration: (match) =>
+		Decoration.replace({
+			widget: new UrlWidget(match[0]),
+		}),
+});
+
+const urlDecoratorPlugin = ViewPlugin.define(
+	(view) => ({
+		decorations: urlDecorator.createDeco(view),
+		update(u) {
+			this.decorations = urlDecorator.updateDeco(u, this.decorations);
+		},
+	}),
+	{
+		decorations: (v) => v.decorations,
+	},
+);
 
 interface Props {
 	value: string;
@@ -140,7 +184,7 @@ const Editor = ({
 						onChange={onChange}
 						height="100%"
 						theme={gqTheme}
-						extensions={[json()]}
+						extensions={[json(), urlDecoratorPlugin]}
 						editable={editable}
 						basicSetup={{
 							lineNumbers: true,
