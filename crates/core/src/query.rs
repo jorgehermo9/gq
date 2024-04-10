@@ -1,7 +1,6 @@
 use std::collections::HashSet;
-use std::fmt::Display;
 
-use derive_builder::Builder;
+use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
 use thiserror::Error;
 
@@ -14,27 +13,75 @@ pub use self::query_key::{AtomicQueryKey, OwnedAtomicQueryKey, OwnedQueryKey, Qu
 
 #[derive(Debug, Error)]
 pub enum Error {
-    // #[error("query '{0}' has children with duplicated output keys: '{1}'")]
-    // DuplicatedOutputKey(OwnedQueryKey, OwnedAtomicQueryKey),
-    // #[error("root query has children with duplicated output keys: '{0}'")]
-    // DuplicatedOutputKeyInRoot(OwnedAtomicQueryKey),
     #[error("root query builder error: {0}")]
     RootBuilderError(#[from] RootQueryBuilderError),
     #[error("child query builder error: {0}")]
     ChildBuilderError(#[from] ChildQueryBuilderError),
 }
 
+#[derive(Debug, Error)]
+pub enum RootQueryValidationError {
+    #[error("root query has children with duplicated output keys: '{0}'")]
+    DuplicatedOutputKeyInRoot(OwnedAtomicQueryKey),
+}
+
+#[derive(Debug, Error)]
+pub enum RootQueryBuilderError {
+    #[error("{0}")]
+    UninitializedFields(#[from] UninitializedFieldError),
+    #[error("{0}")]
+    ValidationError(#[from] RootQueryValidationError),
+}
+
 #[derive(Getters, Debug, Builder)]
-#[builder(pattern = "owned", setter(into, strip_option))]
+#[builder(
+    pattern = "owned",
+    setter(into, strip_option),
+    build_fn(validate = "Self::validate", error = "RootQueryBuilderError")
+)]
 pub struct RootQuery<'a> {
     key: Option<QueryKey<'a>>,
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
 }
 
-// TODO: Add validation with https://docs.rs/derive_builder/latest/derive_builder/index.html#pre-build-validation
+impl RootQueryBuilder<'_> {
+    fn validate(&self) -> Result<(), RootQueryValidationError> {
+        self.validate_children()
+    }
+    fn validate_children(&self) -> Result<(), RootQueryValidationError> {
+        let mut output_keys = HashSet::new();
+        for child in self.children.expect("children must be defined") {
+            let output_key = child.output_key();
+            if !output_keys.insert(output_key) {
+                return Err(RootQueryValidationError::DuplicatedOutputKeyInRoot(
+                    output_key.clone().into_owned(),
+                ));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ChildQueryValidationError {
+    #[error("query '{0}' has children with duplicated output keys: '{1}'")]
+    DuplicatedOutputKey(OwnedQueryKey, OwnedAtomicQueryKey),
+}
+
+#[derive(Debug, Error)]
+pub enum ChildQueryBuilderError {
+    #[error("{0}")]
+    UninitializedFields(#[from] UninitializedFieldError),
+    #[error("{0}")]
+    ValidationError(#[from] ChildQueryValidationError),
+}
+
 #[derive(Getters, Debug, Builder)]
-#[builder(pattern = "owned")]
+#[builder(
+    pattern = "owned",
+    build_fn(validate = "Self::validate", error = "ChildQueryBuilderError")
+)]
 pub struct ChildQuery<'a> {
     alias: Option<AtomicQueryKey<'a>>,
     key: QueryKey<'a>,
@@ -42,40 +89,33 @@ pub struct ChildQuery<'a> {
     children: Vec<ChildQuery<'a>>,
 }
 
-// impl<'a> ChildQuery<'a> {
-//     fn validate_children(query_key: Option<&QueryKey<'a>>, children: &[Self]) -> Result<(), Error> {
-//         let mut output_keys = HashSet::new();
-//         for child in children {
-//             let output_key = child.output_key();
-//             if !output_keys.insert(output_key) {
-//                 match query_key {
-//                     Some(query_key) => {
-//                         // TODO: improve the cloning?
-//                         return Err(Error::DuplicatedOutputKey(
-//                             query_key.clone().into_owned(),
-//                             output_key.clone().into_owned(),
-//                         ));
-//                     }
-//                     None => {
-//                         return Err(Error::DuplicatedOutputKeyInRoot(
-//                             output_key.clone().into_owned(),
-//                         ));
-//                     }
-//                 }
-//             }
-//         }
-//         Ok(())
-//     }
+impl ChildQueryBuilder<'_> {
+    fn validate(&self) -> Result<(), ChildQueryValidationError> {
+        self.validate_children()
+    }
+    fn validate_children(&self) -> Result<(), ChildQueryValidationError> {
+        let mut output_keys = HashSet::new();
+        for child in self.children.expect("children must be defined") {
+            let output_key = child.output_key();
+            if !output_keys.insert(output_key) {
+                let child_key = self.key.expect("child key must be defined");
+                return Err(ChildQueryValidationError::DuplicatedOutputKey(
+                    child_key.clone().into_owned(),
+                    output_key.clone().into_owned(),
+                ));
+            }
+        }
+        Ok(())
+    }
+}
 
-//     pub fn output_key(&self) -> &AtomicQueryKey {
-//         self.alias().as_ref().unwrap_or_else(|| {
-//             self.key()
-//                 .as_ref()
-//                 .expect("query key cannot be empty")
-//                 .last_key()
-//         })
-//     }
-// }
+impl<'a> ChildQuery<'a> {
+    pub fn output_key(&self) -> &AtomicQueryKey {
+        self.alias()
+            .as_ref()
+            .unwrap_or_else(|| self.key().last_key())
+    }
+}
 
 //impl Display for RootQuery<'_> {
 //    fn fmt(&self, f: &mut Formatter) -> fmt::Result {

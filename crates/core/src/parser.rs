@@ -1,6 +1,6 @@
 use crate::lexer::{self, OwnedToken, Token};
 use crate::query::{
-    self, AtomicQueryKey, ChildQuery, ChildQueryBuilder, QueryKey, RootQuery, RootQueryBuilder,
+    AtomicQueryKey, ChildQuery, ChildQueryBuilder, QueryKey, RootQuery, RootQueryBuilder,
 };
 use logos::{Logos, Span, SpannedIter};
 use std::borrow::Cow;
@@ -13,6 +13,7 @@ type SpannedTokenRef<'a, 'src> = (&'a Token<'src>, Span);
 
 #[derive(Error, Debug)]
 pub enum Error {
+    // TODO: Group parser errors inside a ParserError enum?
     #[error("Unexpected token '{0}'")]
     UnexpectedToken(OwnedToken, Span),
     #[error("Unexpected end of input")]
