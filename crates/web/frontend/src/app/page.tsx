@@ -63,7 +63,7 @@ const Home = () => {
 						value={inputJson}
 						onChange={setInputJson}
 						title="Input JSON"
-						filename="input"
+						defaultFileName="input"
 						fileType={FileType.JSON}
 					/>
 					<Editor
@@ -71,7 +71,7 @@ const Home = () => {
 						value={inputQuery}
 						onChange={setInputQuery}
 						title="Input Query"
-						filename="query"
+						defaultFileName="query"
 						fileType={FileType.GQ}
 					/>
 				</aside>
@@ -83,7 +83,7 @@ const Home = () => {
 						onChange={setOutputJson}
 						title="Output JSON"
 						editable={false}
-						filename="output"
+						defaultFileName="output"
 						fileType={FileType.JSON}
 						errorMessage={errorMessage}
 					/>

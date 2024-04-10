@@ -17,7 +17,7 @@ import styles from "./editor.module.css";
 interface Props {
 	value: string;
 	title: string;
-	filename: string;
+	defaultFileName: string;
 	fileType: FileType;
 	onChange: (value: string) => void;
 	className?: string;
@@ -28,7 +28,7 @@ interface Props {
 const Editor = ({
 	value,
 	title,
-	filename,
+	defaultFileName,
 	fileType,
 	onChange,
 	className,
@@ -69,16 +69,19 @@ const Editor = ({
 		toast.success("Copied to your clipboard!");
 	}, [value]);
 
-	const exportFile = useCallback(() => {
-		const blob = new Blob([value], { type: `application/${fileType}` });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `${filename}.${fileType}`;
-		a.click();
-		URL.revokeObjectURL(url);
-		toast.success("File exported succesfully!");
-	}, [value, filename, fileType]);
+	const exportFile = useCallback(
+		(fileName: string) => {
+			const blob = new Blob([value], { type: `application/${fileType}` });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `${fileName}.${fileType}`;
+			a.click();
+			URL.revokeObjectURL(url);
+			toast.success("File exported succesfully!");
+		},
+		[value, fileType],
+	);
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
@@ -104,6 +107,8 @@ const Editor = ({
 					<span className="font-bold"> {title.split(" ")[1]}</span>
 				</h2>
 				<EditorMenu
+					fileType={fileType}
+					defaultFileName={defaultFileName}
 					editable={editable}
 					onCopyToClipboard={copyToClipboard}
 					onFormatCode={formatCode}

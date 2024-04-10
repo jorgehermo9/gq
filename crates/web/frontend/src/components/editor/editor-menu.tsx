@@ -19,16 +19,22 @@ import {
 	Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import ExportButton from "@/components/export-button/export-button";
+import FileType from "@/model/file-type";
 
 interface Props {
+	fileType: FileType;
+	defaultFileName: string;
 	editable: boolean;
 	onCopyToClipboard: () => void;
 	onFormatCode: () => void;
 	onImportFile: (content: string) => void;
-	onExportFile: () => void;
+	onExportFile: (fileName: string) => void;
 }
 
 const EditorMenu = ({
+	fileType,
+	defaultFileName,
 	editable,
 	onCopyToClipboard,
 	onFormatCode,
@@ -85,13 +91,11 @@ const EditorMenu = ({
 						<FileUp className="w-4 h-4" />
 					</Label>
 				</ActionButton>
-				<ActionButton
-					description="Export file"
-					onClick={onExportFile}
-					className="px-4 py-2"
-				>
-					<DownloadCloud className="w-4 h-4" />
-				</ActionButton>
+				<ExportButton
+					defaultFileName={defaultFileName}
+					fileType={fileType}
+					onExportFile={onExportFile}
+				/>
 			</div>
 
 			<DropdownMenu>
@@ -135,7 +139,7 @@ const EditorMenu = ({
 							<span>Import file</span>
 						</Label>
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={onExportFile}>
+					<DropdownMenuItem onClick={() => onExportFile(defaultFileName)}>
 						<div className="flex items-center gap-2">
 							<DownloadCloud className="w-4 h-4" />
 							<span>Export file</span>
