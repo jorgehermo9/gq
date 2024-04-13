@@ -165,7 +165,7 @@ const Editor = ({
 				data-focus={isFocused}
 				onFocus={() => setIsFocused(true)}
 				onBlur={() => setIsFocused(false)}
-				className={`${styles.editor} relative h-full rounded-lg overflow-hidden group text-sm`}
+				className={`${styles.editor} relative h-full rounded-lg overflow-hidden`}
 			>
 				<div
 					data-visible={!editable && (!!errorMessage || !!formatErrorMessage)}
@@ -179,7 +179,7 @@ const Editor = ({
 				</span>
 				{available ? (
 					<CodeMirror
-						className="w-full h-full rounded-lg"
+						className="w-full h-full rounded-lg text-[0.8rem]"
 						value={value}
 						onChange={onChange}
 						height="100%"

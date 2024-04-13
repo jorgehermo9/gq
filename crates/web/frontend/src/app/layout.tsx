@@ -10,7 +10,7 @@ import "./globals.css";
 const neuton = Neuton({
 	subsets: ["latin"],
 	weight: ["300", "400", "700"],
-	variable: "--font-neuton",
+	variable: "--font-serif",
 });
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
 

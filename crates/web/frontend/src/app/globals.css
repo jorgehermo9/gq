@@ -43,7 +43,7 @@
 @layer base {
   * {
     @apply border-accent-background;
-    scrollbar-color: var(--foreground) var(--muted-transparent);
+    scrollbar-color: var(--accent) var(--muted-transparent);
     scrollbar-width: thin;
   }
 

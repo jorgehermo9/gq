@@ -29,7 +29,7 @@ const ExportButton = ({ defaultFileName, fileType, onExportFile }: Props) => {
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<ActionButton description="Export file" className="px-4 py-2">
-					<DownloadCloud className="w-4 h-4" />
+					<DownloadCloud className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
 			<DialogContent className="w-[16vw] min-w-96 max-w-sccreen">

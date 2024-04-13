@@ -62,7 +62,7 @@ const EditorMenu = ({
 					description="Copy to clipboard"
 					onClick={onCopyToClipboard}
 				>
-					<Clipboard className="w-4 h-4" />
+					<Clipboard className="w-3.5 h-3.5" />
 				</ActionButton>
 				<ActionButton
 					className="px-4 py-2"
@@ -70,7 +70,7 @@ const EditorMenu = ({
 					onClick={onFormatCode}
 					hidden={!editable}
 				>
-					<Sparkles className="w-4 h-4" />
+					<Sparkles className="w-3.5 h-3.5" />
 				</ActionButton>
 				<ActionButton
 					className="h-8 p-0"
@@ -88,7 +88,7 @@ const EditorMenu = ({
 						htmlFor="file-import"
 						className="p-4 grid place-items-center cursor-pointer"
 					>
-						<FileUp className="w-4 h-4" />
+						<FileUp className="w-3.5 h-3.5" />
 					</Label>
 				</ActionButton>
 				<ExportButton
