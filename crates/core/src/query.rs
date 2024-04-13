@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::fmt::{self, Display, Formatter};
 
 use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
@@ -51,7 +52,7 @@ impl RootQueryBuilder<'_> {
     }
     fn validate_children(&self) -> Result<(), RootQueryValidationError> {
         let mut output_keys = HashSet::new();
-        for child in self.children.expect("children must be defined") {
+        for child in self.children.as_ref().expect("children must be defined") {
             let output_key = child.output_key();
             if !output_keys.insert(output_key) {
                 return Err(RootQueryValidationError::DuplicatedOutputKeyInRoot(
@@ -95,10 +96,10 @@ impl ChildQueryBuilder<'_> {
     }
     fn validate_children(&self) -> Result<(), ChildQueryValidationError> {
         let mut output_keys = HashSet::new();
-        for child in self.children.expect("children must be defined") {
+        for child in self.children.as_ref().expect("children must be defined") {
             let output_key = child.output_key();
             if !output_keys.insert(output_key) {
-                let child_key = self.key.expect("child key must be defined");
+                let child_key = self.key.as_ref().expect("child key must be defined");
                 return Err(ChildQueryValidationError::DuplicatedOutputKey(
                     child_key.clone().into_owned(),
                     output_key.clone().into_owned(),
@@ -117,66 +118,63 @@ impl<'a> ChildQuery<'a> {
     }
 }
 
-//impl Display for RootQuery<'_> {
-//    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-//        let formatted = self.pretty_format(2);
-//        write!(f, "{formatted}")
-//    }
-//}
+impl Display for RootQuery<'_> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let formatted = self.pretty_format(2);
+        write!(f, "{formatted}")
+    }
+}
 
-// impl Query<'_> {
-//     // TODO: do a test for this function, so parsing a formatted query, outputs the
-//     // same original query...
-//     pub fn pretty_format(&self, indent: usize) -> String {
-//         let mut result = String::new();
+impl RootQuery<'_> {
+    // TODO: do a test for this function, so parsing a formatted query, outputs the
+    // same original query...
+    pub fn pretty_format(&self, indent: usize) -> String {
+        let mut result = String::new();
 
-//         let sep = if indent == 0 { ' ' } else { '\n' };
+        let sep = if indent == 0 { ' ' } else { '\n' };
 
-//         match self.key() {
-//             Some(_) => self.do_pretty_format(&mut result, indent, 0, sep),
-//             None => {
-//                 if self.children().is_empty() {
-//                     return "{}".to_string();
-//                 }
-//                 result.push_str(&format!("{{{sep}"));
-//                 for child in self.children() {
-//                     child.do_pretty_format(&mut result, indent, 1, sep);
-//                 }
-//                 result.push('}');
-//             }
-//         }
-//         result
-//     }
+        match self.key() {
+            Some(key) => {
+                if self.children().is_empty() {
+                    return key.to_string();
+                }
+                result.push_str(&format!("{key} "));
+            }
+            None => {
+                if self.children().is_empty() {
+                    return "{ }".to_string();
+                }
+            }
+        }
 
-//     fn do_pretty_format(&self, result: &mut String, indent: usize, level: usize, sep: char) {
-//         let indentation = " ".repeat(indent * level);
+        result.push_str(&format!("{{{sep}"));
+        for child in self.children() {
+            child.do_pretty_format(&mut result, indent, 1, sep);
+        }
+        result.push('}');
 
-//         let Some(query_key) = self.key() else {
-//             panic!("children query must have a key");
-//         };
+        result
+    }
+}
+impl ChildQuery<'_> {
+    fn do_pretty_format(&self, result: &mut String, indent: usize, level: usize, sep: char) {
+        let indentation = " ".repeat(indent * level);
 
-//         result.push_str(&format!("{indentation}{query_key}"));
-//         if let Some(alias) = self.alias() {
-//             result.push_str(&format!(": {alias}"));
-//         }
+        let query_key = self.key();
 
-//         if !self.children().is_empty() {
-//             result.push_str(&format!(" {{{sep}"));
-//             for child in self.children() {
-//                 child.do_pretty_format(result, indent, level + 1, sep);
-//             }
-//             result.push_str(&format!("{indentation}}}{sep}"));
-//         } else {
-//             result.push(sep);
-//         }
-//     }
-// }
+        result.push_str(&format!("{indentation}{query_key}"));
+        if let Some(alias) = self.alias() {
+            result.push_str(&format!(": {alias}"));
+        }
 
-// TODO: do a validation of the final key collision. Aliases would be need so this errors can be resolved.
-// For example, this query:
-// ```{
-//  actor.login
-//  payload.pull_request.head.repo.owner.login
-//}
-//```
-// TODO: when the root query has an alias, it should fail
+        if !self.children().is_empty() {
+            result.push_str(&format!(" {{{sep}"));
+            for child in self.children() {
+                child.do_pretty_format(result, indent, level + 1, sep);
+            }
+            result.push_str(&format!("{indentation}}}{sep}"));
+        } else {
+            result.push(sep);
+        }
+    }
+}

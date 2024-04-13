@@ -1,4 +1,4 @@
-use gq_core::query::Query;
+use gq_core::query::RootQuery;
 use serde::Serialize;
 use serde_json::{ser::PrettyFormatter, Serializer, Value};
 use wasm_bindgen::prelude::*;
@@ -17,7 +17,7 @@ pub fn format_json(json: &str, indent: usize) -> Result<String, JsError> {
 
 #[wasm_bindgen]
 pub fn format_query(query: &str, indent: usize) -> Result<String, JsError> {
-    let query = Query::try_from(query)?;
+    let query = RootQuery::try_from(query)?;
     Ok(query.pretty_format(indent))
 }
 

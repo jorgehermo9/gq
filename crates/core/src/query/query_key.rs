@@ -6,6 +6,7 @@ use std::{
 use derive_getters::Getters;
 use derive_more::Constructor;
 
+// TODO: maybe we shouldn't name those types
 pub type OwnedAtomicQueryKey = AtomicQueryKey<'static>;
 pub type OwnedQueryKey = QueryKey<'static>;
 
