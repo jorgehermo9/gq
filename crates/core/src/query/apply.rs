@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use super::{
     context::{Context, JsonPath, JsonPathEntry, OwnedJsonPath},
-    AtomicQueryKey, ChildQuery, QueryKey, RootQuery,
+    AtomicQueryKey, ChildQuery, Query, QueryKey,
 };
 
 #[derive(Debug, Error)]
@@ -45,7 +45,7 @@ enum InternalError<'a> {
     NonIndexableValue(JsonPath<'a>),
 }
 
-impl RootQuery<'_> {
+impl Query<'_> {
     pub fn apply(&self, root_json: Value) -> Result<Value, Error> {
         let root_context = Context::new();
         let (new_root_json, root_context) = match (self.key(), root_json) {
@@ -152,7 +152,7 @@ trait QueryApply {
     }
 }
 
-impl QueryApply for RootQuery<'_> {
+impl QueryApply for Query<'_> {
     fn children(&self) -> &Vec<ChildQuery> {
         self.children()
     }

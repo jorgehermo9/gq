@@ -1,7 +1,5 @@
 use crate::lexer::{self, OwnedToken, Token};
-use crate::query::{
-    AtomicQueryKey, ChildQuery, ChildQueryBuilder, QueryKey, RootQuery, RootQueryBuilder,
-};
+use crate::query::{AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryBuilder, QueryKey};
 use logos::{Logos, Span, SpannedIter};
 use std::borrow::Cow;
 use std::iter::Peekable;
@@ -51,7 +49,7 @@ impl<'src> Parser<'src> {
         }
     }
 
-    pub fn parse(&mut self) -> Result<RootQuery<'src>> {
+    pub fn parse(&mut self) -> Result<Query<'src>> {
         let query = self.parse_root_query()?;
 
         if self.lexer.next().is_some() {
@@ -104,7 +102,7 @@ impl<'src> Parser<'src> {
 
     /// # Grammar
     /// `S -> QUERY_KEY | QUERY_KEY { QUERY_CONTENT } | { QUERY_CONTENT }`
-    fn parse_root_query(&mut self) -> Result<RootQuery<'src>> {
+    fn parse_root_query(&mut self) -> Result<Query<'src>> {
         let root_span_start = self.current_span()?;
         match self.peek()? {
             (Token::LBrace, _) => {
@@ -113,7 +111,7 @@ impl<'src> Parser<'src> {
                 let root_span_end = self.consume()?;
                 let root_span = Self::span_between(root_span_start, root_span_end);
 
-                RootQueryBuilder::default()
+                QueryBuilder::default()
                     .children(children)
                     .build()
                     .map_err(|err| Error::Construction(err.into(), root_span))
@@ -127,13 +125,13 @@ impl<'src> Parser<'src> {
                         let root_span_end = self.consume()?;
                         let root_span = Self::span_between(root_span_start, root_span_end);
 
-                        RootQueryBuilder::default()
+                        QueryBuilder::default()
                             .key(root_key)
                             .children(children)
                             .build()
                             .map_err(|err| Error::Construction(err.into(), root_span))
                     }
-                    _ => RootQueryBuilder::default()
+                    _ => QueryBuilder::default()
                         .key(root_key)
                         .build()
                         .map_err(|err| Error::Construction(err.into(), root_span_start)),
@@ -230,7 +228,7 @@ impl<'src> Parser<'src> {
     }
 }
 
-impl<'a> TryFrom<&'a str> for RootQuery<'a> {
+impl<'a> TryFrom<&'a str> for Query<'a> {
     type Error = Error;
 
     fn try_from(value: &'a str) -> Result<Self> {

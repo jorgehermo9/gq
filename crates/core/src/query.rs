@@ -40,13 +40,13 @@ pub enum RootQueryBuilderError {
     setter(into, strip_option),
     build_fn(validate = "Self::validate", error = "RootQueryBuilderError")
 )]
-pub struct RootQuery<'a> {
+pub struct Query<'a> {
     key: Option<QueryKey<'a>>,
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
 }
 
-impl RootQueryBuilder<'_> {
+impl QueryBuilder<'_> {
     fn validate(&self) -> Result<(), RootQueryValidationError> {
         self.validate_children()
     }
@@ -118,14 +118,14 @@ impl<'a> ChildQuery<'a> {
     }
 }
 
-impl Display for RootQuery<'_> {
+impl Display for Query<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let formatted = self.pretty_format(2);
         write!(f, "{formatted}")
     }
 }
 
-impl RootQuery<'_> {
+impl Query<'_> {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
     pub fn pretty_format(&self, indent: usize) -> String {
