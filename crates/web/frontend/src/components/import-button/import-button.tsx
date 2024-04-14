@@ -131,7 +131,6 @@ const ImportButton = ({ fileType, onImportFile, hidden = false }: Props) => {
 									onDragOver={(e) => e.preventDefault()}
 								>
 									<input
-										disabled={url.length > 0}
 										id="file-import"
 										hidden
 										type="file"
