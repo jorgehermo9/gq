@@ -33,7 +33,7 @@
 	background-color: var(--error);
 	display: flex;
 	align-items: center;
-	font-size: 1rem;
+	font-size: 0.875rem;
 	transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
 }
 
