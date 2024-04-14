@@ -6,14 +6,14 @@ import { cn } from "@/lib/utils";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { json } from "@codemirror/lang-json";
+import CodeMirror from "@uiw/react-codemirror";
 import { Eraser, Link } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
-import CodeMirror from "@uiw/react-codemirror";
-import urlPlugin from "./url-plugin";
 import styles from "./editor.module.css";
+import urlPlugin from "./url-plugin";
 
 interface Props {
 	value: string;

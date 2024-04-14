@@ -34,7 +34,7 @@
     --code-tertiary: #B46141;
 
     --success: #8BAE82;
-    --error: #7a2b2b;
+    --error: #983636;
 
     --muted-transparent: #9b99921a;
   }
@@ -43,7 +43,7 @@
 @layer base {
   * {
     @apply border-accent-background;
-    scrollbar-color: var(--accent) var(--muted-transparent);
+    scrollbar-color: var(--code-primary) var(--muted-transparent);
     scrollbar-width: thin;
   }
 

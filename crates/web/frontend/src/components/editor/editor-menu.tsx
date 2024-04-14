@@ -1,6 +1,7 @@
 "use client";
 
 import ActionButton from "@/components/action-button/action-button";
+import ExportButton from "@/components/export-button/export-button";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -11,6 +12,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import type FileType from "@/model/file-type";
 import {
 	Clipboard,
 	DownloadCloud,
@@ -18,9 +20,7 @@ import {
 	FileUp,
 	Sparkles,
 } from "lucide-react";
-import { toast } from "sonner";
-import ExportButton from "@/components/export-button/export-button";
-import FileType from "@/model/file-type";
+import ImportButton from "../import-button/import-button";
 
 interface Props {
 	fileType: FileType;
@@ -41,19 +41,6 @@ const EditorMenu = ({
 	onImportFile,
 	onExportFile,
 }: Props) => {
-	const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
-		const reader = new FileReader();
-		reader.onload = () => {
-			const content = reader.result as string;
-			onImportFile(content);
-			toast.success("File imported successfully!");
-		};
-		reader.readAsText(file);
-		e.target.value = "";
-	};
-
 	return (
 		<>
 			<div className="hidden sm:flex pr-2 ml-auto items-center gap-4">
@@ -72,25 +59,11 @@ const EditorMenu = ({
 				>
 					<Sparkles className="w-3.5 h-3.5" />
 				</ActionButton>
-				<ActionButton
-					className="h-8 p-0"
-					description="Import file"
+				<ImportButton
+					fileType={fileType}
+					onImportFile={onImportFile}
 					hidden={!editable}
-				>
-					<input
-						id="file-import"
-						hidden
-						type="file"
-						accept=".json,.gq"
-						onChange={handleImportFile}
-					/>
-					<Label
-						htmlFor="file-import"
-						className="p-4 grid place-items-center cursor-pointer"
-					>
-						<FileUp className="w-3.5 h-3.5" />
-					</Label>
-				</ActionButton>
+				/>
 				<ExportButton
 					defaultFileName={defaultFileName}
 					fileType={fileType}
@@ -98,7 +71,7 @@ const EditorMenu = ({
 				/>
 			</div>
 
-			<DropdownMenu>
+			{/* <DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button className="w-6 h-6 sm:hidden" variant="outline" size="icon">
 						<EllipsisVertical className="w-3 h-3" />
@@ -146,7 +119,7 @@ const EditorMenu = ({
 						</div>
 					</DropdownMenuItem>
 				</DropdownMenuContent>
-			</DropdownMenu>
+			</DropdownMenu> */}
 		</>
 	);
 };

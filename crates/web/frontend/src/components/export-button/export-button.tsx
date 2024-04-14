@@ -1,5 +1,9 @@
-import { DownloadCloud } from "lucide-react";
 import ActionButton from "@/components/action-button/action-button";
+import type FileType from "@/model/file-type";
+import { DialogTrigger } from "@radix-ui/react-dialog";
+import { DownloadCloud } from "lucide-react";
+import { useState } from "react";
+import { Button } from "../ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -8,12 +12,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "../ui/dialog";
-import { DialogTrigger } from "@radix-ui/react-dialog";
-import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { useState } from "react";
-import type FileType from "@/model/file-type";
 
 interface Props {
 	defaultFileName: string;
@@ -36,21 +36,31 @@ const ExportButton = ({ defaultFileName, fileType, onExportFile }: Props) => {
 				<DialogHeader>
 					<DialogTitle>Export to file</DialogTitle>
 					<DialogDescription>
-						Export the content of the editor to a file with a custom name.
+						Export the content of the editor to a file with a custom name
 					</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={() => onExportFile(fileName)} autoComplete="off">
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						onExportFile(fileName);
+						setOpen(false);
+					}}
+					autoComplete="off"
+				>
 					<Label htmlFor="filename">File Name</Label>
 					<div className="flex items-center relative">
 						<Input
 							id="filename"
 							type="text"
+							required
+							minLength={1}
+							maxLength={255}
 							placeholder="Enter file name"
 							className="w-full mt-2"
 							value={fileName}
 							onChange={(e) => setFileName(e.target.value)}
 						/>
-						<span className="absolute right-0  border border-accent-background py-2 px-4 h-10 rounded-r-md text-sm bg-accent-background">
+						<span className="absolute right-[1px] border border-accent-background py-2 px-4 h-9.5 rounded-r-md text-sm bg-accent-background">
 							.{fileType.toString()}
 						</span>
 					</div>
