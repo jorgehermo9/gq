@@ -90,6 +90,7 @@ pub enum ChildQueryBuilderError {
     build_fn(validate = "Self::validate", error = "ChildQueryBuilderError")
 )]
 pub struct ChildQuery<'a> {
+    #[builder(default)]
     alias: Option<AtomicQueryKey<'a>>,
     key: QueryKey<'a>,
     #[builder(default)]
