@@ -1,11 +1,13 @@
 "use client";
 
-import type { Settings } from "@/model/settings";
+import { type Settings, getDefaultSettings } from "@/model/settings";
 import {
 	type Dispatch,
 	type SetStateAction,
 	createContext,
 	useContext,
+	useEffect,
+	useRef,
 	useState,
 } from "react";
 
@@ -30,16 +32,20 @@ interface Props {
 }
 
 export const SettingsProvider = ({ children }: Props) => {
-	const [settings, setSettings] = useState<Settings>({
-		autoApplySettings: {
-			autoApply: true,
-			debounceTime: 1000,
-		},
-		formattingSettings: {
-			jsonTabSize: 2,
-			queryTabSize: 2,
-		},
-	});
+	const [settings, setSettings] = useState<Settings>(getDefaultSettings());
+	const isRendered = useRef(false);
+
+	useEffect(() => {
+		const storedSettings = localStorage.getItem("settings");
+		storedSettings && setSettings(JSON.parse(storedSettings));
+	}, []);
+
+	useEffect(() => {
+		if (isRendered.current) {
+			localStorage.setItem("settings", JSON.stringify(settings));
+		}
+		isRendered.current = true;
+	}, [settings]);
 
 	return (
 		<SettingsContext.Provider value={{ settings, setSettings }}>

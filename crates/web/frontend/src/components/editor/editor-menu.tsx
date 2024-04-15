@@ -1,5 +1,7 @@
 "use client";
 
+import ActionButton from "@/components/action-button/action-button";
+import ExportButton from "@/components/export-button/export-button";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -10,98 +12,66 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import { motion } from "framer-motion";
+import type FileType from "@/model/file-type";
 import {
 	Clipboard,
-	Download,
 	DownloadCloud,
 	EllipsisVertical,
 	FileUp,
-	Import,
 	Sparkles,
 } from "lucide-react";
-import ActionButton from "../action-button/action-button";
+import ImportButton from "../import-button/import-button";
 
 interface Props {
+	fileType: FileType;
+	defaultFileName: string;
 	editable: boolean;
 	onCopyToClipboard: () => void;
 	onFormatCode: () => void;
 	onImportFile: (content: string) => void;
-	onExportFile: () => void;
+	onExportFile: (fileName: string) => void;
 }
 
 const EditorMenu = ({
+	fileType,
+	defaultFileName,
 	editable,
 	onCopyToClipboard,
 	onFormatCode,
 	onImportFile,
 	onExportFile,
 }: Props) => {
-	const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
-
-		const reader = new FileReader();
-		reader.onload = () => {
-			const content = reader.result as string;
-			onImportFile(content);
-		};
-		reader.readAsText(file);
-	};
-
 	return (
 		<>
-			<motion.div
-				layout
-				className="hidden sm:flex pr-2 ml-auto items-center gap-4"
-				transition={{ duration: 0.2 }}
-			>
+			<div className="hidden sm:flex pr-2 ml-auto items-center gap-4">
 				<ActionButton
 					className="px-4 py-2"
 					description="Copy to clipboard"
 					onClick={onCopyToClipboard}
 				>
-					<Clipboard className="w-4 h-4" />
+					<Clipboard className="w-3.5 h-3.5" />
 				</ActionButton>
-				{editable && (
-					<ActionButton
-						className="px-4 py-2"
-						description="Format code"
-						onClick={onFormatCode}
-					>
-						<Sparkles className="w-4 h-4" />
-					</ActionButton>
-				)}
-				{editable && (
-					<ActionButton
-						className="h-8 p-0"
-						description="Import file"
-						hidden={!editable}
-					>
-						<input
-							id="file-import"
-							hidden
-							type="file"
-							accept=".json,.gq"
-							onChange={handleImportFile}
-						/>
-						<Label
-							htmlFor="file-import"
-							className="p-4 grid place-items-center cursor-pointer"
-						>
-							<FileUp className="w-4 h-4" />
-						</Label>
-					</ActionButton>
-				)}
 				<ActionButton
-					description="Export file"
-					onClick={onExportFile}
 					className="px-4 py-2"
+					description="Format code"
+					onClick={onFormatCode}
+					hidden={!editable}
 				>
-					<DownloadCloud className="w-4 h-4" />
+					<Sparkles className="w-3.5 h-3.5" />
 				</ActionButton>
-			</motion.div>
-			<DropdownMenu>
+				<ImportButton
+					fileType={fileType}
+					onImportFile={onImportFile}
+					hidden={!editable}
+				/>
+				<ExportButton
+					defaultFileName={defaultFileName}
+					fileType={fileType}
+					onExportFile={onExportFile}
+				/>
+			</div>
+
+			{/* <DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button className="w-6 h-6 sm:hidden" variant="outline" size="icon">
 						<EllipsisVertical className="w-3 h-3" />
@@ -142,14 +112,14 @@ const EditorMenu = ({
 							<span>Import file</span>
 						</Label>
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={onExportFile}>
+					<DropdownMenuItem onClick={() => onExportFile(defaultFileName)}>
 						<div className="flex items-center gap-2">
 							<DownloadCloud className="w-4 h-4" />
 							<span>Export file</span>
 						</div>
 					</DropdownMenuItem>
 				</DropdownMenuContent>
-			</DropdownMenu>
+			</DropdownMenu> */}
 		</>
 	);
 };

@@ -11,3 +11,48 @@
 	border: 2px solid var(--accent-background);
 	@apply shadow-md;
 }
+
+.error-overlay {
+	position: absolute;
+	z-index: 5;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background-color: rgba(0, 0, 0, 0.13);
+	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.error-content {
+	position: absolute;
+	z-index: 10;
+	left: 0;
+	height: 3rem;
+	padding-left: 2rem;
+	width: 100%;
+	background-color: var(--error);
+	display: flex;
+	align-items: center;
+	font-size: 0.875rem;
+	transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
+}
+
+.error-content[data-visible="true"] {
+	bottom: 0;
+	opacity: 1;
+}
+
+.error-content[data-visible="false"] {
+	bottom: -3rem;
+	opacity: 0;
+}
+
+.error-overlay[data-visible="true"] {
+	opacity: 1;
+	visibility: visible;
+}
+
+.error-overlay[data-visible="false"] {
+	opacity: 0;
+	visibility: hidden;
+}
