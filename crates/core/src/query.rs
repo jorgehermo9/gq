@@ -41,6 +41,7 @@ pub enum RootQueryBuilderError {
     build_fn(validate = "Self::validate", error = "RootQueryBuilderError")
 )]
 pub struct Query<'a> {
+    #[builder(default)]
     key: Option<QueryKey<'a>>,
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
@@ -51,8 +52,13 @@ impl QueryBuilder<'_> {
         self.validate_children()
     }
     fn validate_children(&self) -> Result<(), RootQueryValidationError> {
+        // TODO: validation is done before building errors/defaults... Check if
+        // validation could be done AFTER in the documentation
         let mut output_keys = HashSet::new();
-        for child in self.children.as_ref().expect("children must be defined") {
+        let Some(children) = self.children.as_ref() else {
+            return Ok(());
+        };
+        for child in children {
             let output_key = child.output_key();
             if !output_keys.insert(output_key) {
                 return Err(RootQueryValidationError::DuplicatedOutputKeyInRoot(
