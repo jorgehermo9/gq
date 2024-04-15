@@ -1,5 +1,5 @@
 use crate::lexer::{self, OwnedToken, Token};
-use crate::query::{AtomicQueryKey, Query, QueryKey};
+use crate::query::{AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryBuilder, QueryKey};
 use logos::{Logos, Span, SpannedIter};
 use std::borrow::Cow;
 use std::iter::Peekable;
@@ -11,6 +11,7 @@ type SpannedTokenRef<'a, 'src> = (&'a Token<'src>, Span);
 
 #[derive(Error, Debug)]
 pub enum Error {
+    // TODO: Group parser errors inside a ParserError enum?
     #[error("Unexpected token '{0}'")]
     UnexpectedToken(OwnedToken, Span),
     #[error("Unexpected end of input")]
@@ -100,26 +101,48 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `S -> QUERY | { QUERY_CONTENT }`
+    /// `S -> QUERY_KEY | QUERY_KEY { QUERY_CONTENT } | { QUERY_CONTENT }`
     fn parse_root_query(&mut self) -> Result<Query<'src>> {
+        let root_span_start = self.current_span()?;
         match self.peek()? {
-            (Token::LBrace, root_query_start_span) => {
+            (Token::LBrace, _) => {
                 self.consume()?;
                 let children = self.parse_query_content(&Token::RBrace)?;
-                let root_query_end_span = self.consume()?;
+                let root_span_end = self.consume()?;
+                let root_span = Self::span_between(root_span_start, root_span_end);
 
-                let root_query_span =
-                    Self::span_between(root_query_start_span, root_query_end_span);
-                Query::unnamed_with_children(children)
-                    .map_err(|err| Error::Construction(err, root_query_span))
+                QueryBuilder::default()
+                    .children(children)
+                    .build()
+                    .map_err(|err| Error::Construction(err.into(), root_span))
             }
-            _ => self.parse_query(),
+            _ => {
+                let root_key = self.parse_query_key()?;
+                match self.peek()? {
+                    (Token::LBrace, _) => {
+                        self.consume()?;
+                        let children = self.parse_query_content(&Token::RBrace)?;
+                        let root_span_end = self.consume()?;
+                        let root_span = Self::span_between(root_span_start, root_span_end);
+
+                        QueryBuilder::default()
+                            .key(root_key)
+                            .children(children)
+                            .build()
+                            .map_err(|err| Error::Construction(err.into(), root_span))
+                    }
+                    _ => QueryBuilder::default()
+                        .key(root_key)
+                        .build()
+                        .map_err(|err| Error::Construction(err.into(), root_span_start)),
+                }
+            }
         }
     }
 
     /// # Grammar
     /// `QUERY_CONTENT -> QUERY QUERY_CONTENT | ε`
-    fn parse_query_content(&mut self, stop_token: &Token) -> Result<Vec<Query<'src>>> {
+    fn parse_query_content(&mut self, stop_token: &Token) -> Result<Vec<ChildQuery<'src>>> {
         let mut queries = Vec::new();
 
         loop {
@@ -134,8 +157,8 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `QUERY -> QUERY_KEY QUERY_ALIAS| QUERY_KEY QUERY_ALIAS { QUERY_CONTENT }
-    fn parse_query(&mut self) -> Result<Query<'src>> {
+    /// `QUERY -> QUERY_KEY QUERY_ALIAS | QUERY_KEY QUERY_ALIAS { QUERY_CONTENT }
+    fn parse_query(&mut self) -> Result<ChildQuery<'src>> {
         let query_span_start = self.current_span()?;
         let query_key = self.parse_query_key()?;
         let query_alias = self.parse_query_alias()?;
@@ -145,12 +168,24 @@ impl<'src> Parser<'src> {
                 self.consume()?;
                 let children = self.parse_query_content(&Token::RBrace)?;
                 let query_span_end = self.consume()?;
-
                 let query_span = Self::span_between(query_span_start, query_span_end);
-                Query::named_with_children(query_alias, query_key, children)
-                    .map_err(|err| Error::Construction(err, query_span))
+
+                ChildQueryBuilder::default()
+                    .key(query_key)
+                    .alias(query_alias)
+                    .children(children)
+                    .build()
+                    .map_err(|err| Error::Construction(err.into(), query_span))
             }
-            _ => Ok(Query::named_empty(query_alias, query_key)),
+            (_, query_span_end) => {
+                let query_span = Self::span_between(query_span_start, query_span_end);
+                ChildQueryBuilder::default()
+                    .key(query_key)
+                    .alias(query_alias)
+                    .build()
+                    // TODO: We should take the end span from the query alias function
+                    .map_err(|err| Error::Construction(err.into(), query_span))
+            }
         }
     }
 

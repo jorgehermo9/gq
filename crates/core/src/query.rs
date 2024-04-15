@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fmt::{self, Display, Formatter};
 
+use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
 use thiserror::Error;
 
@@ -13,90 +14,118 @@ pub use self::query_key::{AtomicQueryKey, OwnedAtomicQueryKey, OwnedQueryKey, Qu
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("query '{0}' has children with duplicated output keys: '{1}'")]
-    DuplicatedOutputKey(OwnedQueryKey, OwnedAtomicQueryKey),
+    #[error("root query builder error: {0}")]
+    RootBuilderError(#[from] RootQueryBuilderError),
+    #[error("child query builder error: {0}")]
+    ChildBuilderError(#[from] ChildQueryBuilderError),
+}
+
+#[derive(Debug, Error)]
+pub enum RootQueryValidationError {
     #[error("root query has children with duplicated output keys: '{0}'")]
     DuplicatedOutputKeyInRoot(OwnedAtomicQueryKey),
 }
 
-// TODO: make the invalid states irrepresentable, the children could never be None...
-// maybe the Query struct should have a children field that is a Vec<ChildrenQuery>, which
-// cannot allow to unnamed keys...
-// Maybe we should have a RootQuery and a ChildQuery structs... The RootQuery should have a field
-// children which are of type ChildQuery and a key field. the ChildQuery should have all the fields the query now have
-// The RootQuery should not have an alias...
-
-#[derive(Getters, Debug)]
-pub struct Query<'a> {
-    alias: Option<AtomicQueryKey<'a>>,
-    key: Option<QueryKey<'a>>,
-    children: Vec<Self>,
+#[derive(Debug, Error)]
+pub enum RootQueryBuilderError {
+    #[error("{0}")]
+    UninitializedFields(#[from] UninitializedFieldError),
+    #[error("{0}")]
+    ValidationError(#[from] RootQueryValidationError),
 }
-impl<'a> Query<'a> {
-    pub fn unnamed_with_children(children: Vec<Self>) -> Result<Self, Error> {
-        // TODO: fix this, it is a bad design
-        //
-        Self::validate_children(None, &children)?;
-        Ok(Self {
-            alias: None,
-            key: None,
-            children,
-        })
-    }
 
-    pub fn named_empty(query_alias: Option<AtomicQueryKey<'a>>, query_key: QueryKey<'a>) -> Self {
-        // Validate that name root queries does not have alias. Maybe we should make that state irrepresentable...
-        Self {
-            alias: query_alias,
-            key: Some(query_key),
-            children: vec![],
-        }
-    }
+#[derive(Getters, Debug, Builder)]
+#[builder(
+    pattern = "owned",
+    setter(into, strip_option),
+    build_fn(validate = "Self::validate", error = "RootQueryBuilderError")
+)]
+pub struct Query<'a> {
+    #[builder(default)]
+    key: Option<QueryKey<'a>>,
+    #[builder(default)]
+    children: Vec<ChildQuery<'a>>,
+}
 
-    pub fn named_with_children(
-        query_alias: Option<AtomicQueryKey<'a>>,
-        query_key: QueryKey<'a>,
-        children: Vec<Self>,
-    ) -> Result<Self, Error> {
-        Self::validate_children(Some(&query_key), &children)?;
-        Ok(Self {
-            alias: query_alias,
-            key: Some(query_key),
-            children,
-        })
+impl QueryBuilder<'_> {
+    fn validate(&self) -> Result<(), RootQueryValidationError> {
+        self.validate_children()
     }
-
-    fn validate_children(query_key: Option<&QueryKey<'a>>, children: &[Self]) -> Result<(), Error> {
+    fn validate_children(&self) -> Result<(), RootQueryValidationError> {
+        // TODO: validation is done before building errors/defaults... Check if
+        // validation could be done AFTER in the documentation
         let mut output_keys = HashSet::new();
+        let Some(children) = self.children.as_ref() else {
+            return Ok(());
+        };
         for child in children {
             let output_key = child.output_key();
             if !output_keys.insert(output_key) {
-                match query_key {
-                    Some(query_key) => {
-                        // TODO: improve the cloning?
-                        return Err(Error::DuplicatedOutputKey(
-                            query_key.clone().into_owned(),
-                            output_key.clone().into_owned(),
-                        ));
-                    }
-                    None => {
-                        return Err(Error::DuplicatedOutputKeyInRoot(
-                            output_key.clone().into_owned(),
-                        ));
-                    }
-                }
+                return Err(RootQueryValidationError::DuplicatedOutputKeyInRoot(
+                    output_key.clone().into_owned(),
+                ));
             }
         }
         Ok(())
     }
+}
 
+#[derive(Debug, Error)]
+pub enum ChildQueryValidationError {
+    #[error("query '{0}' has children with duplicated output keys: '{1}'")]
+    DuplicatedOutputKey(OwnedQueryKey, OwnedAtomicQueryKey),
+}
+
+#[derive(Debug, Error)]
+pub enum ChildQueryBuilderError {
+    #[error("{0}")]
+    UninitializedFields(#[from] UninitializedFieldError),
+    #[error("{0}")]
+    ValidationError(#[from] ChildQueryValidationError),
+}
+
+#[derive(Getters, Debug, Builder)]
+#[builder(
+    pattern = "owned",
+    build_fn(validate = "Self::validate", error = "ChildQueryBuilderError")
+)]
+pub struct ChildQuery<'a> {
+    alias: Option<AtomicQueryKey<'a>>,
+    key: QueryKey<'a>,
+    #[builder(default)]
+    children: Vec<ChildQuery<'a>>,
+}
+
+impl ChildQueryBuilder<'_> {
+    fn validate(&self) -> Result<(), ChildQueryValidationError> {
+        self.validate_children()
+    }
+    fn validate_children(&self) -> Result<(), ChildQueryValidationError> {
+        // TODO: validation is done before building errors/defaults... Check if
+        // validation could be done AFTER in the documentation
+        let mut output_keys = HashSet::new();
+        let Some(children) = self.children.as_ref() else {
+            return Ok(());
+        };
+        for child in children {
+            let output_key = child.output_key();
+            if !output_keys.insert(output_key) {
+                let child_key = self.key.as_ref().expect("child key must be defined");
+                return Err(ChildQueryValidationError::DuplicatedOutputKey(
+                    child_key.clone().into_owned(),
+                    output_key.clone().into_owned(),
+                ));
+            }
+        }
+        Ok(())
+    }
+}
+
+impl<'a> ChildQuery<'a> {
     pub fn output_key(&self) -> &AtomicQueryKey {
-        self.alias().as_ref().unwrap_or_else(|| {
-            self.key()
-                .as_ref()
-                .expect("query key cannot be empty")
-                .last_key()
-        })
+        self.alias()
+            .as_ref()
+            .unwrap_or_else(|| self.key().last_key())
     }
 }
 
@@ -116,27 +145,33 @@ impl Query<'_> {
         let sep = if indent == 0 { ' ' } else { '\n' };
 
         match self.key() {
-            Some(_) => self.do_pretty_format(&mut result, indent, 0, sep),
+            Some(key) => {
+                if self.children().is_empty() {
+                    return key.to_string();
+                }
+                result.push_str(&format!("{key} "));
+            }
             None => {
                 if self.children().is_empty() {
-                    return "{}".to_string();
+                    return "{ }".to_string();
                 }
-                result.push_str(&format!("{{{sep}"));
-                for child in self.children() {
-                    child.do_pretty_format(&mut result, indent, 1, sep);
-                }
-                result.push('}');
             }
         }
+
+        result.push_str(&format!("{{{sep}"));
+        for child in self.children() {
+            child.do_pretty_format(&mut result, indent, 1, sep);
+        }
+        result.push('}');
+
         result
     }
-
+}
+impl ChildQuery<'_> {
     fn do_pretty_format(&self, result: &mut String, indent: usize, level: usize, sep: char) {
         let indentation = " ".repeat(indent * level);
 
-        let Some(query_key) = self.key() else {
-            panic!("children query must have a key");
-        };
+        let query_key = self.key();
 
         result.push_str(&format!("{indentation}{query_key}"));
         if let Some(alias) = self.alias() {
@@ -154,12 +189,3 @@ impl Query<'_> {
         }
     }
 }
-
-// TODO: do a validation of the final key collision. Aliases would be need so this errors can be resolved.
-// For example, this query:
-// ```{
-//  actor.login
-//  payload.pull_request.head.repo.owner.login
-//}
-//```
-// TODO: when the root query has an alias, it should fail

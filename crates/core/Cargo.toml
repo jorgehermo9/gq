@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 derive-getters = "0.3.0"
+derive_builder = "0.20.0"
 derive_more = "0.99.17"
 log = "0.4.21"
 logos = "0.14.0"
