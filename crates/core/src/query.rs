@@ -95,8 +95,13 @@ impl ChildQueryBuilder<'_> {
         self.validate_children()
     }
     fn validate_children(&self) -> Result<(), ChildQueryValidationError> {
+        // TODO: validation is done before building errors/defaults... Check if
+        // validation could be done AFTER in the documentation
         let mut output_keys = HashSet::new();
-        for child in self.children.as_ref().expect("children must be defined") {
+        let Some(children) = self.children.as_ref() else {
+            return Ok(());
+        };
+        for child in children {
             let output_key = child.output_key();
             if !output_keys.insert(output_key) {
                 let child_key = self.key.as_ref().expect("child key must be defined");
