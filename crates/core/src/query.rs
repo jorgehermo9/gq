@@ -7,9 +7,11 @@ use thiserror::Error;
 
 pub mod apply;
 mod context;
+mod query_argument;
 mod query_key;
 
 pub use self::context::OwnedJsonPath;
+pub use self::query_argument::{QueryArgument, QueryArgumentValue};
 pub use self::query_key::{AtomicQueryKey, OwnedAtomicQueryKey, OwnedQueryKey, QueryKey};
 
 #[derive(Debug, Error)]
@@ -34,7 +36,7 @@ pub enum RootQueryBuilderError {
     ValidationError(#[from] RootQueryValidationError),
 }
 
-#[derive(Getters, Debug, Builder)]
+#[derive(Clone, Getters, Debug, Builder)]
 #[builder(
     pattern = "owned",
     setter(into, strip_option),
@@ -45,6 +47,8 @@ pub struct Query<'a> {
     key: Option<QueryKey<'a>>,
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
+    #[builder(default)]
+    arguments: Vec<QueryArgument<'a>>,
 }
 
 impl QueryBuilder<'_> {
@@ -84,7 +88,7 @@ pub enum ChildQueryBuilderError {
     ValidationError(#[from] ChildQueryValidationError),
 }
 
-#[derive(Getters, Debug, Builder)]
+#[derive(Clone, Getters, Debug, Builder)]
 #[builder(
     pattern = "owned",
     build_fn(validate = "Self::validate", error = "ChildQueryBuilderError")
@@ -95,6 +99,8 @@ pub struct ChildQuery<'a> {
     key: QueryKey<'a>,
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
+    #[builder(default)]
+    arguments: Vec<QueryArgument<'a>>,
 }
 
 impl ChildQueryBuilder<'_> {

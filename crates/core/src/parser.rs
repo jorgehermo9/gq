@@ -1,5 +1,8 @@
 use crate::lexer::{self, OwnedToken, Token};
-use crate::query::{AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryBuilder, QueryKey};
+use crate::query::{
+    AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryArgument, QueryArgumentValue,
+    QueryBuilder, QueryKey,
+};
 use logos::{Logos, Span, SpannedIter};
 use std::borrow::Cow;
 use std::iter::Peekable;
@@ -101,7 +104,8 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `S -> QUERY_KEY | QUERY_KEY { QUERY_CONTENT } | { QUERY_CONTENT }`
+    /// TODO: support QUERY_ARGUMENTS in { QUERY_CONTENT} queries...
+    /// `S -> QUERY_KEY QUERY_ARGUMENTS | QUERY_KEY QUERY_ARGUMENTS { QUERY_CONTENT } | { QUERY_CONTENT }`
     fn parse_root_query(&mut self) -> Result<Query<'src>> {
         let root_span_start = self.current_span()?;
         match self.peek()? {
@@ -114,10 +118,12 @@ impl<'src> Parser<'src> {
                 QueryBuilder::default()
                     .children(children)
                     .build()
+                    // TODO: Add arguments here. Maybe we should modify the grammar 
                     .map_err(|err| Error::Construction(err.into(), root_span))
             }
             _ => {
                 let root_key = self.parse_query_key()?;
+                let query_arguments = self.parse_query_arguments()?;
                 match self.peek()? {
                     (Token::LBrace, _) => {
                         self.consume()?;
@@ -128,11 +134,13 @@ impl<'src> Parser<'src> {
                         QueryBuilder::default()
                             .key(root_key)
                             .children(children)
+                            .arguments(query_arguments)
                             .build()
                             .map_err(|err| Error::Construction(err.into(), root_span))
                     }
                     _ => QueryBuilder::default()
                         .key(root_key)
+                        .arguments(query_arguments)
                         .build()
                         .map_err(|err| Error::Construction(err.into(), root_span_start)),
                 }
@@ -157,10 +165,11 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `QUERY -> QUERY_KEY QUERY_ALIAS | QUERY_KEY QUERY_ALIAS { QUERY_CONTENT }
+    /// `QUERY -> QUERY_KEY QUERY_ARGUMENTS QUERY_ALIAS | QUERY_KEY QUERY_ARGUMENTS QUERY_ALIAS { QUERY_CONTENT }
     fn parse_query(&mut self) -> Result<ChildQuery<'src>> {
         let query_span_start = self.current_span()?;
         let query_key = self.parse_query_key()?;
+        let query_arguments = self.parse_query_arguments()?;
         let query_alias = self.parse_query_alias()?;
 
         match self.peek()? {
@@ -174,6 +183,7 @@ impl<'src> Parser<'src> {
                     .key(query_key)
                     .alias(query_alias)
                     .children(children)
+                    .arguments(query_arguments)
                     .build()
                     .map_err(|err| Error::Construction(err.into(), query_span))
             }
@@ -182,6 +192,7 @@ impl<'src> Parser<'src> {
                 ChildQueryBuilder::default()
                     .key(query_key)
                     .alias(query_alias)
+                    .arguments(query_arguments)
                     .build()
                     // TODO: We should take the end span from the query alias function
                     .map_err(|err| Error::Construction(err.into(), query_span))
@@ -224,6 +235,68 @@ impl<'src> Parser<'src> {
                 }
             }
             _ => Ok(None),
+        }
+    }
+    /// # Grammar
+    /// QUERY_ARGUMENTS -> ( QUERY_ARGUMENTS_CONTENT ) | ε
+    /// TODO: maybe we should create a new struct QueryArguments(Vec<QueryArgument>)? This way we could
+    /// abstract some apply methods and the logic of the application of all the query arguments...
+    fn parse_query_arguments(&mut self) -> Result<Vec<QueryArgument<'src>>> {
+        match self.peek()? {
+            (Token::LParen, _) => {
+                self.consume()?;
+                let arguments = self.parse_query_arguments_content()?;
+                match self.next_token()? {
+                    (Token::RParen, _) => Ok(arguments),
+                    (unexpected_token, span) => {
+                        Err(Error::UnexpectedToken(unexpected_token.into(), span))
+                    }
+                }
+            }
+            _ => Ok(Vec::new()),
+        }
+    }
+
+    /// # Grammar
+    /// QUERY_ARGUMENTS_CONTENT -> QUERY_ARGUMENT , QUERY_ARGUMENTS_CONTENT | QUERY_ARGUMENT
+    fn parse_query_arguments_content(&mut self) -> Result<Vec<QueryArgument<'src>>> {
+        let mut arguments = Vec::new();
+
+        loop {
+            let argument = self.parse_query_argument()?;
+            arguments.push(argument);
+
+            match self.peek()? {
+                (Token::Comma, _) => {
+                    self.consume()?;
+                }
+                _ => return Ok(arguments),
+            }
+        }
+    }
+
+    /// # Grammar
+    /// QUERY_ARGUMENT -> QUERY_KEY : QUERY_ARGUMENT_VALUE
+    fn parse_query_argument(&mut self) -> Result<QueryArgument<'src>> {
+        let key = self.parse_query_key()?;
+        match self.next_token()? {
+            (Token::Colon, _) => {
+                let value = self.parse_query_argument_value()?;
+                Ok(QueryArgument::new(key, value))
+            }
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+        }
+    }
+
+    /// # Grammar
+    /// QUERY_ARGUMENT_VALUE -> string | number | boolean | null
+    fn parse_query_argument_value(&mut self) -> Result<QueryArgumentValue<'src>> {
+        match self.next_token()? {
+            (Token::String(value), _) => Ok(QueryArgumentValue::String(value)),
+            (Token::Number(value), _) => Ok(QueryArgumentValue::Number(value)),
+            (Token::Bool(value), _) => Ok(QueryArgumentValue::Bool(value)),
+            (Token::Null, _) => Ok(QueryArgumentValue::Null),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
         }
     }
 }

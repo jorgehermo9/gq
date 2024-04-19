@@ -27,9 +27,22 @@ pub enum Token<'src> {
     Dot,
     #[token(":")]
     Colon,
+    #[token(",")]
+    Comma,
     // TODO: allow for more chars
     #[regex(r"[a-zA-Z_]\w*")]
     Key(&'src str),
+    // Values
+    #[token("false", |_| false)]
+    #[token("true", |_| true)]
+    Bool(bool),
+    // Got from https://logos.maciej.codes/examples/json.html, didn't even mind to understand it
+    #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
+    Number(f64),
+    #[regex(r#""([^"\\]|\\["\\bnfrt]|u[a-fA-F0-9]{4})*""#)]
+    String(&'src str),
+    #[token("null")]
+    Null,
     EOF,
 }
 
@@ -41,7 +54,12 @@ pub enum OwnedToken {
     RParen,
     Dot,
     Colon,
+    Comma,
     Key(String),
+    Bool(bool),
+    Number(f64),
+    String(String),
+    Null,
     EOF,
 }
 
@@ -54,7 +72,12 @@ impl Display for OwnedToken {
             OwnedToken::RParen => write!(f, ")"),
             OwnedToken::Dot => write!(f, "."),
             OwnedToken::Colon => write!(f, ":"),
+            OwnedToken::Comma => write!(f, ","),
             OwnedToken::Key(key) => key.fmt(f),
+            OwnedToken::Bool(b) => b.fmt(f),
+            OwnedToken::Number(n) => n.fmt(f),
+            OwnedToken::String(s) => s.fmt(f),
+            OwnedToken::Null => write!(f, "null"),
             OwnedToken::EOF => write!(f, "EOF"),
         }
     }
@@ -69,7 +92,12 @@ impl From<Token<'_>> for OwnedToken {
             Token::RParen => OwnedToken::RParen,
             Token::Dot => OwnedToken::Dot,
             Token::Colon => OwnedToken::Colon,
+            Token::Comma => OwnedToken::Comma,
             Token::Key(key) => OwnedToken::Key(key.to_string()),
+            Token::Bool(b) => OwnedToken::Bool(b),
+            Token::Number(n) => OwnedToken::Number(n),
+            Token::String(s) => OwnedToken::String(s.to_string()),
+            Token::Null => OwnedToken::Null,
             Token::EOF => OwnedToken::EOF,
         }
     }
