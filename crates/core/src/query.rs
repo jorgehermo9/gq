@@ -133,7 +133,7 @@ impl<'a> ChildQuery<'a> {
 impl Display for Query<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let formatted = self.pretty_format(2);
-        write!(f, "{formatted}")
+        formatted.fmt(f)
     }
 }
 

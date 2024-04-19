@@ -54,7 +54,7 @@ impl Display for OwnedToken {
             OwnedToken::RParen => write!(f, ")"),
             OwnedToken::Dot => write!(f, "."),
             OwnedToken::Colon => write!(f, ":"),
-            OwnedToken::Key(key) => write!(f, "{key}"),
+            OwnedToken::Key(key) => key.fmt(f),
             OwnedToken::EOF => write!(f, "EOF"),
         }
     }

@@ -228,6 +228,7 @@ impl<'src> Parser<'src> {
     }
 }
 
+// TODO this should be parametrized for T: Into<&'a str> or smth like that
 impl<'a> TryFrom<&'a str> for Query<'a> {
     type Error = Error;
 
