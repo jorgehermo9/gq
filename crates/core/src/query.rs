@@ -48,6 +48,8 @@ pub struct Query<'a> {
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
     #[builder(default)]
+    // TODO: Maybe we should wrap the vec in a newtype struct `QueryArguments`
+    // so we do not repeat logic between `Query` and `ChildQuery`
     arguments: Vec<QueryArgument<'a>>,
 }
 
