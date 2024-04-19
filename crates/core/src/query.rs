@@ -50,6 +50,19 @@ pub struct Query<'a> {
     #[builder(default)]
     // TODO: Maybe we should wrap the vec in a newtype struct `QueryArguments`
     // so we do not repeat logic between `Query` and `ChildQuery`
+    // TODO: Very important; should we only allow arguments in Value::Array elements? Or,
+    // should we allow arguments in any element below an array, and once we reach an array we
+    // have to collect first the arguments of its children? for example:
+    // {
+    // products(name.description: "desc")
+    //}
+    // vs
+    // {
+    // products {
+    //   name(description: "desc")
+    // }
+    // We should translate the latter to the former? Or just break with the latter and only allow filtering when the querykey is an array?
+    // discuss this with David. The child collection could be complicated for a first version and in gq-legacy we only supported on array fields.
     arguments: Vec<QueryArgument<'a>>,
 }
 
