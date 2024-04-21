@@ -49,12 +49,13 @@ impl<'a> JsonPath<'a> {
 
 impl Display for JsonPath<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        // TODO: if empty &self.0, just print '.' instead of $? maybe this should be done
-        // without recursion so we knowthe length..
         match self {
-            JsonPath::Root => write!(f, "$"),
+            JsonPath::Root => write!(f, "."),
             JsonPath::Node { entry, parent } => {
-                parent.fmt(f)?;
+                match **parent {
+                    JsonPath::Root => {}
+                    _ => parent.fmt(f)?,
+                }
                 match entry {
                     JsonPathEntry::Key(key) => write!(f, ".{key}"),
                     JsonPathEntry::Index(index) => write!(f, "[{index}]"),
@@ -82,8 +83,9 @@ impl From<&JsonPath<'_>> for OwnedJsonPath {
 
 impl Display for OwnedJsonPath {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        // TODO: if empty &self.0, just print '.' instead of $?
-        write!(f, "$")?;
+        if self.0.is_empty() {
+            return write!(f, ".");
+        }
         for entry in &self.0 {
             match entry {
                 OwnedJsonPathEntry::Key(key) => write!(f, ".{key}")?,

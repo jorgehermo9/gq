@@ -156,9 +156,9 @@ trait QueryApply {
         let filtered_array = array
             .into_iter()
             .enumerate()
-            .map(|(index, item)| (array_context.push_entry(JsonPathEntry::Index(index)), item))
-            .filter(|(context, item)| propagated || self.arguments().filter(item, context))
+            .filter(|(_index, item)| propagated || self.arguments().filter(item, &array_context))
             // Calling with propagated: true is a workaround so arguments are not applied twice
+            .map(|(index, item)| (array_context.push_entry(JsonPathEntry::Index(index)), item))
             .map(|(context, item)| self.do_apply(item, context, true))
             .flat_map(|result| {
                 result
@@ -256,16 +256,16 @@ impl<'a> QueryKey<'a> {
 // TODO: maybe we should move this to the query_argument module
 impl<'a> QueryArguments<'a> {
     //TODO: improve method naming
-    pub fn filter(&'a self, value: &Value, context: &Context<'a>) -> bool {
+    fn filter(&'a self, value: &Value, parent_context: &Context<'a>) -> bool {
         self.0.iter().all(|argument| {
             argument
-                .filter(value, context)
+                .filter(value, parent_context)
                 .map_err(|error| {
                     let argument_error = InternalError::InsideArguments(
                         Box::new(error),
                         // TODO: verify if QueryKey::clone is expensive
                         argument.key().clone(),
-                        context.path().clone(),
+                        parent_context.path().clone(),
                     );
                     log::warn!("{argument_error}");
                 })
@@ -282,6 +282,7 @@ impl<'a> QueryArgument<'a> {
         Self::fulfill_argument(&inspected_value, argument_value)
     }
 
+    //TODO: improve naming
     fn fulfill_argument(
         value: &Value,
         argument_value: &QueryArgumentValue,
