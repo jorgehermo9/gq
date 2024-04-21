@@ -40,7 +40,7 @@ pub enum Token<'src> {
     // TODO: the unwrap is ok here? the regex should be valid for the f64 parsing
     #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
     Number(f64),
-    #[regex(r#""([^"\\]|\\["\\bnfrt]|u[a-fA-F0-9]{4})*""#)]
+    #[regex(r#""([^"\\]|\\["\\bnfrt]|u[a-fA-F0-9]{4})*""#, |lex| &lex.slice()[1..lex.slice().len() - 1])]
     String(&'src str),
     #[token("null")]
     Null,

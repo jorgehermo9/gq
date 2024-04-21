@@ -1,7 +1,7 @@
 use crate::lexer::{self, OwnedToken, Token};
 use crate::query::{
     AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryArgument, QueryArgumentValue,
-    QueryBuilder, QueryKey,
+    QueryArguments, QueryBuilder, QueryKey,
 };
 use logos::{Logos, Span, SpannedIter};
 use std::borrow::Cow;
@@ -118,7 +118,7 @@ impl<'src> Parser<'src> {
                 QueryBuilder::default()
                     .children(children)
                     .build()
-                    // TODO: Add arguments here. Maybe we should modify the grammar 
+                    // TODO: Add arguments here. Maybe we should modify the grammar
                     .map_err(|err| Error::Construction(err.into(), root_span))
             }
             _ => {
@@ -239,13 +239,11 @@ impl<'src> Parser<'src> {
     }
     /// # Grammar
     /// QUERY_ARGUMENTS -> ( QUERY_ARGUMENTS_CONTENT ) | ε
-    /// TODO: maybe we should create a new struct QueryArguments(Vec<QueryArgument>)? This way we could
-    /// abstract some apply methods and the logic of the application of all the query arguments...
-    fn parse_query_arguments(&mut self) -> Result<Vec<QueryArgument<'src>>> {
+    fn parse_query_arguments(&mut self) -> Result<QueryArguments<'src>> {
         match self.peek()? {
             (Token::LParen, _) => {
                 self.consume()?;
-                let arguments = self.parse_query_arguments_content()?;
+                let arguments = QueryArguments::new(self.parse_query_arguments_content()?);
                 match self.next_token()? {
                     (Token::RParen, _) => Ok(arguments),
                     (unexpected_token, span) => {
@@ -253,7 +251,7 @@ impl<'src> Parser<'src> {
                     }
                 }
             }
-            _ => Ok(Vec::new()),
+            _ => Ok(Default::default()),
         }
     }
 

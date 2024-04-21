@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let result = gq_core::entrypoint(&query, &json);
 
     match result {
-        Ok(query) => println!("{}", query),
+        Ok(query) => println!("{}", serde_json::to_string_pretty(&query).unwrap()),
         Err(err) => {
             use ariadne::{ColorGenerator, Label, Report, ReportKind, Source};
 

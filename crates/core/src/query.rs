@@ -7,11 +7,11 @@ use thiserror::Error;
 
 pub mod apply;
 mod context;
-mod query_argument;
+mod query_arguments;
 mod query_key;
 
 pub use self::context::OwnedJsonPath;
-pub use self::query_argument::{QueryArgument, QueryArgumentValue};
+pub use self::query_arguments::{QueryArgument, QueryArgumentValue, QueryArguments};
 pub use self::query_key::{AtomicQueryKey, OwnedAtomicQueryKey, OwnedQueryKey, QueryKey};
 
 #[derive(Debug, Error)]
@@ -63,7 +63,7 @@ pub struct Query<'a> {
     // }
     // We should translate the latter to the former? Or just break with the latter and only allow filtering when the querykey is an array?
     // discuss this with David. The child collection could be complicated for a first version and in gq-legacy we only supported on array fields.
-    arguments: Vec<QueryArgument<'a>>,
+    arguments: QueryArguments<'a>,
 }
 
 impl QueryBuilder<'_> {
@@ -71,8 +71,6 @@ impl QueryBuilder<'_> {
         self.validate_children()
     }
     fn validate_children(&self) -> Result<(), RootQueryValidationError> {
-        // TODO: validation is done before building errors/defaults... Check if
-        // validation could be done AFTER in the documentation
         let mut output_keys = HashSet::new();
         let Some(children) = self.children.as_ref() else {
             return Ok(());
@@ -115,7 +113,7 @@ pub struct ChildQuery<'a> {
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
     #[builder(default)]
-    arguments: Vec<QueryArgument<'a>>,
+    arguments: QueryArguments<'a>,
 }
 
 impl ChildQueryBuilder<'_> {
@@ -123,8 +121,6 @@ impl ChildQueryBuilder<'_> {
         self.validate_children()
     }
     fn validate_children(&self) -> Result<(), ChildQueryValidationError> {
-        // TODO: validation is done before building errors/defaults... Check if
-        // validation could be done AFTER in the documentation
         let mut output_keys = HashSet::new();
         let Some(children) = self.children.as_ref() else {
             return Ok(());
