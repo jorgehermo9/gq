@@ -7,7 +7,7 @@ import useDebounce from "@/hooks/useDebounce";
 import useGq from "@/hooks/useGq";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 const Home = () => {
@@ -24,6 +24,12 @@ const Home = () => {
 		},
 	} = useSettings();
 	const gqWorker = useGq();
+
+	const onClickExample = useCallback((json: string, query: string) => {
+		setInputJson(json);
+		setInputQuery(query);
+		toast.success("Example imported to editor!");
+	}, []);
 
 	const updateOutputJson = useCallback(() => {
 		if (!gqWorker) return;
@@ -55,7 +61,7 @@ const Home = () => {
 
 	return (
 		<main className="flex flex-col items-center p-8 h-screen">
-			<Header />
+			<Header onClickExample={onClickExample} />
 			<section className="mt-4 flex gap-8 items-center justify-center w-full h-[80vh]">
 				<aside className="w-[44vw] h-[80vh] flex flex-col gap-8">
 					<Editor

@@ -1,4 +1,5 @@
 import ActionButton from "@/components/action-button/action-button";
+import { formatBytes } from "@/lib/utils";
 import type FileType from "@/model/file-type";
 import { File, FileUp, Trash } from "lucide-react";
 import { useState } from "react";
@@ -15,7 +16,6 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
-import { formatBytes } from "@/lib/utils";
 
 interface Props {
 	fileType: FileType;
