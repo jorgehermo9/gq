@@ -4,9 +4,9 @@ import ApplyButton from "@/components/apply-button/apply-button";
 import Editor from "@/components/editor/editor";
 import Header from "@/components/header/header";
 import useDebounce from "@/hooks/useDebounce";
-import useGq from "@/hooks/useGq";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
+import { useWorker } from "@/providers/worker-provider";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
@@ -23,41 +23,48 @@ const Home = () => {
 			formattingSettings: { jsonTabSize },
 		},
 	} = useSettings();
-	const gqWorker = useGq();
+	const { gqWorker } = useWorker();
 
-	const onClickExample = useCallback((json: string, query: string) => {
-		setInputJson(json);
-		setInputQuery(query);
-		toast.success("Example imported to editor!");
-	}, []);
+	const onClickExample = useCallback(
+		(json: string, query: string) => {
+			setInputJson(json);
+			setInputQuery(query);
+			!autoApply && updateOutputJson(json, query);
+		},
+		[autoApply],
+	);
 
-	const updateOutputJson = useCallback(() => {
-		if (!gqWorker) return;
-		const toastId = toast.loading("Applying query to JSON...");
-		gqWorker
-			.postMessage({
-				query: inputQuery,
-				json: inputJson,
-				indent: jsonTabSize,
-			})
-			.then((res) => {
-				toast.success("Query applied to JSON", { id: toastId });
-				setErrorMessage(undefined);
-				setOutputJson(res);
-			})
-			.catch((err) => {
-				toast.error("Error while applying query to JSON", {
-					id: toastId,
-					duration: 5000,
+	const updateOutputJson = useCallback(
+		(inputJson: string, inputQuery: string) => {
+			if (!gqWorker) return;
+			const toastId = toast.loading("Applying query to JSON...");
+			gqWorker
+				.postMessage({
+					query: inputQuery,
+					json: inputJson,
+					indent: jsonTabSize,
+				})
+				.then((res) => {
+					toast.success("Query applied to JSON", { id: toastId });
+					setErrorMessage(undefined);
+					setOutputJson(res);
+				})
+				.catch((err) => {
+					toast.error("Error while applying query to JSON", {
+						id: toastId,
+						duration: 5000,
+					});
+					setErrorMessage(err.message);
 				});
-				setErrorMessage(err.message);
-			});
-	}, [inputJson, inputQuery, gqWorker, jsonTabSize]);
+		},
+		[gqWorker, jsonTabSize],
+	);
 
-	useDebounce(() => autoApply && updateOutputJson(), debounceTime, [
-		inputJson,
-		inputQuery,
-	]);
+	useDebounce(
+		() => autoApply && updateOutputJson(inputJson, inputQuery),
+		debounceTime,
+		[inputJson, inputQuery],
+	);
 
 	return (
 		<main className="flex flex-col items-center p-8 h-screen">
@@ -81,7 +88,10 @@ const Home = () => {
 						fileType={FileType.GQ}
 					/>
 				</aside>
-				<ApplyButton autoApply={autoApply} onClick={updateOutputJson} />
+				<ApplyButton
+					autoApply={autoApply}
+					onClick={() => updateOutputJson(inputJson, inputQuery)}
+				/>
 				<aside className="w-[44vw] h-[80vh] flex flex-col">
 					<Editor
 						className="w-[44vw] h-[80vh]"

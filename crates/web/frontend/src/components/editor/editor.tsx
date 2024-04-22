@@ -1,6 +1,3 @@
-"use client";
-
-import useFormat from "@/hooks/useFormat";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import FileType from "@/model/file-type";
@@ -14,6 +11,8 @@ import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
 import styles from "./editor.module.css";
 import urlPlugin from "./url-plugin";
+import { useFormat } from "@/providers/format-provider";
+import { useWorker } from "@/providers/worker-provider";
 
 interface Props {
 	value: string;
@@ -40,7 +39,7 @@ const Editor = ({
 	const [formatErrorMessage, setFormatErrorMessage] = useState<
 		string | undefined
 	>();
-	const formatWorker = useFormat();
+	const { formatWorker } = useWorker();
 	const {
 		settings: {
 			formattingSettings: { jsonTabSize, queryTabSize },

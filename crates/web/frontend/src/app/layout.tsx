@@ -3,9 +3,9 @@ import { SettingsProvider } from "@/providers/settings-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata } from "next";
 import { Montserrat, Neuton } from "next/font/google";
-import { useEffect, useRef } from "react";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { WorkerProvider } from "@/providers/worker-provider";
 
 const neuton = Neuton({
 	subsets: ["latin"],
@@ -58,7 +58,9 @@ export default function RootLayout({
 					enableSystem
 					disableTransitionOnChange
 				>
-					<SettingsProvider>{children}</SettingsProvider>
+					<SettingsProvider>
+						<WorkerProvider>{children}</WorkerProvider>
+					</SettingsProvider>
 				</ThemeProvider>
 			</body>
 		</html>

@@ -1,3 +1,5 @@
+"use client";
+
 import { gqTheme } from "@/lib/theme";
 import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
@@ -19,8 +21,9 @@ import {
 	simpleAccessing,
 	arrayFiltering,
 } from "./examples";
-import { space } from "postcss/lib/list";
 import { useSettings } from "@/providers/settings-provider";
+import FileType from "@/model/file-type";
+import { useWorker } from "@/providers/worker-provider";
 
 interface ExampleItemProps {
 	example: Example;
@@ -52,7 +55,7 @@ const ExampleItem = ({ example, onClick }: ExampleItemProps) => {
 			<h3 className="font-semibold text-sm mb-1">{example.title}</h3>
 			<p className="font-medium text-[0.85rem] mb-4">{example.description}</p>
 			<CodeMirror
-				className="w-full rounded-lg text-[0.9rem]"
+				className="w-full rounded-lg text-[0.8rem]"
 				value={example.query}
 				height="100%"
 				theme={gqTheme}
@@ -61,7 +64,7 @@ const ExampleItem = ({ example, onClick }: ExampleItemProps) => {
 				basicSetup={{
 					lineNumbers: true,
 					lintKeymap: true,
-					highlightActiveLineGutter: false,
+					highlightActiveLineGutter: true,
 				}}
 			/>
 		</div>
@@ -75,25 +78,61 @@ const ExamplesSection = ({
 }: ExampleSectionProps) => {
 	const {
 		settings: {
-			formattingSettings: { jsonTabSize },
+			formattingSettings: { jsonTabSize, queryTabSize },
 		},
 	} = useSettings();
+	const { formatWorker } = useWorker();
+
+	const formatCode = useCallback(
+		(value: string, indentSize: number, fileType: FileType) => {
+			return formatWorker?.postMessage({
+				data: value,
+				indent: indentSize,
+				type: fileType,
+			});
+		},
+		[formatWorker],
+	);
 
 	const handleClick = useCallback(
-		(query: string) => {
-			onClick(
-				JSON.stringify(exampleSection.json, null, " ".repeat(jsonTabSize)),
-				query,
+		async (query: string) => {
+			const formattedJson = await formatCode(
+				JSON.stringify(exampleSection.json),
+				jsonTabSize,
+				FileType.JSON,
 			);
+			const formattedQuery = await formatCode(query, queryTabSize, FileType.GQ);
+			onClick(formattedJson, formattedQuery);
 		},
-		[exampleSection, onClick, jsonTabSize],
+		[exampleSection, onClick, jsonTabSize, queryTabSize, formatCode],
 	);
 
 	return (
 		<div className="flex flex-col gap-4">
 			<h2 className="font-semibold text-md">{title}</h2>
+			<CodeMirror
+				className="w-full rounded-lg text-[0.8rem]"
+				value={JSON.stringify(
+					exampleSection.json,
+					null,
+					" ".repeat(jsonTabSize),
+				)}
+				height="100%"
+				theme={gqTheme}
+				extensions={[json()]}
+				editable={false}
+				basicSetup={{
+					lineNumbers: true,
+					lintKeymap: true,
+					highlightActiveLineGutter: true,
+				}}
+			/>
 			{exampleSection.queries.map((example) => (
-				<ExampleItem example={example} onClick={handleClick} />
+				<ExampleItem
+					key={example.title}
+					example={example}
+					onClick={handleClick}
+				/>
 			))}
 		</div>
 	);
