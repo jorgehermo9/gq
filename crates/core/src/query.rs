@@ -39,7 +39,6 @@ pub enum RootQueryBuilderError {
 #[derive(Clone, Getters, Debug, Builder)]
 #[builder(
     pattern = "owned",
-    setter(into, strip_option),
     build_fn(validate = "Self::validate", error = "RootQueryBuilderError")
 )]
 pub struct Query<'a> {

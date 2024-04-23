@@ -104,10 +104,12 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// TODO: support QUERY_ARGUMENTS in { QUERY_CONTENT} queries...
-    /// `S -> QUERY_KEY QUERY_ARGUMENTS | QUERY_KEY QUERY_ARGUMENTS { QUERY_CONTENT } | { QUERY_CONTENT }`
+    /// `S -> ROOT_QUERY_KEY QUERY_ARGUMENTS | ROOT_QUERY_KEY QUERY_ARGUMENTS { QUERY_CONTENT }`
     fn parse_root_query(&mut self) -> Result<Query<'src>> {
         let root_span_start = self.current_span()?;
+        let root_query_key = self.parse_root_query_key()?;
+        let query_arguments = self.parse_query_arguments()?;
+
         match self.peek()? {
             (Token::LBrace, _) => {
                 self.consume()?;
@@ -117,33 +119,19 @@ impl<'src> Parser<'src> {
 
                 QueryBuilder::default()
                     .children(children)
+                    .key(root_query_key)
+                    .arguments(query_arguments)
                     .build()
                     // TODO: Add arguments here. Maybe we should modify the grammar
                     .map_err(|err| Error::Construction(err.into(), root_span))
             }
-            _ => {
-                let root_key = self.parse_query_key()?;
-                let query_arguments = self.parse_query_arguments()?;
-                match self.peek()? {
-                    (Token::LBrace, _) => {
-                        self.consume()?;
-                        let children = self.parse_query_content(&Token::RBrace)?;
-                        let root_span_end = self.consume()?;
-                        let root_span = Self::span_between(root_span_start, root_span_end);
-
-                        QueryBuilder::default()
-                            .key(root_key)
-                            .children(children)
-                            .arguments(query_arguments)
-                            .build()
-                            .map_err(|err| Error::Construction(err.into(), root_span))
-                    }
-                    _ => QueryBuilder::default()
-                        .key(root_key)
-                        .arguments(query_arguments)
-                        .build()
-                        .map_err(|err| Error::Construction(err.into(), root_span_start)),
-                }
+            (_, root_span_end) => {
+                let root_span = Self::span_between(root_span_start, root_span_end);
+                QueryBuilder::default()
+                    .key(root_query_key)
+                    .arguments(query_arguments)
+                    .build()
+                    .map_err(|err| Error::Construction(err.into(), root_span))
             }
         }
     }
@@ -197,6 +185,15 @@ impl<'src> Parser<'src> {
                     // TODO: We should take the end span from the query alias function
                     .map_err(|err| Error::Construction(err.into(), query_span))
             }
+        }
+    }
+
+    /// # Grammar
+    /// ROOT_QUERY_KEY -> QUERY_KEY | ε
+    fn parse_root_query_key(&mut self) -> Result<Option<QueryKey<'src>>> {
+        match self.peek()? {
+            (Token::Key(_), _) => self.parse_query_key().map(Some),
+            _ => Ok(None),
         }
     }
 
@@ -278,7 +275,7 @@ impl<'src> Parser<'src> {
     fn parse_query_argument(&mut self) -> Result<QueryArgument<'src>> {
         let key = self.parse_query_key()?;
         match self.next_token()? {
-            (Token::Colon, _) => {
+            (Token::Equal, _) => {
                 let value = self.parse_query_argument_value()?;
                 Ok(QueryArgument::new(key, value))
             }

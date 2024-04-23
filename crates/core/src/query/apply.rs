@@ -158,7 +158,7 @@ trait QueryApply {
             .enumerate()
             .map(|(index, item)| (array_context.push_entry(JsonPathEntry::Index(index)), item))
             .filter(|(context, item)| {
-                propagated || self.arguments().filter(item, context, &array_context)
+                !propagated || self.arguments().filter(item, context, &array_context)
             })
             // Calling with propagated: true is a workaround so arguments are not applied twice
             .map(|(context, item)| self.do_apply(item, context, true))

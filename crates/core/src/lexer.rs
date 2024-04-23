@@ -29,6 +29,18 @@ pub enum Token<'src> {
     Colon,
     #[token(",")]
     Comma,
+    #[token("=")]
+    Equal,
+    #[token("!=")]
+    NotEqual,
+    #[token(">")]
+    Greater,
+    #[token(">=")]
+    GreaterEqual,
+    #[token("<")]
+    Less,
+    #[token("<=")]
+    LessEqual,
     // TODO: allow for more chars
     #[regex(r"[a-zA-Z_]\w*")]
     Key(&'src str),
@@ -56,6 +68,12 @@ pub enum OwnedToken {
     Dot,
     Colon,
     Comma,
+    Equal,
+    NotEqual,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
     Key(String),
     Bool(bool),
     Number(f64),
@@ -74,6 +92,12 @@ impl Display for OwnedToken {
             OwnedToken::Dot => write!(f, "."),
             OwnedToken::Colon => write!(f, ":"),
             OwnedToken::Comma => write!(f, ","),
+            OwnedToken::Equal => write!(f, "="),
+            OwnedToken::NotEqual => write!(f, "!="),
+            OwnedToken::Greater => write!(f, ">"),
+            OwnedToken::GreaterEqual => write!(f, ">="),
+            OwnedToken::Less => write!(f, "<"),
+            OwnedToken::LessEqual => write!(f, "<="),
             OwnedToken::Key(key) => key.fmt(f),
             OwnedToken::Bool(b) => b.fmt(f),
             OwnedToken::Number(n) => n.fmt(f),
@@ -94,6 +118,12 @@ impl From<Token<'_>> for OwnedToken {
             Token::Dot => OwnedToken::Dot,
             Token::Colon => OwnedToken::Colon,
             Token::Comma => OwnedToken::Comma,
+            Token::Equal => OwnedToken::Equal,
+            Token::NotEqual => OwnedToken::NotEqual,
+            Token::Greater => OwnedToken::Greater,
+            Token::GreaterEqual => OwnedToken::GreaterEqual,
+            Token::Less => OwnedToken::Less,
+            Token::LessEqual => OwnedToken::LessEqual,
             Token::Key(key) => OwnedToken::Key(key.to_string()),
             Token::Bool(b) => OwnedToken::Bool(b),
             Token::Number(n) => OwnedToken::Number(n),
