@@ -62,14 +62,13 @@ impl QueryKey<'_> {
 
 impl Display for QueryKey<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        todo!("TODO")
-        // let keys = self
-        //     .keys()
-        //     .iter()
-        //     .map(|key| key.0.as_ref())
-        //     .collect::<Vec<_>>()
-        //     .join(".");
-        // keys.fmt(f)
+        let keys = self
+            .keys()
+            .iter()
+            .map(|key| key.key().0.as_ref())
+            .collect::<Vec<_>>()
+            .join(".");
+        keys.fmt(f)
     }
 }
 

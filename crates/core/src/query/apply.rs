@@ -2,7 +2,7 @@ use serde_json::{Map, Value};
 use thiserror::Error;
 
 use super::{
-    context::{Context, JsonPath, JsonPathEntry, OwnedJsonPath},
+    context::{Context, JsonPath, OwnedJsonPath},
     AtomicQueryKey, ChildQuery, Query, QueryArgument, QueryArgumentValue, QueryArguments, QueryKey,
 };
 
@@ -15,7 +15,7 @@ pub enum Error {
     InsideArray(Box<Self>, OwnedJsonPath),
     #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(OwnedJsonPath),
-    #[error("{0} while filtering inside argument '{1}' declared at '{2}'")]
+    #[error("{0} while filtering inside argument '{1}' at query '{2}'")]
     InsideArguments(Box<Self>, QueryKey<'static>, OwnedJsonPath),
     // TODO: improve the display mesage of this error?
     #[error("tried to filter a non-filtrable value (not an array) at '{0}'")]
@@ -57,7 +57,7 @@ enum InternalError<'a> {
     InsideArray(Box<Self>, JsonPath<'a>),
     #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(JsonPath<'a>),
-    #[error("{0} while filtering inside argument '{1}' declared at '{2}'")]
+    #[error("{0} while filtering inside argument '{1}' at query '{2}'")]
     InsideArguments(Box<Self>, QueryKey<'a>, JsonPath<'a>),
     #[error("tried to filter a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(JsonPath<'a>),
@@ -83,7 +83,6 @@ impl Query<'_> {
 
 trait QueryApply {
     fn children(&self) -> &Vec<ChildQuery>;
-    fn arguments(&self) -> &QueryArguments;
     fn do_apply<'a>(
         &'a self,
         value: Value,
@@ -103,9 +102,6 @@ trait QueryApply {
     ) -> Result<Value, InternalError> {
         if !self.children().is_empty() {
             return Err(InternalError::NonIndexableValue(context.path().clone()));
-        }
-        if !self.arguments().0.is_empty() {
-            return Err(InternalError::NonFiltrableValue(context.path().clone()));
         }
         Ok(value)
     }
@@ -189,57 +185,80 @@ impl QueryApply for Query<'_> {
     fn children(&self) -> &Vec<ChildQuery> {
         self.children()
     }
-    fn arguments(&self) -> &QueryArguments {
-        self.arguments()
-    }
 }
 
 impl QueryApply for ChildQuery<'_> {
     fn children(&self) -> &Vec<ChildQuery> {
         self.children()
     }
-    fn arguments(&self) -> &QueryArguments {
-        self.arguments()
-    }
 }
 
 //TODO: maybe we should move this to the query_key module
 impl<'a> QueryKey<'a> {
     fn inspect(&'a self, value: &Value, context: &Context<'a>) -> Result<Value, InternalError<'a>> {
-        Self::do_inspect(value, self.keys(), context)
+        Self::do_inspect(value, self.keys(), &QueryArguments::empty(), context)
     }
     fn do_inspect(
         value: &Value,
         keys: &'a [AtomicQueryKey<'a>],
+        parent_arguments: &QueryArguments<'a>,
         context: &Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
         let Some((atomic_query_key, rest)) = keys.split_first() else {
             // TODO: try to return a reference here and clone in the caller, so this is more flexible for
             // callers that only needs a reference. For example, the QueryArguments...
-            return Ok(value.clone());
+
+            let value = value.clone();
+            let value = match value {
+                Value::Array(array) => {
+                    let array_context = context.enter_array();
+                    let filtered_array = array
+                        .into_iter()
+                        .enumerate()
+                        .map(|(index, item)| (array_context.push_index(index), item))
+                        .filter(|(item_context, item)| {
+                            parent_arguments.filter(item, item_context, &context)
+                        })
+                        .map(|(_, item)| item)
+                        .collect();
+                    Value::Array(filtered_array)
+                }
+                _ if !parent_arguments.0.is_empty() => {
+                    return Err(InternalError::NonFiltrableValue(context.path().clone()));
+                }
+                _ => value,
+            };
+            return Ok(value);
         };
 
         let raw_key = atomic_query_key.key();
+        let arguments = atomic_query_key.arguments();
+        // TODO: all the context here are misused, review them all
         let new_context = context.push_raw_key(raw_key);
-
         match value {
             Value::Object(object) => {
+                // TODO: fail here if there is arguments
                 let current = object
                     // TODO: implement Borrow so we can do .get(raw_key)
                     .get(raw_key.0.as_ref())
                     .ok_or(InternalError::KeyNotFound(new_context.path().clone()))?;
-                Self::do_inspect(current, rest, &new_context)
+                Self::do_inspect(current, rest, arguments, &new_context)
             }
             Value::Array(array) => {
+                // TODO: handle arguments here
                 let array_context = context.enter_array();
                 let indexed_array = array
                     .iter()
                     .enumerate()
                     //TODO the filter is before the map
-                    .map(|(index, item)| {
-                        let item_context = array_context.push_index(index);
-                        // TODO: think if we need here the propagate
-                        Self::do_inspect(item, keys, &item_context)
+                    .map(|(index, item)| (array_context.push_index(index), item))
+                    .filter(|(item_context, item)| {
+                        parent_arguments.filter(item, item_context, &new_context)
+                    })
+                    .map(|(item_context, item)| {
+                        // We have to send an empty QueryArguments so the arguments do not propagate twice to the
+                        // array items
+                        Self::do_inspect(item, keys, &QueryArguments::empty(), &item_context)
                     })
                     .flat_map(|result| {
                         result
@@ -270,18 +289,18 @@ impl<'a> QueryArguments<'a> {
     fn filter(
         &'a self,
         value: &Value,
+        argument_context: &Context<'a>,
         context: &Context<'a>,
-        parent_context: &Context<'a>,
     ) -> bool {
         self.0.iter().all(|argument| {
             argument
-                .filter(value, context)
+                .filter(value, argument_context)
                 .map_err(|error| {
                     let argument_error = InternalError::InsideArguments(
                         Box::new(error),
                         // TODO: verify if QueryKey::clone is expensive
                         argument.key().clone(),
-                        parent_context.path().clone(),
+                        context.path().clone(),
                     );
                     log::warn!("{argument_error}");
                 })
