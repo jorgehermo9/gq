@@ -5,7 +5,7 @@ use std::{
 
 use derive_getters::Getters;
 
-use super::query_key::{AtomicQueryKey, QueryKey};
+use super::{query_key::QueryKey, RawKey};
 
 #[derive(Debug, Clone, Copy)]
 pub enum JsonPathEntry<'a> {
@@ -112,17 +112,23 @@ impl<'a> Context<'a> {
         Self::default()
     }
 
-    pub fn push_entry(&self, entry: JsonPathEntry<'a>) -> Context<'a> {
-        Self {
-            path: self.path.push(entry),
-            ..self.clone()
-        }
+    // TODO: see if &'a is necessary
+    pub fn push_raw_key(&self, raw_key: &'a RawKey<'a>) -> Context<'a> {
+        let entry = JsonPathEntry::Key(raw_key.0.as_ref());
+        self.push_entry(entry)
     }
 
+    pub fn push_index(&self, index: usize) -> Context<'a> {
+        let entry = JsonPathEntry::Index(index);
+        self.push_entry(entry)
+    }
+
+    // TODO: see if &'a is necessary
     pub fn push_query_key(&self, query_key: &'a QueryKey<'a>) -> Context<'a> {
         let mut path = self.path.clone();
-        for AtomicQueryKey(key) in query_key.keys() {
-            path = path.push(JsonPathEntry::Key(key));
+        // TODO: cleanup here
+        for atomic_query_key in query_key.keys() {
+            path = path.push(JsonPathEntry::Key(atomic_query_key.key().0.as_ref()));
         }
         Self {
             path,
@@ -135,6 +141,13 @@ impl<'a> Context<'a> {
             array_context: Some(ArrayContext {
                 path: self.path.clone(),
             }),
+            ..self.clone()
+        }
+    }
+
+    fn push_entry(&self, entry: JsonPathEntry<'a>) -> Context<'a> {
+        Self {
+            path: self.path.push(entry),
             ..self.clone()
         }
     }

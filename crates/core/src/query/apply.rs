@@ -77,7 +77,7 @@ impl Query<'_> {
             (None, root_json) => (root_json, root_context),
         };
 
-        Ok(self.do_apply(new_root_json, root_context, false)?)
+        Ok(self.do_apply(new_root_json, root_context)?)
     }
 }
 
@@ -88,11 +88,10 @@ trait QueryApply {
         &'a self,
         value: Value,
         context: Context<'a>,
-        propagated: bool,
     ) -> Result<Value, InternalError<'a>> {
         match value {
-            Value::Object(object) => self.do_apply_object(object, context, propagated),
-            Value::Array(array) => Ok(self.do_apply_array(array, context, propagated)),
+            Value::Object(object) => self.do_apply_object(object, context),
+            Value::Array(array) => Ok(self.do_apply_array(array, context)),
             _ => self.do_apply_primitive(value, context),
         }
     }
@@ -115,13 +114,7 @@ trait QueryApply {
         &'a self,
         object: Map<String, Value>,
         context: Context<'a>,
-        propagated: bool, // This is a workarround, since the arguments must not propagate to the values
-                          // of an array, but we dont want to mutate the query/clone it all and empty the arguments...
     ) -> Result<Value, InternalError<'a>> {
-        if !propagated && !self.arguments().0.is_empty() {
-            return Err(InternalError::NonFiltrableValue(context.path().clone()));
-        }
-
         if self.children().is_empty() {
             return Ok(Value::Object(object));
         }
@@ -147,8 +140,7 @@ trait QueryApply {
                 }
             };
 
-            let child_filtered_value_result =
-                child.do_apply(child_value, child_context.clone(), false);
+            let child_filtered_value_result = child.do_apply(child_value, child_context.clone());
             let child_filtered_value =
                 match (child_filtered_value_result, child_context.array_context()) {
                     (Ok(value), _) => value,
@@ -166,17 +158,13 @@ trait QueryApply {
         }
         Ok(Value::Object(filtered_object))
     }
-    fn do_apply_array(&self, array: Vec<Value>, context: Context, propagated: bool) -> Value {
+    fn do_apply_array(&self, array: Vec<Value>, context: Context) -> Value {
         let array_context = context.enter_array();
         let filtered_array = array
             .into_iter()
             .enumerate()
-            .map(|(index, item)| (array_context.push_entry(JsonPathEntry::Index(index)), item))
-            .filter(|(context, item)| {
-                propagated || self.arguments().filter(item, context, &array_context)
-            })
-            // Calling with propagated: true is a workaround so arguments are not applied twice
-            .map(|(context, item)| self.do_apply(item, context, true))
+            .map(|(index, item)| (array_context.push_index(index), item))
+            .map(|(context, item)| self.do_apply(item, context))
             .flat_map(|result| {
                 result
                     .map_err(|error| {
@@ -225,17 +213,20 @@ impl<'a> QueryKey<'a> {
         keys: &'a [AtomicQueryKey<'a>],
         context: &Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
-        let Some((AtomicQueryKey(current_key), rest)) = keys.split_first() else {
+        let Some((atomic_query_key, rest)) = keys.split_first() else {
             // TODO: try to return a reference here and clone in the caller, so this is more flexible for
             // callers that only needs a reference. For example, the QueryArguments...
             return Ok(value.clone());
         };
-        let new_context = context.push_entry(JsonPathEntry::Key(current_key));
+
+        let raw_key = atomic_query_key.key();
+        let new_context = context.push_raw_key(raw_key);
 
         match value {
             Value::Object(object) => {
                 let current = object
-                    .get(current_key.as_ref())
+                    // TODO: implement Borrow so we can do .get(raw_key)
+                    .get(raw_key.0.as_ref())
                     .ok_or(InternalError::KeyNotFound(new_context.path().clone()))?;
                 Self::do_inspect(current, rest, &new_context)
             }
@@ -244,8 +235,10 @@ impl<'a> QueryKey<'a> {
                 let indexed_array = array
                     .iter()
                     .enumerate()
+                    //TODO the filter is before the map
                     .map(|(index, item)| {
-                        let item_context = array_context.push_entry(JsonPathEntry::Index(index));
+                        let item_context = array_context.push_index(index);
+                        // TODO: think if we need here the propagate
                         Self::do_inspect(item, keys, &item_context)
                     })
                     .flat_map(|result| {

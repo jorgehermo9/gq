@@ -12,7 +12,8 @@ mod query_key;
 
 pub use self::context::OwnedJsonPath;
 pub use self::query_arguments::{QueryArgument, QueryArgumentValue, QueryArguments};
-pub use self::query_key::{AtomicQueryKey, OwnedAtomicQueryKey, OwnedQueryKey, QueryKey};
+use self::query_key::OwnedRawKey;
+pub use self::query_key::{AtomicQueryKey, OwnedAtomicQueryKey, OwnedQueryKey, QueryKey, RawKey};
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -25,7 +26,7 @@ pub enum Error {
 #[derive(Debug, Error)]
 pub enum RootQueryValidationError {
     #[error("root query has children with duplicated output keys: '{0}'")]
-    DuplicatedOutputKeyInRoot(OwnedAtomicQueryKey),
+    DuplicatedOutputKeyInRoot(OwnedRawKey),
 }
 
 #[derive(Debug, Error)]
@@ -46,23 +47,6 @@ pub struct Query<'a> {
     key: Option<QueryKey<'a>>,
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
-    #[builder(default)]
-    // TODO: Maybe we should wrap the vec in a newtype struct `QueryArguments`
-    // so we do not repeat logic between `Query` and `ChildQuery`
-    // TODO: Very important; should we only allow arguments in Value::Array elements? Or,
-    // should we allow arguments in any element below an array, and once we reach an array we
-    // have to collect first the arguments of its children? for example:
-    // {
-    // products(name.description: "desc")
-    //}
-    // vs
-    // {
-    // products {
-    //   name(description: "desc")
-    // }
-    // We should translate the latter to the former? Or just break with the latter and only allow filtering when the querykey is an array?
-    // discuss this with David. The child collection could be complicated for a first version and in gq-legacy we only supported on array fields.
-    arguments: QueryArguments<'a>,
 }
 
 impl QueryBuilder<'_> {
@@ -75,10 +59,11 @@ impl QueryBuilder<'_> {
             return Ok(());
         };
         for child in children {
-            let output_key = child.output_key();
-            if !output_keys.insert(output_key) {
+            // TODO: fix this with the new model
+            let child_query_key = child.output_key();
+            if !output_keys.insert(child_query_key) {
                 return Err(RootQueryValidationError::DuplicatedOutputKeyInRoot(
-                    output_key.clone().into_owned(),
+                    child_query_key.clone().into_owned(),
                 ));
             }
         }
@@ -89,7 +74,7 @@ impl QueryBuilder<'_> {
 #[derive(Debug, Error)]
 pub enum ChildQueryValidationError {
     #[error("query '{0}' has children with duplicated output keys: '{1}'")]
-    DuplicatedOutputKey(OwnedQueryKey, OwnedAtomicQueryKey),
+    DuplicatedOutputKey(OwnedQueryKey, OwnedRawKey),
 }
 
 #[derive(Debug, Error)]
@@ -107,12 +92,10 @@ pub enum ChildQueryBuilderError {
 )]
 pub struct ChildQuery<'a> {
     #[builder(default)]
-    alias: Option<AtomicQueryKey<'a>>,
+    alias: Option<RawKey<'a>>,
     key: QueryKey<'a>,
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
-    #[builder(default)]
-    arguments: QueryArguments<'a>,
 }
 
 impl ChildQueryBuilder<'_> {
@@ -125,12 +108,13 @@ impl ChildQueryBuilder<'_> {
             return Ok(());
         };
         for child in children {
-            let output_key = child.output_key();
-            if !output_keys.insert(output_key) {
+            // TODO: fix this with new model
+            let child_output_key = child.output_key();
+            if !output_keys.insert(child_output_key) {
                 let child_key = self.key.as_ref().expect("child key must be defined");
                 return Err(ChildQueryValidationError::DuplicatedOutputKey(
                     child_key.clone().into_owned(),
-                    output_key.clone().into_owned(),
+                    child_output_key.clone().into_owned(),
                 ));
             }
         }
@@ -139,10 +123,10 @@ impl ChildQueryBuilder<'_> {
 }
 
 impl<'a> ChildQuery<'a> {
-    pub fn output_key(&self) -> &AtomicQueryKey {
+    pub fn output_key(&self) -> &RawKey {
         self.alias()
             .as_ref()
-            .unwrap_or_else(|| self.key().last_key())
+            .unwrap_or_else(|| self.key().last_key().key())
     }
 }
 
@@ -186,23 +170,24 @@ impl Query<'_> {
 }
 impl ChildQuery<'_> {
     fn do_pretty_format(&self, result: &mut String, indent: usize, level: usize, sep: char) {
-        let indentation = " ".repeat(indent * level);
+        todo!("TODO")
+        // let indentation = " ".repeat(indent * level);
 
-        let query_key = self.key();
+        // let query_key = self.key();
 
-        result.push_str(&format!("{indentation}{query_key}"));
-        if let Some(alias) = self.alias() {
-            result.push_str(&format!(": {alias}"));
-        }
+        // result.push_str(&format!("{indentation}{query_key}"));
+        // if let Some(alias) = self.alias() {
+        //     result.push_str(&format!(": {alias}"));
+        // }
 
-        if !self.children().is_empty() {
-            result.push_str(&format!(" {{{sep}"));
-            for child in self.children() {
-                child.do_pretty_format(result, indent, level + 1, sep);
-            }
-            result.push_str(&format!("{indentation}}}{sep}"));
-        } else {
-            result.push(sep);
-        }
+        // if !self.children().is_empty() {
+        //     result.push_str(&format!(" {{{sep}"));
+        //     for child in self.children() {
+        //         child.do_pretty_format(result, indent, level + 1, sep);
+        //     }
+        //     result.push_str(&format!("{indentation}}}{sep}"));
+        // } else {
+        //     result.push(sep);
+        // }
     }
 }

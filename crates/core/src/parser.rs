@@ -1,7 +1,7 @@
 use crate::lexer::{self, OwnedToken, Token};
 use crate::query::{
     AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryArgument, QueryArgumentValue,
-    QueryArguments, QueryBuilder, QueryKey,
+    QueryArguments, QueryBuilder, QueryKey, RawKey,
 };
 use logos::{Logos, Span, SpannedIter};
 use std::borrow::Cow;
@@ -104,11 +104,10 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `S -> ROOT_QUERY_KEY QUERY_ARGUMENTS | ROOT_QUERY_KEY QUERY_ARGUMENTS { QUERY_CONTENT }`
+    /// `S -> ROOT_QUERY_KEY | ROOT_QUERY_KEY { QUERY_CONTENT }`
     fn parse_root_query(&mut self) -> Result<Query<'src>> {
         let root_span_start = self.current_span()?;
         let root_query_key = self.parse_root_query_key()?;
-        let query_arguments = self.parse_query_arguments()?;
 
         match self.peek()? {
             (Token::LBrace, _) => {
@@ -120,7 +119,6 @@ impl<'src> Parser<'src> {
                 QueryBuilder::default()
                     .children(children)
                     .key(root_query_key)
-                    .arguments(query_arguments)
                     .build()
                     // TODO: Add arguments here. Maybe we should modify the grammar
                     .map_err(|err| Error::Construction(err.into(), root_span))
@@ -129,7 +127,6 @@ impl<'src> Parser<'src> {
                 let root_span = Self::span_between(root_span_start, root_span_end);
                 QueryBuilder::default()
                     .key(root_query_key)
-                    .arguments(query_arguments)
                     .build()
                     .map_err(|err| Error::Construction(err.into(), root_span))
             }
@@ -153,11 +150,10 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `QUERY -> QUERY_KEY QUERY_ARGUMENTS QUERY_ALIAS | QUERY_KEY QUERY_ARGUMENTS QUERY_ALIAS { QUERY_CONTENT }
+    /// `QUERY -> QUERY_KEY QUERY_ALIAS | QUERY_KEY QUERY_ALIAS { QUERY_CONTENT }
     fn parse_query(&mut self) -> Result<ChildQuery<'src>> {
         let query_span_start = self.current_span()?;
         let query_key = self.parse_query_key()?;
-        let query_arguments = self.parse_query_arguments()?;
         let query_alias = self.parse_query_alias()?;
 
         match self.peek()? {
@@ -171,7 +167,6 @@ impl<'src> Parser<'src> {
                     .key(query_key)
                     .alias(query_alias)
                     .children(children)
-                    .arguments(query_arguments)
                     .build()
                     .map_err(|err| Error::Construction(err.into(), query_span))
             }
@@ -180,7 +175,6 @@ impl<'src> Parser<'src> {
                 ChildQueryBuilder::default()
                     .key(query_key)
                     .alias(query_alias)
-                    .arguments(query_arguments)
                     .build()
                     // TODO: We should take the end span from the query alias function
                     .map_err(|err| Error::Construction(err.into(), query_span))
@@ -190,6 +184,9 @@ impl<'src> Parser<'src> {
 
     /// # Grammar
     /// ROOT_QUERY_KEY -> QUERY_KEY | ε
+    // TODO: in order to support arguments in root query, maybe we should change the grammar to
+    // ROOT_QUERY_KEY -> QUERY_KEY|QUERY_ARGUMENTS
+    // and instead of Option<QueryKey> we should create a new enum that is enum rootquery{QueryKey, QueryArguments}
     fn parse_root_query_key(&mut self) -> Result<Option<QueryKey<'src>>> {
         match self.peek()? {
             (Token::Key(_), _) => self.parse_query_key().map(Some),
@@ -198,17 +195,12 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_KEY -> key . QUERY_KEY | key
+    /// QUERY_KEY -> ATOMIC_QUERY_KEY . QUERY_KEY | ATOMIC_QUERY_KEY
     fn parse_query_key(&mut self) -> Result<QueryKey<'src>> {
         let mut keys = Vec::new();
         loop {
-            match self.next_token()? {
-                (Token::Key(key), _) => keys.push(AtomicQueryKey::new(Cow::Borrowed(key))),
-                (unexpected_token, span) => {
-                    return Err(Error::UnexpectedToken(unexpected_token.into(), span))
-                }
-            }
-
+            let atomic_query_key = self.parse_atomic_query_key()?;
+            keys.push(atomic_query_key);
             match self.peek()? {
                 (Token::Dot, _) => {
                     self.consume()?;
@@ -219,13 +211,26 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
+    /// ATOMIC_QUERY_KEY -> key QUERY_ARGUMENTS
+    fn parse_atomic_query_key(&mut self) -> Result<AtomicQueryKey<'src>> {
+        match self.next_token()? {
+            (Token::Key(key), _) => {
+                let arguments = self.parse_query_arguments()?;
+                let raw_key = RawKey::new(Cow::Borrowed(key));
+                Ok(AtomicQueryKey::new(raw_key, arguments))
+            }
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+        }
+    }
+
+    /// # Grammar
     /// QUERY_ALIAS -> : key | ε
-    fn parse_query_alias(&mut self) -> Result<Option<AtomicQueryKey<'src>>> {
+    fn parse_query_alias(&mut self) -> Result<Option<RawKey<'src>>> {
         match self.peek()? {
             (Token::Colon, _) => {
                 self.consume()?;
                 match self.next_token()? {
-                    (Token::Key(key), _) => Ok(Some(AtomicQueryKey::new(Cow::Borrowed(key)))),
+                    (Token::Key(key), _) => Ok(Some(RawKey::new(Cow::Borrowed(key)))),
                     (unexpected_token, span) => {
                         Err(Error::UnexpectedToken(unexpected_token.into(), span))
                     }
