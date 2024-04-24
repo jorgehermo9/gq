@@ -93,9 +93,24 @@ trait QueryApply {
         match value {
             Value::Object(object) => self.do_apply_object(object, context, propagated),
             Value::Array(array) => Ok(self.do_apply_array(array, context, propagated)),
-            _ => Err(InternalError::NonIndexableValue(context.path().clone()))?,
+            _ => self.do_apply_primitive(value, context),
         }
     }
+
+    fn do_apply_primitive<'a>(
+        &'a self,
+        value: Value,
+        context: Context<'a>,
+    ) -> Result<Value, InternalError> {
+        if !self.children().is_empty() {
+            return Err(InternalError::NonIndexableValue(context.path().clone()));
+        }
+        if !self.arguments().0.is_empty() {
+            return Err(InternalError::NonFiltrableValue(context.path().clone()));
+        }
+        Ok(value)
+    }
+
     fn do_apply_object<'a>(
         &'a self,
         object: Map<String, Value>,
@@ -158,7 +173,7 @@ trait QueryApply {
             .enumerate()
             .map(|(index, item)| (array_context.push_entry(JsonPathEntry::Index(index)), item))
             .filter(|(context, item)| {
-                !propagated || self.arguments().filter(item, context, &array_context)
+                propagated || self.arguments().filter(item, context, &array_context)
             })
             // Calling with propagated: true is a workaround so arguments are not applied twice
             .map(|(context, item)| self.do_apply(item, context, true))
