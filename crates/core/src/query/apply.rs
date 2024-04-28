@@ -196,7 +196,7 @@ impl QueryApply for ChildQuery<'_> {
 //TODO: maybe we should move this to the query_key module
 impl<'a> QueryKey<'a> {
     fn inspect(&'a self, value: &Value, context: &Context<'a>) -> Result<Value, InternalError<'a>> {
-        Self::do_inspect(value, self.keys(), &QueryArguments::empty(), context)
+        Self::do_inspect(value, self.keys(), &QueryArguments::default(), context)
     }
     fn do_inspect(
         value: &Value,
@@ -237,11 +237,11 @@ impl<'a> QueryKey<'a> {
                         parent_arguments.filter(item, context, item_context)
                     })
                     .map(|(item_context, item)| {
-                        let empty_query_arguments = QueryArguments::empty();
+                        let default_query_arguments = QueryArguments::default();
                         let arguments_to_propagate = match item {
                             // Only propagate parent_arguments if the child is an array
                             Value::Array(_) => parent_arguments,
-                            _ => &empty_query_arguments,
+                            _ => &default_query_arguments,
                         };
                         Self::do_inspect(item, keys, arguments_to_propagate, &item_context)
                     })
@@ -271,103 +271,6 @@ impl<'a> QueryKey<'a> {
         };
         Ok(result)
     }
-    //     let Some((atomic_query_key, rest)) = keys.split_first() else {
-    //         // TODO: try to return a reference here and clone in the caller, so this is more flexible for
-    //         // callers that only needs a reference. For example, the QueryArguments...
-
-    //         // let value = value.clone();
-    //         let value = match value {
-    //             Value::Array(array) => {
-    //                 let array_context = context.enter_array();
-    //                 let filtered_array = array
-    //                     .iter()
-    //                     .enumerate()
-    //                     .map(|(index, item)| (array_context.push_index(index), item))
-    //                     // TODO: there is a bug here with arrays of arrays. See the notes for more info
-    //                     .filter(|(item_context, item)| {
-    //                         parent_arguments.filter(item, item_context, &context)
-    //                     })
-    //                     // TODO: we may have to call again do_inspect on children so arguments are applied to children too
-    //                     // TDO: check if this call is necessary, it was decided fast
-    //                     .map(|(item_context, item)| {
-    //                         // We have to send an empty QueryArguments so the arguments do not propagate twice to the
-    //                         // array items
-    //                         Self::do_inspect(item, keys, parent_arguments, &item_context)
-    //                     })
-    //                     .flat_map(|result| {
-    //                         result
-    //                             .map_err(|error| {
-    //                                 let array_error = InternalError::InsideArray(
-    //                                     Box::new(error),
-    //                                     array_context.path().clone(),
-    //                                 );
-    //                                 log::warn!("{array_error}");
-    //                             })
-    //                             .ok()
-    //                     })
-    //                     .collect();
-    //                 Value::Array(filtered_array)
-    //             }
-    //             _ if !parent_arguments.0.is_empty() => {
-    //                 return Err(InternalError::NonFiltrableValue(context.path().clone()));
-    //             }
-    //             _ => value.clone(),
-    //         };
-    //         return Ok(value);
-    //     };
-
-    //     let raw_key = atomic_query_key.key();
-    //     let arguments = atomic_query_key.arguments();
-    //     // TODO: all the context here are misused, review them all
-    //     let new_context = context.push_raw_key(raw_key);
-
-    //     match value {
-    //         Value::Object(object) => {
-    //             // TODO: fail here if there is arguments
-    //             let current = object
-    //                 // TODO: implement Borrow so we can do .get(raw_key)
-    //                 .get(raw_key.0.as_ref())
-    //                 .ok_or(InternalError::KeyNotFound(new_context.path().clone()))?;
-    //             Self::do_inspect(current, rest, arguments, &new_context)
-    //         }
-    //         Value::Array(array) => {
-    //             // dbg!(raw_key, arguments, parent_arguments, value);
-
-    //             // TODO: handle arguments here
-    //             let array_context = context.enter_array();
-    //             let indexed_array = array
-    //                 .iter()
-    //                 .enumerate()
-    //                 //TODO the filter is before the map
-    //                 .map(|(index, item)| (array_context.push_index(index), item))
-    //                 .filter(|(item_context, item)| {
-    //                     parent_arguments.filter(item, item_context, &new_context)
-    //                 })
-    //                 .map(|(item_context, item)| {
-    //                     // We have to send an empty QueryArguments so the arguments do not propagate twice to the
-    //                     // array items
-    //                     Self::do_inspect(item, keys, parent_arguments, &item_context)
-    //                 })
-    //                 .flat_map(|result| {
-    //                     result
-    //                         .map_err(|error| {
-    //                             let array_error = InternalError::InsideArray(
-    //                                 Box::new(error),
-    //                                 array_context.path().clone(),
-    //                             );
-    //                             log::warn!("{array_error}");
-    //                         })
-    //                         .ok()
-    //                 })
-    //                 // A filter here is not needed since the object indexing will fail and not
-    //                 // warn if the key is missing. This case is different from the Query::do_apply_array
-    //                 .collect();
-    //             // TODO: maybe we should create a borrowed version of Value::Array so this method could return a reference
-    //             Ok(Value::Array(indexed_array))
-    //         }
-    //         _ => Err(InternalError::NonIndexableValue(new_context.path().clone())),
-    //     }
-    // }
 }
 
 // TODO: maybe we should move this to the query_argument module

@@ -19,12 +19,6 @@ pub struct QueryArgument<'a> {
 #[derive(Debug, Clone, Constructor, Default)]
 pub struct QueryArguments<'a>(pub Vec<QueryArgument<'a>>);
 
-impl QueryArguments<'_> {
-    pub fn empty() -> Self {
-        QueryArguments(Vec::new())
-    }
-}
-
 // TODO: create an filter method that returns a boolean...
 // maybe the QueryKey::inspect should return a reference to que inspected
 // value, as we do not need ownership, only to check equality to the inspected
