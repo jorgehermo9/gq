@@ -11,9 +11,10 @@ mod query_arguments;
 mod query_key;
 
 pub use self::context::OwnedJsonPath;
-pub use self::query_arguments::{QueryArgument, QueryArgumentValue, QueryArguments};
-use self::query_key::OwnedRawKey;
-pub use self::query_key::{AtomicQueryKey, OwnedAtomicQueryKey, OwnedQueryKey, QueryKey, RawKey};
+pub use self::query_arguments::{
+    QueryArgument, QueryArgumentOperator, QueryArgumentValue, QueryArguments,
+};
+pub use self::query_key::{AtomicQueryKey, OwnedRawKey, QueryKey, RawKey};
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -74,7 +75,8 @@ impl QueryBuilder<'_> {
 #[derive(Debug, Error)]
 pub enum ChildQueryValidationError {
     #[error("query '{0}' has children with duplicated output keys: '{1}'")]
-    DuplicatedOutputKey(OwnedQueryKey, OwnedRawKey),
+    // TODO: Maybe we should not use String and use the owned version of the QueryKey
+    DuplicatedOutputKey(String, OwnedRawKey),
 }
 
 #[derive(Debug, Error)]
@@ -113,7 +115,7 @@ impl ChildQueryBuilder<'_> {
             if !output_keys.insert(child_output_key) {
                 let child_key = self.key.as_ref().expect("child key must be defined");
                 return Err(ChildQueryValidationError::DuplicatedOutputKey(
-                    child_key.clone().into_owned(),
+                    child_key.to_string(),
                     child_output_key.clone().into_owned(),
                 ));
             }

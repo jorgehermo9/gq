@@ -1,17 +1,16 @@
 use std::{
-    borrow::{Borrow, Cow},
+    borrow::Cow,
     fmt::{self, Display, Formatter},
 };
 
 use derive_getters::Getters;
 use derive_more::{Constructor, Display};
+use serde_json::Value;
 
-use super::QueryArguments;
+use super::{apply::InternalError, context::Context, QueryArguments};
 
 // TODO: maybe we shouldn't name those types
 pub type OwnedRawKey = RawKey<'static>;
-pub type OwnedAtomicQueryKey = AtomicQueryKey<'static>;
-pub type OwnedQueryKey = QueryKey<'static>;
 
 #[derive(Debug, Clone, Constructor, Eq, PartialEq, Hash, Display)]
 pub struct RawKey<'a>(pub Cow<'a, str>);
@@ -29,17 +28,15 @@ pub struct AtomicQueryKey<'a> {
     arguments: QueryArguments<'a>,
 }
 
-impl AtomicQueryKey<'_> {
-    pub fn into_owned(self) -> OwnedAtomicQueryKey {
-        todo!("TODO")
-        // AtomicQueryKey(Cow::Owned(self.0.into_owned()))
-    }
-}
-
 impl Display for AtomicQueryKey<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        // self.0.fmt(f)
-        todo!("TODO")
+        let key = self.key().to_string();
+        if self.arguments().0.is_empty() {
+            return key.fmt(f);
+        }
+
+        let arguments = self.arguments().to_string();
+        write!(f, "{}({})", key, arguments)
     }
 }
 
@@ -48,24 +45,16 @@ pub struct QueryKey<'a> {
     keys: Vec<AtomicQueryKey<'a>>,
 }
 
-impl QueryKey<'_> {
-    pub fn into_owned(self) -> OwnedQueryKey {
-        QueryKey {
-            keys: self
-                .keys
-                .into_iter()
-                .map(AtomicQueryKey::into_owned)
-                .collect(),
-        }
-    }
-}
+// TODO: maybe it does not make sense to have a .into_owned method, it pollutes a lot the QueryArguments
+// and it is mainly used on errors. Maybe the error should have simply a String that represents the QueryKey
+// and do not complicate this so much.
 
 impl Display for QueryKey<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let keys = self
             .keys()
             .iter()
-            .map(|key| key.key().0.as_ref())
+            .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(".");
         keys.fmt(f)
@@ -75,5 +64,88 @@ impl Display for QueryKey<'_> {
 impl<'a> QueryKey<'a> {
     pub fn last_key(&self) -> &AtomicQueryKey<'a> {
         self.keys().last().expect("query key cannot be empty")
+    }
+
+    pub fn inspect(
+        &'a self,
+        value: &Value,
+        context: &Context<'a>,
+    ) -> Result<Value, InternalError<'a>> {
+        Self::do_inspect(value, self.keys(), &QueryArguments::default(), context)
+    }
+
+    fn do_inspect(
+        value: &Value,
+        keys: &'a [AtomicQueryKey<'a>],
+        parent_arguments: &QueryArguments<'a>,
+        context: &Context<'a>,
+    ) -> Result<Value, InternalError<'a>> {
+        // TODO: split in do_inspect_object, do_inspect_array and do_inspect_primitive
+        let result = match value {
+            Value::Object(object) => {
+                if !parent_arguments.0.is_empty() {
+                    // TODO: throw an error here or log a warning?
+                    // in my opinion we should fail
+                    return Err(InternalError::NonFiltrableValue(context.path().clone()));
+                }
+
+                let Some((atomic_query_key, rest)) = keys.split_first() else {
+                    return Ok(value.clone());
+                };
+
+                let raw_key = atomic_query_key.key();
+                let arguments = atomic_query_key.arguments();
+                let new_context = context.push_raw_key(raw_key);
+
+                let current = object
+                    // TODO: implement Borrow so we can do .get(raw_key)
+                    .get(raw_key.0.as_ref())
+                    .ok_or(InternalError::KeyNotFound(new_context.path().clone()))?;
+
+                Self::do_inspect(current, rest, arguments, &new_context)?
+            }
+            Value::Array(array) => {
+                let array_context = context.enter_array();
+                let result = array
+                    .iter()
+                    .enumerate()
+                    .map(|(index, item)| (array_context.push_index(index), item))
+                    .filter(|(item_context, item)| {
+                        parent_arguments.filter(item, context, item_context)
+                    })
+                    .map(|(item_context, item)| {
+                        let default_query_arguments = QueryArguments::default();
+                        let arguments_to_propagate = match item {
+                            // Only propagate parent_arguments if the child is an array
+                            Value::Array(_) => parent_arguments,
+                            _ => &default_query_arguments,
+                        };
+                        Self::do_inspect(item, keys, arguments_to_propagate, &item_context)
+                    })
+                    .flat_map(|result| {
+                        result
+                            .map_err(|error| {
+                                let array_error = InternalError::InsideArray(
+                                    Box::new(error),
+                                    array_context.path().clone(),
+                                );
+                                log::warn!("{array_error}");
+                            })
+                            .ok()
+                    })
+                    .collect();
+                Value::Array(result)
+            }
+            value => {
+                if !parent_arguments.0.is_empty() {
+                    return Err(InternalError::NonFiltrableValue(context.path().clone()));
+                }
+                if !keys.is_empty() {
+                    return Err(InternalError::NonIndexableValue(context.path().clone()));
+                }
+                value.clone()
+            }
+        };
+        Ok(result)
     }
 }

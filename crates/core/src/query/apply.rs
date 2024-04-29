@@ -15,8 +15,8 @@ pub enum Error {
     InsideArray(Box<Self>, OwnedJsonPath),
     #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(OwnedJsonPath),
-    #[error("{0} while filtering inside argument '{1}' at query '{2}'")]
-    InsideArguments(Box<Self>, QueryKey<'static>, OwnedJsonPath),
+    #[error("{0} while processing arguments at query '{1}'")]
+    InsideArguments(Box<Self>, OwnedJsonPath),
     // TODO: improve the display mesage of this error?
     #[error("tried to filter a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(OwnedJsonPath),
@@ -33,13 +33,10 @@ impl From<InternalError<'_>> for Error {
             InternalError::NonIndexableValue(path) => {
                 Error::NonIndexableValue(OwnedJsonPath::from(&path))
             }
-            InternalError::InsideArguments(internal_error, argument_key, path) => {
-                Error::InsideArguments(
-                    Box::new(Error::from(*internal_error)),
-                    argument_key.into_owned(),
-                    OwnedJsonPath::from(&path),
-                )
-            }
+            InternalError::InsideArguments(internal_error, path) => Error::InsideArguments(
+                Box::new(Error::from(*internal_error)),
+                OwnedJsonPath::from(&path),
+            ),
             InternalError::NonFiltrableValue(path) => {
                 Error::NonFiltrableValue(OwnedJsonPath::from(&path))
             }
@@ -49,7 +46,7 @@ impl From<InternalError<'_>> for Error {
 
 //TODO: maybe this is useless, it is only useful for the '?' syntax to convert a borrowed error into an owned error
 #[derive(Debug, Error)]
-enum InternalError<'a> {
+pub enum InternalError<'a> {
     #[error("key '{0}' not found")]
     KeyNotFound(JsonPath<'a>),
     // TODO: Think about the usefulness of this error
@@ -57,8 +54,8 @@ enum InternalError<'a> {
     InsideArray(Box<Self>, JsonPath<'a>),
     #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(JsonPath<'a>),
-    #[error("{0} while filtering inside argument '{1}' at query '{2}'")]
-    InsideArguments(Box<Self>, QueryKey<'a>, JsonPath<'a>),
+    #[error("{0} while processing arguments at query '{1}'")]
+    InsideArguments(Box<Self>, JsonPath<'a>),
     #[error("tried to filter a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(JsonPath<'a>),
 }
@@ -190,156 +187,5 @@ impl QueryApply for Query<'_> {
 impl QueryApply for ChildQuery<'_> {
     fn children(&self) -> &Vec<ChildQuery> {
         self.children()
-    }
-}
-
-//TODO: maybe we should move this to the query_key module
-impl<'a> QueryKey<'a> {
-    fn inspect(&'a self, value: &Value, context: &Context<'a>) -> Result<Value, InternalError<'a>> {
-        Self::do_inspect(value, self.keys(), &QueryArguments::default(), context)
-    }
-    fn do_inspect(
-        value: &Value,
-        keys: &'a [AtomicQueryKey<'a>],
-        parent_arguments: &QueryArguments<'a>,
-        context: &Context<'a>,
-    ) -> Result<Value, InternalError<'a>> {
-        let result = match value {
-            Value::Object(object) => {
-                if !parent_arguments.0.is_empty() {
-                    // TODO: throw an error here or log a warning?
-                    // in my opinion we should fail
-                    return Err(InternalError::NonFiltrableValue(context.path().clone()));
-                }
-
-                let Some((atomic_query_key, rest)) = keys.split_first() else {
-                    return Ok(value.clone());
-                };
-
-                let raw_key = atomic_query_key.key();
-                let arguments = atomic_query_key.arguments();
-                let new_context = context.push_raw_key(raw_key);
-
-                let current = object
-                    // TODO: implement Borrow so we can do .get(raw_key)
-                    .get(raw_key.0.as_ref())
-                    .ok_or(InternalError::KeyNotFound(new_context.path().clone()))?;
-
-                Self::do_inspect(current, rest, arguments, &new_context)?
-            }
-            Value::Array(array) => {
-                let array_context = context.enter_array();
-                let result = array
-                    .iter()
-                    .enumerate()
-                    .map(|(index, item)| (array_context.push_index(index), item))
-                    .filter(|(item_context, item)| {
-                        parent_arguments.filter(item, context, item_context)
-                    })
-                    .map(|(item_context, item)| {
-                        let default_query_arguments = QueryArguments::default();
-                        let arguments_to_propagate = match item {
-                            // Only propagate parent_arguments if the child is an array
-                            Value::Array(_) => parent_arguments,
-                            _ => &default_query_arguments,
-                        };
-                        Self::do_inspect(item, keys, arguments_to_propagate, &item_context)
-                    })
-                    .flat_map(|result| {
-                        result
-                            .map_err(|error| {
-                                let array_error = InternalError::InsideArray(
-                                    Box::new(error),
-                                    array_context.path().clone(),
-                                );
-                                log::warn!("{array_error}");
-                            })
-                            .ok()
-                    })
-                    .collect();
-                Value::Array(result)
-            }
-            value => {
-                if !parent_arguments.0.is_empty() {
-                    return Err(InternalError::NonFiltrableValue(context.path().clone()));
-                }
-                if !keys.is_empty() {
-                    return Err(InternalError::NonIndexableValue(context.path().clone()));
-                }
-                value.clone()
-            }
-        };
-        Ok(result)
-    }
-}
-
-// TODO: maybe we should move this to the query_argument module
-impl<'a> QueryArguments<'a> {
-    //TODO: improve method naming
-    //TODO: maybe parent_context is not necessary, think better about the errors
-    fn filter(
-        &'a self,
-        value: &Value,
-        argument_context: &Context<'a>,
-        context: &Context<'a>,
-    ) -> bool {
-        self.0.iter().all(|argument| {
-            argument
-                .filter(value, argument_context)
-                .map_err(|error| {
-                    let argument_error = InternalError::InsideArguments(
-                        Box::new(error),
-                        // TODO: verify if QueryKey::clone is expensive
-                        argument.key().clone(),
-                        context.path().clone(),
-                    );
-                    log::warn!("{argument_error}");
-                })
-                .unwrap_or(false)
-        })
-    }
-}
-
-impl<'a> QueryArgument<'a> {
-    fn filter(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, InternalError<'a>> {
-        let argument_key = self.key();
-        let argument_value = self.value();
-        let inspected_value = argument_key.inspect(value, context)?;
-        Self::fulfill_argument(&inspected_value, argument_value)
-    }
-
-    //TODO: improve naming
-    fn fulfill_argument(
-        value: &Value,
-        argument_value: &QueryArgumentValue,
-    ) -> Result<bool, InternalError<'a>> {
-        let fulfill = match (value, argument_value) {
-            (Value::String(value), QueryArgumentValue::String(argument_value)) => {
-                value == argument_value
-            }
-            (Value::Number(value), QueryArgumentValue::Number(argument_value)) => {
-                // TODO: improve this conversion
-                value
-                    .as_f64()
-                    .expect("TODO: improve number value conversion")
-                    == *argument_value
-            }
-            (Value::Bool(value), QueryArgumentValue::Bool(argument_value)) => {
-                value == argument_value
-            }
-            (Value::Null, QueryArgumentValue::Null) => true,
-            (Value::Array(array), argument_value) => array.iter().any(|item| {
-                // TODO: when an error occurs here, we should log a warn and return false
-                Self::fulfill_argument(item, argument_value).expect("TODO: handle this error")
-            }),
-            (value, argument_value) => {
-                // TODO: do some error handling here reporting the incompatible types. We should raise an error ere
-                log::warn!(
-                    "TODO: handle incompatible types error '{value}' and '{argument_value}'"
-                );
-                false
-            }
-        };
-        Ok(fulfill)
     }
 }

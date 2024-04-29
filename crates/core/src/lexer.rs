@@ -41,6 +41,10 @@ pub enum Token<'src> {
     Less,
     #[token("<=")]
     LessEqual,
+    #[token("~")]
+    Regex,
+    #[token("!~")]
+    NotRegex,
     // TODO: allow for more chars
     #[regex(r"[a-zA-Z_]\w*")]
     Key(&'src str),
@@ -74,6 +78,8 @@ pub enum OwnedToken {
     GreaterEqual,
     Less,
     LessEqual,
+    Regex,
+    NotRegex,
     Key(String),
     Bool(bool),
     Number(f64),
@@ -85,26 +91,29 @@ pub enum OwnedToken {
 impl Display for OwnedToken {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            OwnedToken::LBrace => write!(f, "{{"),
-            OwnedToken::RBrace => write!(f, "}}"),
-            OwnedToken::LParen => write!(f, "("),
-            OwnedToken::RParen => write!(f, ")"),
-            OwnedToken::Dot => write!(f, "."),
-            OwnedToken::Colon => write!(f, ":"),
-            OwnedToken::Comma => write!(f, ","),
-            OwnedToken::Equal => write!(f, "="),
-            OwnedToken::NotEqual => write!(f, "!="),
-            OwnedToken::Greater => write!(f, ">"),
-            OwnedToken::GreaterEqual => write!(f, ">="),
-            OwnedToken::Less => write!(f, "<"),
-            OwnedToken::LessEqual => write!(f, "<="),
-            OwnedToken::Key(key) => key.fmt(f),
-            OwnedToken::Bool(b) => b.fmt(f),
-            OwnedToken::Number(n) => n.fmt(f),
-            OwnedToken::String(s) => s.fmt(f),
-            OwnedToken::Null => write!(f, "null"),
-            OwnedToken::EOF => write!(f, "EOF"),
+            OwnedToken::LBrace => "{",
+            OwnedToken::RBrace => "}",
+            OwnedToken::LParen => "(",
+            OwnedToken::RParen => ")",
+            OwnedToken::Dot => ".",
+            OwnedToken::Colon => ":",
+            OwnedToken::Comma => ",",
+            OwnedToken::Equal => "=",
+            OwnedToken::NotEqual => "!=",
+            OwnedToken::Greater => ">",
+            OwnedToken::GreaterEqual => ">=",
+            OwnedToken::Less => "<",
+            OwnedToken::LessEqual => "<=",
+            OwnedToken::Regex => "~",
+            OwnedToken::NotRegex => "!~",
+            OwnedToken::Key(key) => key.as_str(),
+            OwnedToken::Bool(b) => b,
+            OwnedToken::Number(n) => n.to_string().as_str(),
+            OwnedToken::String(s) => format!("\"{}\"", s).as_str(),
+            OwnedToken::Null => "null",
+            OwnedToken::EOF => "EOF",
         }
+        .fmt(f)
     }
 }
 
@@ -124,6 +133,8 @@ impl From<Token<'_>> for OwnedToken {
             Token::GreaterEqual => OwnedToken::GreaterEqual,
             Token::Less => OwnedToken::Less,
             Token::LessEqual => OwnedToken::LessEqual,
+            Token::Regex => OwnedToken::Regex,
+            Token::NotRegex => OwnedToken::NotRegex,
             Token::Key(key) => OwnedToken::Key(key.to_string()),
             Token::Bool(b) => OwnedToken::Bool(b),
             Token::Number(n) => OwnedToken::Number(n),
