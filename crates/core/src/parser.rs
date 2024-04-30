@@ -1,7 +1,9 @@
 use crate::lexer::{self, OwnedToken, Token};
+use crate::query::query_arguments::{
+    QueryArgument, QueryArgumentOperation, QueryArgumentValue, QueryArguments,
+};
 use crate::query::{
-    AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryArgument, QueryArgumentOperator,
-    QueryArgumentValue, QueryArguments, QueryBuilder, QueryKey, RawKey,
+    AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryBuilder, QueryKey, RawKey,
 };
 use logos::{Logos, Span, SpannedIter};
 use std::borrow::Cow;
@@ -276,12 +278,27 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_ARGUMENT -> QUERY_KEY QUERY_ARGUMENT_OPERATOR QUERY_ARGUMENT_VALUE
+    /// QUERY_ARGUMENT -> QUERY_KEY QUERY_AGUMENT_OPERATION
     fn parse_query_argument(&mut self) -> Result<QueryArgument<'src>> {
         let key = self.parse_query_key()?;
-        let operator = self.parse_query_argument_operator()?;
-        let value = self.parse_query_argument_value()?;
-        Ok(QueryArgument::new(key, operator, value))
+        let operation = self.parse_query_argument_operation()?;
+        Ok(QueryArgument::new(key, operation))
+    }
+
+    /// # Grammar
+    /// QUERY_AGUMENT_OPERATION -> = QUERY_ARGUMENT_VALUE | != QUERY_ARGUMENT_VALUE
+    ///     | > number | >= number
+    ///     | < number | <= number
+    ///     | ~ string | !~ string
+
+    fn parse_query_argument_operation(&mut self) -> Result<QueryArgumentOperation<'src>> {
+        match self.next_token()? {
+            (Token::Equal, _) => {
+                let value = self.parse_query_argument_value()?;
+                Ok(QueryArgumentOperation::Equal(value))
+            }
+            _ => todo!(),
+        }
     }
 
     /// # Grammar
@@ -292,23 +309,6 @@ impl<'src> Parser<'src> {
             (Token::Number(value), _) => Ok(QueryArgumentValue::Number(value)),
             (Token::Bool(value), _) => Ok(QueryArgumentValue::Bool(value)),
             (Token::Null, _) => Ok(QueryArgumentValue::Null),
-            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
-        }
-    }
-
-    /// # Grammar
-    /// QUERY_ARGUMENT_OPERATOR -> = | != | > | >= | < | <= | ~ | !~
-    fn parse_query_argument_operator(&mut self) -> Result<QueryArgumentOperator> {
-        // TODO:refactor this and take out the Ok() from each match arm
-        match self.next_token()? {
-            (Token::Equal, _) => Ok(QueryArgumentOperator::Equal),
-            (Token::NotEqual, _) => Ok(QueryArgumentOperator::NotEqual),
-            (Token::Greater, _) => Ok(QueryArgumentOperator::Greater),
-            (Token::GreaterEqual, _) => Ok(QueryArgumentOperator::GreaterEqual),
-            (Token::Less, _) => Ok(QueryArgumentOperator::Less),
-            (Token::LessEqual, _) => Ok(QueryArgumentOperator::LessEqual),
-            (Token::Regex, _) => Ok(QueryArgumentOperator::Regex),
-            (Token::NotRegex, _) => Ok(QueryArgumentOperator::NotRegex),
             (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
         }
     }

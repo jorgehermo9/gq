@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use super::{
     context::{Context, JsonPath, OwnedJsonPath},
-    AtomicQueryKey, ChildQuery, Query, QueryArgument, QueryArgumentValue, QueryArguments, QueryKey,
+    query_arguments, AtomicQueryKey, ChildQuery, Query,
 };
 
 #[derive(Debug, Error)]
@@ -20,6 +20,8 @@ pub enum Error {
     // TODO: improve the display mesage of this error?
     #[error("tried to filter a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(OwnedJsonPath),
+    #[error("{0}")]
+    QueryArgument(#[from] query_arguments::Error),
 }
 
 impl From<InternalError<'_>> for Error {
@@ -40,6 +42,7 @@ impl From<InternalError<'_>> for Error {
             InternalError::NonFiltrableValue(path) => {
                 Error::NonFiltrableValue(OwnedJsonPath::from(&path))
             }
+            InternalError::QueryArgument(query_error) => Error::QueryArgument(query_error),
         }
     }
 }
@@ -58,6 +61,8 @@ pub enum InternalError<'a> {
     InsideArguments(Box<Self>, JsonPath<'a>),
     #[error("tried to filter a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(JsonPath<'a>),
+    #[error("{0}")]
+    QueryArgument(#[from] query_arguments::Error),
 }
 
 impl Query<'_> {

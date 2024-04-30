@@ -7,13 +7,10 @@ use thiserror::Error;
 
 pub mod apply;
 mod context;
-mod query_arguments;
+pub mod query_arguments;
 mod query_key;
 
 pub use self::context::OwnedJsonPath;
-pub use self::query_arguments::{
-    QueryArgument, QueryArgumentOperator, QueryArgumentValue, QueryArguments,
-};
 pub use self::query_key::{AtomicQueryKey, OwnedRawKey, QueryKey, RawKey};
 
 #[derive(Debug, Error)]

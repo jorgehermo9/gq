@@ -3,9 +3,81 @@ use std::fmt::{self, Display, Formatter};
 use super::{apply::InternalError, context::Context, QueryKey};
 use derive_getters::Getters;
 use derive_more::Constructor;
+use regex::Regex;
 use serde_json::Value;
+use thiserror::Error;
 
-#[derive(Debug, Clone, derive_more::Display)]
+#[derive(Debug, Clone, Error)]
+pub enum Error {
+    // TODO: improve this error. We should report the QueryArgumentValue and the QueryArgumentOperation
+    #[error("types '{value_type}' and '{argument_value_type}' are incompatible in '{operation_type}' operation")]
+    IncompatibleTypes {
+        value_type: String,
+        argument_value_type: String,
+        operation_type: String,
+    },
+}
+
+pub trait ValueType {
+    fn value_type(&self) -> String;
+}
+
+impl ValueType for Value {
+    fn value_type(&self) -> String {
+        match self {
+            Value::String(_) => "string".to_string(),
+            Value::Number(_) => "number".to_string(),
+            Value::Bool(_) => "bool".to_string(),
+            Value::Null => "null".to_string(),
+            Value::Array(_) => "array".to_string(),
+            Value::Object(_) => "object".to_string(),
+        }
+    }
+}
+
+impl ValueType for QueryArgumentValue<'_> {
+    fn value_type(&self) -> String {
+        match self {
+            QueryArgumentValue::String(_) => "string".to_string(),
+            QueryArgumentValue::Number(_) => "number".to_string(),
+            QueryArgumentValue::Bool(_) => "bool".to_string(),
+            QueryArgumentValue::Null => "null".to_string(),
+        }
+    }
+}
+
+impl ValueType for f64 {
+    fn value_type(&self) -> String {
+        "number".to_string()
+    }
+}
+
+impl ValueType for Regex {
+    fn value_type(&self) -> String {
+        "regex".to_string()
+    }
+}
+
+pub trait OperationType {
+    fn operation_type(&self) -> String;
+}
+
+impl OperationType for QueryArgumentOperation<'_> {
+    fn operation_type(&self) -> String {
+        match self {
+            QueryArgumentOperation::Equal(_) => "equal".to_string(),
+            QueryArgumentOperation::NotEqual(_) => "not equal".to_string(),
+            QueryArgumentOperation::Greater(_) => "greater".to_string(),
+            QueryArgumentOperation::GreaterEqual(_) => "greater equal".to_string(),
+            QueryArgumentOperation::Less(_) => "less".to_string(),
+            QueryArgumentOperation::LessEqual(_) => "less equal".to_string(),
+            QueryArgumentOperation::Match(_) => "match".to_string(),
+            QueryArgumentOperation::NotMatch(_) => "not match".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum QueryArgumentValue<'a> {
     String(&'a str),
     Number(f64),
@@ -13,51 +85,113 @@ pub enum QueryArgumentValue<'a> {
     Null,
 }
 
-#[derive(Debug, Clone)]
-pub enum QueryArgumentOperator {
-    Equal,
-    NotEqual,
-    Greater,
-    GreaterEqual,
-    Less,
-    LessEqual,
-    Regex,
-    NotRegex,
-}
-
-impl Display for QueryArgumentOperator {
+impl Display for QueryArgumentValue<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            QueryArgumentOperator::Equal => "=",
-            QueryArgumentOperator::NotEqual => "!=",
-            QueryArgumentOperator::Greater => ">",
-            QueryArgumentOperator::GreaterEqual => ">=",
-            QueryArgumentOperator::Less => "<",
-            QueryArgumentOperator::LessEqual => "<=",
-            QueryArgumentOperator::Regex => "~",
-            QueryArgumentOperator::NotRegex => "!~",
+            QueryArgumentValue::String(value) => write!(f, "\"{value}\""),
+            QueryArgumentValue::Number(value) => write!(f, "{value}"),
+            QueryArgumentValue::Bool(value) => write!(f, "{value}"),
+            QueryArgumentValue::Null => write!(f, "null"),
         }
-        .fmt(f)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum QueryArgumentOperation<'a> {
+    Equal(QueryArgumentValue<'a>),
+    NotEqual(QueryArgumentValue<'a>),
+    Greater(f64),
+    GreaterEqual(f64),
+    Less(f64),
+    LessEqual(f64),
+    Match(Regex),
+    NotMatch(Regex),
+}
+
+impl Display for QueryArgumentOperation<'_> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        // TODO: create a pretty format method or use this in Query::pretty_format
+        match self {
+            QueryArgumentOperation::Equal(value) => write!(f, "={value}"),
+            QueryArgumentOperation::NotEqual(value) => write!(f, "!={value}"),
+            QueryArgumentOperation::Greater(value) => write!(f, ">{value}"),
+            QueryArgumentOperation::GreaterEqual(value) => write!(f, ">={value}"),
+            QueryArgumentOperation::Less(value) => write!(f, "<{value}"),
+            QueryArgumentOperation::LessEqual(value) => write!(f, "<={value}"),
+            QueryArgumentOperation::Match(regex) => write!(f, "~{regex}"),
+            QueryArgumentOperation::NotMatch(regex) => write!(f, "!~{regex}"),
+        }
+    }
+}
+
+impl QueryArgumentOperation<'_> {
+    fn satisfies(&self, value: &Value) -> Result<bool, Error> {
+        // TODO: maybe this is not the best way to do it @David pasa por el aro
+        if let Value::Array(array) = value {
+            let result = array
+                .iter()
+                .any(|item| self.satisfies(item).expect("TODO: handle this error"));
+            return Ok(result);
+        }
+
+        match self {
+            QueryArgumentOperation::Equal(argument_value) => {
+                self.satisfies_equal(argument_value, value)
+            }
+            _ => todo!(),
+        }
+    }
+    fn satisfies_equal(
+        // TODO: this method should have a self parameter?
+        &self,
+        query_argument_value: &QueryArgumentValue,
+        value: &Value,
+    ) -> Result<bool, Error> {
+        let result = match (query_argument_value, value) {
+            (QueryArgumentValue::String(argument_value), Value::String(value)) => {
+                argument_value == value
+            }
+            (QueryArgumentValue::Number(argument_value), Value::Number(value)) => {
+                value
+                    .as_f64()
+                    // TODO: improve number value conversion
+                    .unwrap_or_else(|| panic!("Error converting number value {value}"))
+                    == *argument_value
+            }
+            (QueryArgumentValue::Bool(argument_value), Value::Bool(value)) => {
+                argument_value == value
+            }
+            (QueryArgumentValue::Null, Value::Null) => true,
+            (_, Value::Array(_)) => {
+                unreachable!("Array should have been handled before this match arm")
+            }
+            _ => {
+                let value_type = value.value_type();
+                let argument_value_type = query_argument_value.value_type();
+                let operation_type = self.operation_type();
+                return Err(Error::IncompatibleTypes {
+                    value_type,
+                    argument_value_type,
+                    operation_type,
+                });
+            }
+        };
+
+        Ok(result)
     }
 }
 
 #[derive(Debug, Clone, Constructor, Getters)]
 pub struct QueryArgument<'a> {
     key: QueryKey<'a>,
-    operator: QueryArgumentOperator,
-    value: QueryArgumentValue<'a>,
+    operation: QueryArgumentOperation<'a>,
 }
 
 impl Display for QueryArgument<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let key = self.key().to_string();
-        let value = match self.value() {
-            QueryArgumentValue::String(value) => format!("\"{value}\""),
-            QueryArgumentValue::Number(value) => value.to_string(),
-            QueryArgumentValue::Bool(value) => value.to_string(),
-            QueryArgumentValue::Null => "null".to_string(),
-        };
-        write!(f, "{key}={value}")
+        let key = self.key();
+        let operation = self.operation();
+        write!(f, "{key}{operation}")
     }
 }
 
@@ -102,43 +236,10 @@ impl<'a> QueryArguments<'a> {
 impl<'a> QueryArgument<'a> {
     fn filter(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, InternalError<'a>> {
         let argument_key = self.key();
-        let argument_value = self.value();
         let inspected_value = argument_key.inspect(value, context)?;
-        Self::fulfill_argument(&inspected_value, argument_value)
-    }
-
-    //TODO: improve naming
-    fn fulfill_argument(
-        value: &Value,
-        argument_value: &QueryArgumentValue,
-    ) -> Result<bool, InternalError<'a>> {
-        let fulfill = match (value, argument_value) {
-            (Value::String(value), QueryArgumentValue::String(argument_value)) => {
-                value == argument_value
-            }
-            (Value::Number(value), QueryArgumentValue::Number(argument_value)) => {
-                // TODO: improve this conversion
-                value
-                    .as_f64()
-                    .expect("TODO: improve number value conversion")
-                    == *argument_value
-            }
-            (Value::Bool(value), QueryArgumentValue::Bool(argument_value)) => {
-                value == argument_value
-            }
-            (Value::Null, QueryArgumentValue::Null) => true,
-            (Value::Array(array), argument_value) => array.iter().any(|item| {
-                // TODO: when an error occurs here, we should log a warn and return false
-                Self::fulfill_argument(item, argument_value).expect("TODO: handle this error")
-            }),
-            (value, argument_value) => {
-                // TODO: do some error handling here reporting the incompatible types. We should raise an error ere
-                log::warn!(
-                    "TODO: handle incompatible types error '{value}' and '{argument_value}'"
-                );
-                false
-            }
-        };
-        Ok(fulfill)
+        // TODO: the context should be inside the satisfies
+        self.operation
+            .satisfies(&inspected_value)
+            .map_err(InternalError::from)
     }
 }

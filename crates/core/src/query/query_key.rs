@@ -7,7 +7,7 @@ use derive_getters::Getters;
 use derive_more::{Constructor, Display};
 use serde_json::Value;
 
-use super::{apply::InternalError, context::Context, QueryArguments};
+use super::{apply::InternalError, context::Context, query_arguments::QueryArguments};
 
 // TODO: maybe we shouldn't name those types
 pub type OwnedRawKey = RawKey<'static>;
