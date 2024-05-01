@@ -127,6 +127,7 @@ impl Display for QueryArgumentOperation<'_> {
 impl QueryArgumentOperation<'_> {
     fn satisfies(&self, value: &Value) -> Result<bool, Error> {
         // TODO: maybe this is not the best way to do it @David pasa por el aro
+        // this is a ñapa
         if let Value::Array(array) = value {
             let result = array
                 .iter()
@@ -138,16 +139,37 @@ impl QueryArgumentOperation<'_> {
             QueryArgumentOperation::Equal(argument_value) => {
                 self.satisfies_equal(argument_value, value)
             }
+            QueryArgumentOperation::NotEqual(argument_value) => self
+                .satisfies_equal(argument_value, value)
+                .map(|result| !result),
+            QueryArgumentOperation::Greater(argument_value) => {
+                self.satisfies_greater(*argument_value, value)
+            }
+            QueryArgumentOperation::GreaterEqual(argument_value) => self
+                .satisfies_less(*argument_value, value)
+                .map(|result| !result),
+            QueryArgumentOperation::Less(argument_value) => {
+                self.satisfies_less(*argument_value, value)
+            }
+            QueryArgumentOperation::LessEqual(argument_value) => self
+                .satisfies_greater(*argument_value, value)
+                .map(|result| !result),
+            QueryArgumentOperation::Match(argument_value) => {
+                self.satisfies_match(argument_value, value)
+            }
+            QueryArgumentOperation::NotMatch(argument_value) => self
+                .satisfies_match(argument_value, value)
+                .map(|result| !result),
             _ => todo!(),
         }
     }
     fn satisfies_equal(
         // TODO: this method should have a self parameter?
         &self,
-        query_argument_value: &QueryArgumentValue,
+        argument_value: &QueryArgumentValue,
         value: &Value,
     ) -> Result<bool, Error> {
-        let result = match (query_argument_value, value) {
+        let result = match (argument_value, value) {
             (QueryArgumentValue::String(argument_value), Value::String(value)) => {
                 argument_value == value
             }
@@ -165,19 +187,59 @@ impl QueryArgumentOperation<'_> {
             (_, Value::Array(_)) => {
                 unreachable!("Array should have been handled before this match arm")
             }
-            _ => {
-                let value_type = value.value_type();
-                let argument_value_type = query_argument_value.value_type();
-                let operation_type = self.operation_type();
-                return Err(Error::IncompatibleTypes {
-                    value_type,
-                    argument_value_type,
-                    operation_type,
-                });
-            }
+            _ => return self.incompatible_types_error(argument_value, value),
         };
-
         Ok(result)
+    }
+    fn satisfies_greater(&self, argument_value: f64, value: &Value) -> Result<bool, Error> {
+        match value {
+            Value::Number(value) => Ok(value
+                .as_f64()
+                .unwrap_or_else(|| panic!("Error converting number value {value}"))
+                > argument_value),
+            Value::Array(_) => {
+                unreachable!("Array should have been handled before this match arm")
+            }
+            _ => self.incompatible_types_error(&argument_value, value),
+        }
+    }
+
+    fn satisfies_less(&self, argument_value: f64, value: &Value) -> Result<bool, Error> {
+        match value {
+            Value::Number(value) => Ok(value
+                .as_f64()
+                .unwrap_or_else(|| panic!("Error converting number value {value}"))
+                < argument_value),
+            Value::Array(_) => {
+                unreachable!("Array should have been handled before this match arm")
+            }
+            _ => self.incompatible_types_error(&argument_value, value),
+        }
+    }
+
+    fn satisfies_match(&self, argument_value: &Regex, value: &Value) -> Result<bool, Error> {
+        match value {
+            Value::String(value) => Ok(argument_value.is_match(value)),
+            Value::Array(_) => {
+                unreachable!("Array should have been handled before this match arm")
+            }
+            _ => self.incompatible_types_error(argument_value, value),
+        }
+    }
+
+    fn incompatible_types_error<T: ValueType, U: ValueType>(
+        &self,
+        argument_value: &T,
+        value: &U,
+    ) -> Result<bool, Error> {
+        let value_type = value.value_type();
+        let argument_value_type = argument_value.value_type();
+        let operation_type = self.operation_type();
+        Err(Error::IncompatibleTypes {
+            value_type,
+            argument_value_type,
+            operation_type,
+        })
     }
 }
 

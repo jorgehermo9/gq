@@ -42,9 +42,9 @@ pub enum Token<'src> {
     #[token("<=")]
     LessEqual,
     #[token("~")]
-    Regex,
+    Tilde,
     #[token("!~")]
-    NotRegex,
+    NotTilde,
     // TODO: allow for more chars
     #[regex(r"[a-zA-Z_]\w*")]
     Key(&'src str),
@@ -56,7 +56,8 @@ pub enum Token<'src> {
     // TODO: the unwrap is ok here? the regex should be valid for the f64 parsing
     #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
     Number(f64),
-    #[regex(r#""([^"\\]|\\["\\bnfrt]|u[a-fA-F0-9]{4})*""#, |lex| &lex.slice()[1..lex.slice().len() - 1])]
+    // Ssee https://github.com/maciejhirsz/logos/issues/133
+    #[regex(r#""(?:[^"]|\\")*""#, |lex| &lex.slice()[1..lex.slice().len() - 1])]
     String(&'src str),
     #[token("null")]
     Null,
@@ -78,8 +79,8 @@ pub enum OwnedToken {
     GreaterEqual,
     Less,
     LessEqual,
-    Regex,
-    NotRegex,
+    Tilde,
+    NotTilde,
     Key(String),
     Bool(bool),
     Number(f64),
@@ -104,8 +105,8 @@ impl Display for OwnedToken {
             OwnedToken::GreaterEqual => write!(f, ">="),
             OwnedToken::Less => write!(f, "<"),
             OwnedToken::LessEqual => write!(f, "<="),
-            OwnedToken::Regex => write!(f, "~"),
-            OwnedToken::NotRegex => write!(f, "!~"),
+            OwnedToken::Tilde => write!(f, "~"),
+            OwnedToken::NotTilde => write!(f, "!~"),
             OwnedToken::Key(key) => write!(f, "{key}"),
             OwnedToken::Bool(b) => write!(f, "{b}"),
             OwnedToken::Number(n) => write!(f, "{n}"),
@@ -132,8 +133,8 @@ impl From<Token<'_>> for OwnedToken {
             Token::GreaterEqual => OwnedToken::GreaterEqual,
             Token::Less => OwnedToken::Less,
             Token::LessEqual => OwnedToken::LessEqual,
-            Token::Regex => OwnedToken::Regex,
-            Token::NotRegex => OwnedToken::NotRegex,
+            Token::Tilde => OwnedToken::Tilde,
+            Token::NotTilde => OwnedToken::NotTilde,
             Token::Key(key) => OwnedToken::Key(key.to_string()),
             Token::Bool(b) => OwnedToken::Bool(b),
             Token::Number(n) => OwnedToken::Number(n),

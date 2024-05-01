@@ -6,6 +6,7 @@ use crate::query::{
     AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryBuilder, QueryKey, RawKey,
 };
 use logos::{Logos, Span, SpannedIter};
+use regex::Regex;
 use std::borrow::Cow;
 use std::iter::Peekable;
 use thiserror::Error;
@@ -27,6 +28,8 @@ pub enum Error {
     Lexer(lexer::Error, Span),
     #[error("Query construction error: {0}")]
     Construction(crate::query::Error, Span),
+    #[error("Regex parsing error: {0}")]
+    Regex(regex::Error, Span),
 }
 
 impl Error {
@@ -37,6 +40,7 @@ impl Error {
             Self::UnexpectedTokenAfterRootQuery(span) => span,
             Self::Lexer(_, span) => span,
             Self::Construction(_, span) => span,
+            Self::Regex(_, span) => span,
         }
     }
 }
@@ -287,15 +291,43 @@ impl<'src> Parser<'src> {
 
     /// # Grammar
     /// QUERY_AGUMENT_OPERATION -> = QUERY_ARGUMENT_VALUE | != QUERY_ARGUMENT_VALUE
-    ///     | > number | >= number
-    ///     | < number | <= number
-    ///     | ~ string | !~ string
+    ///     | > NUMBER | >= NUMBER
+    ///     | < NUMBER | <= NUMBER
+    ///     | ~ REGEX | !~ REGEX
 
     fn parse_query_argument_operation(&mut self) -> Result<QueryArgumentOperation<'src>> {
         match self.next_token()? {
             (Token::Equal, _) => {
                 let value = self.parse_query_argument_value()?;
                 Ok(QueryArgumentOperation::Equal(value))
+            }
+            (Token::NotEqual, _) => {
+                let value = self.parse_query_argument_value()?;
+                Ok(QueryArgumentOperation::NotEqual(value))
+            }
+            (Token::Greater, _) => {
+                let value = self.parse_number()?;
+                Ok(QueryArgumentOperation::Greater(value))
+            }
+            (Token::GreaterEqual, _) => {
+                let value = self.parse_number()?;
+                Ok(QueryArgumentOperation::GreaterEqual(value))
+            }
+            (Token::Less, _) => {
+                let value = self.parse_number()?;
+                Ok(QueryArgumentOperation::Less(value))
+            }
+            (Token::LessEqual, _) => {
+                let value = self.parse_number()?;
+                Ok(QueryArgumentOperation::LessEqual(value))
+            }
+            (Token::Tilde, _) => {
+                let value = self.parse_regex()?;
+                Ok(QueryArgumentOperation::Match(value))
+            }
+            (Token::NotTilde, _) => {
+                let value = self.parse_regex()?;
+                Ok(QueryArgumentOperation::NotMatch(value))
             }
             _ => todo!(),
         }
@@ -309,6 +341,25 @@ impl<'src> Parser<'src> {
             (Token::Number(value), _) => Ok(QueryArgumentValue::Number(value)),
             (Token::Bool(value), _) => Ok(QueryArgumentValue::Bool(value)),
             (Token::Null, _) => Ok(QueryArgumentValue::Null),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+        }
+    }
+    /// # Grammar
+    /// NUMBER -> number
+    fn parse_number(&mut self) -> Result<f64> {
+        match self.next_token()? {
+            (Token::Number(value), _) => Ok(value),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+        }
+    }
+
+    /// # Grammar
+    /// REGEX -> regex
+    fn parse_regex(&mut self) -> Result<Regex> {
+        match self.next_token()? {
+            (Token::String(value), span) => {
+                Regex::new(dbg!(value)).map_err(|err| Error::Regex(err, span))
+            }
             (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
         }
     }
