@@ -297,39 +297,21 @@ impl<'src> Parser<'src> {
 
     fn parse_query_argument_operation(&mut self) -> Result<QueryArgumentOperation<'src>> {
         match self.next_token()? {
-            (Token::Equal, _) => {
-                let value = self.parse_query_argument_value()?;
-                Ok(QueryArgumentOperation::Equal(value))
-            }
-            (Token::NotEqual, _) => {
-                let value = self.parse_query_argument_value()?;
-                Ok(QueryArgumentOperation::NotEqual(value))
-            }
-            (Token::Greater, _) => {
-                let value = self.parse_number()?;
-                Ok(QueryArgumentOperation::Greater(value))
-            }
+            (Token::Equal, _) => Ok(QueryArgumentOperation::Equal(
+                self.parse_query_argument_value()?,
+            )),
+            (Token::NotEqual, _) => Ok(QueryArgumentOperation::NotEqual(
+                self.parse_query_argument_value()?,
+            )),
+            (Token::Greater, _) => Ok(QueryArgumentOperation::Greater(self.parse_number()?)),
             (Token::GreaterEqual, _) => {
-                let value = self.parse_number()?;
-                Ok(QueryArgumentOperation::GreaterEqual(value))
+                Ok(QueryArgumentOperation::GreaterEqual(self.parse_number()?))
             }
-            (Token::Less, _) => {
-                let value = self.parse_number()?;
-                Ok(QueryArgumentOperation::Less(value))
-            }
-            (Token::LessEqual, _) => {
-                let value = self.parse_number()?;
-                Ok(QueryArgumentOperation::LessEqual(value))
-            }
-            (Token::Tilde, _) => {
-                let value = self.parse_regex()?;
-                Ok(QueryArgumentOperation::Match(value))
-            }
-            (Token::NotTilde, _) => {
-                let value = self.parse_regex()?;
-                Ok(QueryArgumentOperation::NotMatch(value))
-            }
-            _ => todo!(),
+            (Token::Less, _) => Ok(QueryArgumentOperation::Less(self.parse_number()?)),
+            (Token::LessEqual, _) => Ok(QueryArgumentOperation::LessEqual(self.parse_number()?)),
+            (Token::Tilde, _) => Ok(QueryArgumentOperation::Match(self.parse_regex()?)),
+            (Token::NotTilde, _) => Ok(QueryArgumentOperation::NotMatch(self.parse_regex()?)),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
         }
     }
 
