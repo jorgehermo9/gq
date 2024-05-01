@@ -189,7 +189,7 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// ROOT_QUERY_KEY -> QUERY_KEY | ε
+    /// `ROOT_QUERY_KEY -> QUERY_KEY | ε`
     // TODO: in order to support arguments in root query, maybe we should change the grammar to
     // ROOT_QUERY_KEY -> QUERY_KEY|QUERY_ARGUMENTS
     // and instead of Option<QueryKey> we should create a new enum that is enum rootquery{QueryKey, QueryArguments}
@@ -201,7 +201,7 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_KEY -> ATOMIC_QUERY_KEY . QUERY_KEY | ATOMIC_QUERY_KEY
+    /// `QUERY_KEY -> ATOMIC_QUERY_KEY . QUERY_KEY | ATOMIC_QUERY_KEY`
     fn parse_query_key(&mut self) -> Result<QueryKey<'src>> {
         let mut keys = Vec::new();
         loop {
@@ -217,7 +217,7 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// ATOMIC_QUERY_KEY -> key QUERY_ARGUMENTS
+    /// `ATOMIC_QUERY_KEY -> key QUERY_ARGUMENTS`
     fn parse_atomic_query_key(&mut self) -> Result<AtomicQueryKey<'src>> {
         match self.next_token()? {
             (Token::Key(key), _) => {
@@ -230,7 +230,7 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_ALIAS -> : key | ε
+    /// `QUERY_ALIAS -> : key | ε`
     fn parse_query_alias(&mut self) -> Result<Option<RawKey<'src>>> {
         match self.peek()? {
             (Token::Colon, _) => {
@@ -246,7 +246,7 @@ impl<'src> Parser<'src> {
         }
     }
     /// # Grammar
-    /// QUERY_ARGUMENTS -> ( QUERY_ARGUMENTS_CONTENT ) | ε
+    /// `QUERY_ARGUMENTS -> ( QUERY_ARGUMENTS_CONTENT ) | ε`
     fn parse_query_arguments(&mut self) -> Result<QueryArguments<'src>> {
         match self.peek()? {
             (Token::LParen, _) => {
@@ -264,7 +264,7 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_ARGUMENTS_CONTENT -> QUERY_ARGUMENT , QUERY_ARGUMENTS_CONTENT | QUERY_ARGUMENT
+    /// `QUERY_ARGUMENTS_CONTENT -> QUERY_ARGUMENT , QUERY_ARGUMENTS_CONTENT | QUERY_ARGUMENT`
     fn parse_query_arguments_content(&mut self) -> Result<Vec<QueryArgument<'src>>> {
         let mut arguments = Vec::new();
 
@@ -282,7 +282,7 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_ARGUMENT -> QUERY_KEY QUERY_AGUMENT_OPERATION
+    /// `QUERY_ARGUMENT -> QUERY_KEY QUERY_AGUMENT_OPERATION`
     fn parse_query_argument(&mut self) -> Result<QueryArgument<'src>> {
         let key = self.parse_query_key()?;
         let operation = self.parse_query_argument_operation()?;
@@ -290,10 +290,10 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_AGUMENT_OPERATION -> = QUERY_ARGUMENT_VALUE | != QUERY_ARGUMENT_VALUE
+    /// `QUERY_AGUMENT_OPERATION -> = QUERY_ARGUMENT_VALUE | != QUERY_ARGUMENT_VALUE
     ///     | > NUMBER | >= NUMBER
     ///     | < NUMBER | <= NUMBER
-    ///     | ~ REGEX | !~ REGEX
+    ///     | ~ REGEX | !~ REGEX`
 
     fn parse_query_argument_operation(&mut self) -> Result<QueryArgumentOperation<'src>> {
         match self.next_token()? {
@@ -316,7 +316,7 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_ARGUMENT_VALUE -> string | number | boolean | null
+    /// `QUERY_ARGUMENT_VALUE -> string | number | boolean | null`
     fn parse_query_argument_value(&mut self) -> Result<QueryArgumentValue<'src>> {
         match self.next_token()? {
             (Token::String(value), _) => Ok(QueryArgumentValue::String(value)),
@@ -327,7 +327,7 @@ impl<'src> Parser<'src> {
         }
     }
     /// # Grammar
-    /// NUMBER -> number
+    /// `NUMBER -> number`
     fn parse_number(&mut self) -> Result<f64> {
         match self.next_token()? {
             (Token::Number(value), _) => Ok(value),
@@ -336,7 +336,7 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// REGEX -> regex
+    /// `REGEX -> regex`
     fn parse_regex(&mut self) -> Result<Regex> {
         match self.next_token()? {
             (Token::String(value), span) => {
