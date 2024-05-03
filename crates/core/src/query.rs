@@ -57,7 +57,6 @@ impl QueryBuilder<'_> {
             return Ok(());
         };
         for child in children {
-            // TODO: fix this with the new model
             let child_query_key = child.output_key();
             if !output_keys.insert(child_query_key) {
                 return Err(RootQueryValidationError::DuplicatedOutputKeyInRoot(
@@ -107,7 +106,6 @@ impl ChildQueryBuilder<'_> {
             return Ok(());
         };
         for child in children {
-            // TODO: fix this with new model
             let child_output_key = child.output_key();
             if !output_keys.insert(child_output_key) {
                 let child_key = self.key.as_ref().expect("child key must be defined");
@@ -169,24 +167,23 @@ impl Query<'_> {
 }
 impl ChildQuery<'_> {
     fn do_pretty_format(&self, result: &mut String, indent: usize, level: usize, sep: char) {
-        todo!("TODO")
-        // let indentation = " ".repeat(indent * level);
+        let indentation = " ".repeat(indent * level);
 
-        // let query_key = self.key();
+        let query_key = self.key();
 
-        // result.push_str(&format!("{indentation}{query_key}"));
-        // if let Some(alias) = self.alias() {
-        //     result.push_str(&format!(": {alias}"));
-        // }
+        result.push_str(&format!("{indentation}{query_key}"));
+        if let Some(alias) = self.alias() {
+            result.push_str(&format!(": {alias}"));
+        }
 
-        // if !self.children().is_empty() {
-        //     result.push_str(&format!(" {{{sep}"));
-        //     for child in self.children() {
-        //         child.do_pretty_format(result, indent, level + 1, sep);
-        //     }
-        //     result.push_str(&format!("{indentation}}}{sep}"));
-        // } else {
-        //     result.push(sep);
-        // }
+        if !self.children().is_empty() {
+            result.push_str(&format!(" {{{sep}"));
+            for child in self.children() {
+                child.do_pretty_format(result, indent, level + 1, sep);
+            }
+            result.push_str(&format!("{indentation}}}{sep}"));
+        } else {
+            result.push(sep);
+        }
     }
 }

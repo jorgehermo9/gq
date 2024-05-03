@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use super::{
     context::{Context, JsonPath, OwnedJsonPath},
-    query_arguments, AtomicQueryKey, ChildQuery, Query,
+    query_arguments, ChildQuery, Query,
 };
 
 #[derive(Debug, Error)]
@@ -18,10 +18,10 @@ pub enum Error {
     #[error("{0} while processing arguments at query '{1}'")]
     InsideArguments(Box<Self>, OwnedJsonPath),
     // TODO: improve the display mesage of this error?
-    #[error("tried to filter a non-filtrable value (not an array) at '{0}'")]
+    #[error("tried to apply arguments in a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(OwnedJsonPath),
     #[error("{0}")]
-    QueryArgument(#[from] query_arguments::Error),
+    QueryArguments(#[from] query_arguments::Error),
 }
 
 impl From<InternalError<'_>> for Error {
@@ -42,7 +42,7 @@ impl From<InternalError<'_>> for Error {
             InternalError::NonFiltrableValue(path) => {
                 Error::NonFiltrableValue(OwnedJsonPath::from(&path))
             }
-            InternalError::QueryArgument(query_error) => Error::QueryArgument(query_error),
+            InternalError::QueryArguments(query_error) => Error::QueryArguments(query_error),
         }
     }
 }
@@ -57,12 +57,12 @@ pub enum InternalError<'a> {
     InsideArray(Box<Self>, JsonPath<'a>),
     #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(JsonPath<'a>),
-    #[error("{0} while processing arguments at query '{1}'")]
+    #[error("{0} while processing arguments at '{1}'")]
     InsideArguments(Box<Self>, JsonPath<'a>),
-    #[error("tried to filter a non-filtrable value (not an array) at '{0}'")]
+    #[error("tried to apply arguments in a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(JsonPath<'a>),
     #[error("{0}")]
-    QueryArgument(#[from] query_arguments::Error),
+    QueryArguments(#[from] query_arguments::Error),
 }
 
 impl Query<'_> {

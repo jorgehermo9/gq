@@ -36,7 +36,7 @@ impl Display for AtomicQueryKey<'_> {
         }
 
         let arguments = self.arguments().to_string();
-        write!(f, "{}({})", key, arguments)
+        write!(f, "{key}({arguments})")
     }
 }
 
@@ -110,9 +110,7 @@ impl<'a> QueryKey<'a> {
                     .iter()
                     .enumerate()
                     .map(|(index, item)| (array_context.push_index(index), item))
-                    .filter(|(item_context, item)| {
-                        parent_arguments.filter(item, context, item_context)
-                    })
+                    .filter(|(item_context, item)| parent_arguments.satisfies(item, item_context))
                     .map(|(item_context, item)| {
                         let default_query_arguments = QueryArguments::default();
                         let arguments_to_propagate = match item {

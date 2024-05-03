@@ -1,21 +1,26 @@
 use std::fmt::{self, Display, Formatter};
 
-use super::{apply::InternalError, context::Context, QueryKey};
+use super::{apply::InternalError, context::Context, OwnedJsonPath, QueryKey};
 use derive_getters::Getters;
 use derive_more::Constructor;
 use regex::Regex;
-use serde_json::Value;
+use serde_json::{Number, Value};
 use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
 pub enum Error {
     // TODO: improve this error. We should report the QueryArgumentValue and the QueryArgumentOperation
-    #[error("types '{value_type}' and '{argument_value_type}' are incompatible in '{operation_type}' operation")]
+    #[error("types '{value_type}' and '{argument_value_type}' are incompatible in '{operation_type}' operation at {path}")]
     IncompatibleTypes {
         value_type: String,
         argument_value_type: String,
         operation_type: String,
+        // TODO: maybe converting from JsonPath to OwnedJsonPath is expensive
+        path: OwnedJsonPath,
     },
+    #[error("cannot conver number '{0}' to f64 at {1}")]
+    // TODO: maybe converting from JsonPath to OwnedJsonPath is expensive
+    NumberConversionError(Number, OwnedJsonPath),
 }
 
 pub trait ValueType {
@@ -65,14 +70,14 @@ pub trait OperationType {
 impl OperationType for QueryArgumentOperation<'_> {
     fn operation_type(&self) -> String {
         match self {
-            QueryArgumentOperation::Equal(_) => "equal".to_string(),
-            QueryArgumentOperation::NotEqual(_) => "not equal".to_string(),
-            QueryArgumentOperation::Greater(_) => "greater".to_string(),
-            QueryArgumentOperation::GreaterEqual(_) => "greater equal".to_string(),
-            QueryArgumentOperation::Less(_) => "less".to_string(),
-            QueryArgumentOperation::LessEqual(_) => "less equal".to_string(),
-            QueryArgumentOperation::Match(_) => "match".to_string(),
-            QueryArgumentOperation::NotMatch(_) => "not match".to_string(),
+            QueryArgumentOperation::Equal(_) => "=".to_string(),
+            QueryArgumentOperation::NotEqual(_) => "!=".to_string(),
+            QueryArgumentOperation::Greater(_) => ">".to_string(),
+            QueryArgumentOperation::GreaterEqual(_) => ">=".to_string(),
+            QueryArgumentOperation::Less(_) => "<".to_string(),
+            QueryArgumentOperation::LessEqual(_) => "<=".to_string(),
+            QueryArgumentOperation::Match(_) => "~".to_string(),
+            QueryArgumentOperation::NotMatch(_) => "!~".to_string(),
         }
     }
 }
@@ -118,112 +123,151 @@ impl Display for QueryArgumentOperation<'_> {
             QueryArgumentOperation::GreaterEqual(value) => write!(f, ">={value}"),
             QueryArgumentOperation::Less(value) => write!(f, "<{value}"),
             QueryArgumentOperation::LessEqual(value) => write!(f, "<={value}"),
-            QueryArgumentOperation::Match(regex) => write!(f, "~{regex}"),
-            QueryArgumentOperation::NotMatch(regex) => write!(f, "!~{regex}"),
+            QueryArgumentOperation::Match(regex) => write!(f, "~\"{regex}\""),
+            QueryArgumentOperation::NotMatch(regex) => write!(f, "!~\"{regex}\""),
         }
     }
 }
 
 impl QueryArgumentOperation<'_> {
-    fn satisfies(&self, value: &Value) -> Result<bool, Error> {
-        // TODO: maybe this is not the best way to do it @David pasa por el aro
-        // this is a ñapa
-        if let Value::Array(array) = value {
-            let result = array
-                .iter()
-                .any(|item| self.satisfies(item).expect("TODO: handle this error"));
-            return Ok(result);
-        }
-
+    fn satisfies(&self, value: &Value, context: &Context) -> Result<bool, Error> {
         match self {
             QueryArgumentOperation::Equal(argument_value) => {
-                self.satisfies_equal(argument_value, value)
+                self.satisfies_equal(argument_value, value, context)
             }
             QueryArgumentOperation::NotEqual(argument_value) => self
-                .satisfies_equal(argument_value, value)
+                .satisfies_equal(argument_value, value, context)
                 .map(|result| !result),
             QueryArgumentOperation::Greater(argument_value) => {
-                self.satisfies_greater(*argument_value, value)
+                self.satisfies_greater(*argument_value, value, context)
             }
             QueryArgumentOperation::GreaterEqual(argument_value) => self
-                .satisfies_less(*argument_value, value)
+                .satisfies_less(*argument_value, value, context)
                 .map(|result| !result),
             QueryArgumentOperation::Less(argument_value) => {
-                self.satisfies_less(*argument_value, value)
+                self.satisfies_less(*argument_value, value, context)
             }
             QueryArgumentOperation::LessEqual(argument_value) => self
-                .satisfies_greater(*argument_value, value)
+                .satisfies_greater(*argument_value, value, context)
                 .map(|result| !result),
             QueryArgumentOperation::Match(argument_value) => {
-                self.satisfies_match(argument_value, value)
+                self.satisfies_match(argument_value, value, context)
             }
             QueryArgumentOperation::NotMatch(argument_value) => self
-                .satisfies_match(argument_value, value)
+                .satisfies_match(argument_value, value, context)
                 .map(|result| !result),
-            _ => todo!(),
         }
     }
+
+    // TODO: maybe this is not the best way to do it @David pasa por el aro
+    // this is a ñapa
+    fn satisfies_op_array<F>(array: &[Value], satisfies_op: F, context: &Context) -> bool
+    where
+        F: Fn(&Value, &Context) -> Result<bool, Error>,
+    {
+        array
+            .iter()
+            .enumerate()
+            .map(|(index, item)| (context.push_index(index), item))
+            .map(|(item_context, item)| satisfies_op(item, &item_context))
+            .any(|result| {
+                result
+                    .map_err(|error| {
+                        log::warn!("{error}");
+                    })
+                    .unwrap_or(false)
+            })
+    }
+
     fn satisfies_equal(
         // TODO: this method should have a self parameter?
         &self,
         argument_value: &QueryArgumentValue,
         value: &Value,
+        context: &Context,
     ) -> Result<bool, Error> {
-        let result = match (argument_value, value) {
+        match (argument_value, value) {
             (QueryArgumentValue::String(argument_value), Value::String(value)) => {
-                argument_value == value
+                Ok(argument_value == value)
             }
             (QueryArgumentValue::Number(argument_value), Value::Number(value)) => {
                 value
                     .as_f64()
-                    // TODO: improve number value conversion
-                    .unwrap_or_else(|| panic!("Error converting number value {value}"))
-                    == *argument_value
+                    .map(|value| value == *argument_value)
+                    // TODO: improve number value conversion\
+                    .ok_or(Error::NumberConversionError(
+                        value.clone(),
+                        OwnedJsonPath::from(context.path()),
+                    ))
             }
             (QueryArgumentValue::Bool(argument_value), Value::Bool(value)) => {
-                argument_value == value
+                Ok(argument_value == value)
             }
-            (QueryArgumentValue::Null, Value::Null) => true,
-            (_, Value::Array(_)) => {
-                unreachable!("Array should have been handled before this match arm")
+            (QueryArgumentValue::Null, Value::Null) => Ok(true),
+            (_, Value::Array(array)) => {
+                let satisfies_op = |item: &Value, context: &Context| -> Result<bool, Error> {
+                    self.satisfies_equal(argument_value, item, context)
+                };
+                Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => return self.incompatible_types_error(argument_value, value),
-        };
-        Ok(result)
+            _ => Err(self.incompatible_types_error(argument_value, value, context)),
+        }
     }
-    fn satisfies_greater(&self, argument_value: f64, value: &Value) -> Result<bool, Error> {
+    fn satisfies_greater(
+        &self,
+        argument_value: f64,
+        value: &Value,
+        context: &Context,
+    ) -> Result<bool, Error> {
         match value {
-            Value::Number(value) => Ok(value
-                .as_f64()
-                .unwrap_or_else(|| panic!("Error converting number value {value}"))
-                > argument_value),
-            Value::Array(_) => {
-                unreachable!("Array should have been handled before this match arm")
+            Value::Number(value) => value.as_f64().map(|value| value > argument_value).ok_or(
+                Error::NumberConversionError(value.clone(), OwnedJsonPath::from(context.path())),
+            ),
+            Value::Array(array) => {
+                let satisfies_op = |item: &Value, context: &Context| -> Result<bool, Error> {
+                    self.satisfies_greater(argument_value, item, context)
+                };
+                Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => self.incompatible_types_error(&argument_value, value),
+            _ => Err(self.incompatible_types_error(&argument_value, value, context)),
         }
     }
 
-    fn satisfies_less(&self, argument_value: f64, value: &Value) -> Result<bool, Error> {
+    fn satisfies_less(
+        &self,
+        argument_value: f64,
+        value: &Value,
+        context: &Context,
+    ) -> Result<bool, Error> {
         match value {
-            Value::Number(value) => Ok(value
-                .as_f64()
-                .unwrap_or_else(|| panic!("Error converting number value {value}"))
-                < argument_value),
-            Value::Array(_) => {
-                unreachable!("Array should have been handled before this match arm")
+            Value::Number(value) => value.as_f64().map(|value| value < argument_value).ok_or(
+                Error::NumberConversionError(value.clone(), OwnedJsonPath::from(context.path())),
+            ),
+            Value::Array(array) => {
+                let satisfies_op = |item: &Value, context: &Context| -> Result<bool, Error> {
+                    self.satisfies_less(argument_value, item, context)
+                };
+                Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => self.incompatible_types_error(&argument_value, value),
+            _ => Err(self.incompatible_types_error(&argument_value, value, context)),
         }
     }
 
-    fn satisfies_match(&self, argument_value: &Regex, value: &Value) -> Result<bool, Error> {
+    fn satisfies_match(
+        &self,
+        argument_value: &Regex,
+        value: &Value,
+        context: &Context,
+    ) -> Result<bool, Error> {
         match value {
             Value::String(value) => Ok(argument_value.is_match(value)),
-            Value::Array(_) => {
-                unreachable!("Array should have been handled before this match arm")
+            Value::Array(array) => {
+                let satisfies_op = |item: &Value, context: &Context| -> Result<bool, Error> {
+                    self.satisfies_match(argument_value, item, context)
+                };
+                Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => self.incompatible_types_error(argument_value, value),
+            _ => Err(self.incompatible_types_error(argument_value, value, context)),
         }
     }
 
@@ -231,15 +275,17 @@ impl QueryArgumentOperation<'_> {
         &self,
         argument_value: &T,
         value: &U,
-    ) -> Result<bool, Error> {
+        context: &Context,
+    ) -> Error {
         let value_type = value.value_type();
         let argument_value_type = argument_value.value_type();
         let operation_type = self.operation_type();
-        Err(Error::IncompatibleTypes {
+        Error::IncompatibleTypes {
             value_type,
             argument_value_type,
             operation_type,
-        })
+            path: OwnedJsonPath::from(context.path()),
+        }
     }
 }
 
@@ -276,15 +322,10 @@ impl Display for QueryArguments<'_> {
 impl<'a> QueryArguments<'a> {
     //TODO: improve method naming
     //TODO: maybe parent_context is not necessary, think better about the errors
-    pub fn filter(
-        &'a self,
-        value: &Value,
-        argument_context: &Context<'a>,
-        context: &Context<'a>,
-    ) -> bool {
+    pub fn satisfies(&'a self, value: &Value, context: &Context<'a>) -> bool {
         self.0.iter().all(|argument| {
             argument
-                .filter(value, argument_context)
+                .satisfies(value, context)
                 .map_err(|error| {
                     let argument_error =
                         InternalError::InsideArguments(Box::new(error), context.path().clone());
@@ -296,12 +337,19 @@ impl<'a> QueryArguments<'a> {
 }
 
 impl<'a> QueryArgument<'a> {
-    fn filter(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, InternalError<'a>> {
+    fn satisfies(
+        &'a self,
+        value: &Value,
+        context: &Context<'a>,
+    ) -> Result<bool, InternalError<'a>> {
         let argument_key = self.key();
+        // The inspect does clone the inspected value and it may be very inefficient.
+        // Although, it should be a primitive value cloning (or an array of primitive values)
         let inspected_value = argument_key.inspect(value, context)?;
-        // TODO: the context should be inside the satisfies
+        let inspected_context = context.push_query_key(argument_key);
+
         self.operation
-            .satisfies(&inspected_value)
+            .satisfies(&inspected_value, &inspected_context)
             .map_err(InternalError::from)
     }
 }
