@@ -1,11 +1,17 @@
 import SettingsSheet from "@/components/settings-sheet/settings-sheet";
 import ThemeButton from "@/components/theme-button/theme-button";
 import { Badge } from "@/components/ui/badge";
+import ExamplesSheet from "../examples-sheet/examples-sheet";
 
-const Header = () => {
+interface Props {
+	onClickExample: (json: string, query: string) => void;
+}
+
+const Header = ({ onClickExample }: Props) => {
 	return (
 		<header className="w-full px-8 flex items-center justify-between mb-8">
-			<h1 className="relative mx-auto items-end text-5xl font-extrabold">
+			<ExamplesSheet onClickExample={onClickExample} />
+			<h1 className="relative items-end text-5xl font-extrabold">
 				<span className="font-serif">
 					GQ <span className="font-normal">Playground</span>
 				</span>
