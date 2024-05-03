@@ -345,6 +345,8 @@ impl<'a> QueryArgument<'a> {
         let argument_key = self.key();
         // The inspect does clone the inspected value and it may be very inefficient.
         // Although, it should be a primitive value cloning (or an array of primitive values)
+        // and it *should* be cheap...
+        // Ideally, we will only need a &Value here, since we are only reading it...
         let inspected_value = argument_key.inspect(value, context)?;
         let inspected_context = context.push_query_key(argument_key);
 
