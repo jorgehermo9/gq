@@ -11,6 +11,7 @@ pub mod query_arguments;
 mod query_key;
 
 pub use self::context::OwnedJsonPath;
+use self::query_arguments::QueryArguments;
 pub use self::query_key::{AtomicQueryKey, OwnedRawKey, QueryKey, RawKey};
 
 #[derive(Debug, Error)]
@@ -42,7 +43,9 @@ pub enum RootQueryBuilderError {
 )]
 pub struct Query<'a> {
     #[builder(default)]
-    key: Option<QueryKey<'a>>,
+    arguments: QueryArguments<'a>,
+    #[builder(default)]
+    key: QueryKey<'a>,
     #[builder(default)]
     children: Vec<ChildQuery<'a>>,
 }
@@ -142,18 +145,20 @@ impl Query<'_> {
 
         let sep = if indent == 0 { ' ' } else { '\n' };
 
-        match self.key() {
-            Some(key) => {
-                if self.children().is_empty() {
-                    return key.to_string();
-                }
-                result.push_str(&format!("{key} "));
+        let arguments = self.arguments();
+        if !arguments.0.is_empty() {
+            result.push_str(&format!("({arguments})"));
+        }
+        let key = self.key();
+        if !key.keys().is_empty() {
+            if self.children().is_empty() {
+                result.push_str(&key.to_string());
+                return result;
             }
-            None => {
-                if self.children().is_empty() {
-                    return "{ }".to_string();
-                }
-            }
+            result.push_str(&format!("{key} "));
+        } else if self.children().is_empty() {
+            result.push_str("{ }");
+            return result;
         }
 
         result.push_str(&format!("{{{sep}"));

@@ -110,9 +110,10 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `S -> ROOT_QUERY_KEY | ROOT_QUERY_KEY { QUERY_CONTENT }`
+    /// `S -> QUERY_ARGUMENTS ROOT_QUERY_KEY | QUERY_ARGUMENTS ROOT_QUERY_KEY { QUERY_CONTENT }`
     fn parse_root_query(&mut self) -> Result<Query<'src>> {
         let root_span_start = self.current_span()?;
+        let arguments = self.parse_query_arguments()?;
         let root_query_key = self.parse_root_query_key()?;
 
         match self.peek()? {
@@ -123,6 +124,7 @@ impl<'src> Parser<'src> {
                 let root_span = Self::span_between(root_span_start, root_span_end);
 
                 QueryBuilder::default()
+                    .arguments(arguments)
                     .children(children)
                     .key(root_query_key)
                     .build()
@@ -132,6 +134,7 @@ impl<'src> Parser<'src> {
             (_, root_span_end) => {
                 let root_span = Self::span_between(root_span_start, root_span_end);
                 QueryBuilder::default()
+                    .arguments(arguments)
                     .key(root_query_key)
                     .build()
                     .map_err(|err| Error::Construction(err.into(), root_span))
@@ -190,13 +193,11 @@ impl<'src> Parser<'src> {
 
     /// # Grammar
     /// `ROOT_QUERY_KEY -> QUERY_KEY | ε`
-    // TODO: in order to support arguments in root query, maybe we should change the grammar to
-    // ROOT_QUERY_KEY -> QUERY_KEY|QUERY_ARGUMENTS
-    // and instead of Option<QueryKey> we should create a new enum that is enum rootquery{QueryKey, QueryArguments}
-    fn parse_root_query_key(&mut self) -> Result<Option<QueryKey<'src>>> {
+    ///
+    fn parse_root_query_key(&mut self) -> Result<QueryKey<'src>> {
         match self.peek()? {
-            (Token::Key(_), _) => self.parse_query_key().map(Some),
-            _ => Ok(None),
+            (Token::Key(_), _) => self.parse_query_key(),
+            _ => Ok(Default::default()),
         }
     }
 

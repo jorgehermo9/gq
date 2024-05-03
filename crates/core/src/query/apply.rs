@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use super::{
     context::{Context, JsonPath, OwnedJsonPath},
-    query_arguments, ChildQuery, Query,
+    query_arguments, ChildQuery, Query, QueryKey,
 };
 
 #[derive(Debug, Error)]
@@ -68,18 +68,17 @@ pub enum InternalError<'a> {
 impl Query<'_> {
     pub fn apply(&self, root_json: Value) -> Result<Value, Error> {
         let root_context = Context::new();
-        // TODO: apply QueryArguments here
-        let (new_root_json, root_context) = match (self.key(), root_json) {
-            // TODO: maybe this is not the right way to do it...
-            (Some(query_key), value) => {
-                let new_root_json = query_key.inspect(&value, &root_context)?;
-                let new_context = root_context.push_query_key(query_key);
-                (new_root_json, new_context)
-            }
-            (None, root_json) => (root_json, root_context),
-        };
 
-        Ok(self.do_apply(new_root_json, root_context)?)
+        let root_query_key = self.key();
+        // TODO: think if this inspection is ok
+        let new_root_json = root_query_key.inspect_owned_with_arguments(
+            root_json,
+            self.arguments(),
+            &root_context,
+        )?;
+        let new_context = root_context.push_query_key(root_query_key);
+
+        Ok(self.do_apply(new_root_json, new_context)?)
     }
 }
 
@@ -176,6 +175,7 @@ trait QueryApply {
             })
             .filter(|value| match value {
                 Value::Object(object) => !object.is_empty(),
+                Value::Array(array) => !array.is_empty(),
                 _ => true,
             })
             .collect();
