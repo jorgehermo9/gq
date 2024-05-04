@@ -360,7 +360,7 @@ impl QueryArguments<'_> {
 }
 
 impl<'a> QueryArgument<'a> {
-    fn satisfies(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, Error> {
+    fn satisfies(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, Error<'a>> {
         let argument_key = self.key();
         // The inspect does clone the inspected value and it may be very inefficient.
         // Although, it should be a primitive value cloning (or an array of primitive values)
