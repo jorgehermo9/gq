@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use super::{
     context::{Context, JsonPath, OwnedJsonPath},
-    query_arguments, ChildQuery, Query, QueryKey,
+    ChildQuery, Query,
 };
 
 #[derive(Debug, Error)]
@@ -15,13 +15,8 @@ pub enum Error {
     InsideArray(Box<Self>, OwnedJsonPath),
     #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(OwnedJsonPath),
-    #[error("{0} while processing arguments at query '{1}'")]
-    InsideArguments(Box<Self>, OwnedJsonPath),
-    // TODO: improve the display mesage of this error?
     #[error("tried to apply arguments in a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(OwnedJsonPath),
-    #[error("{0}")]
-    QueryArguments(#[from] query_arguments::Error),
 }
 
 impl From<InternalError<'_>> for Error {
@@ -35,20 +30,15 @@ impl From<InternalError<'_>> for Error {
             InternalError::NonIndexableValue(path) => {
                 Error::NonIndexableValue(OwnedJsonPath::from(&path))
             }
-            InternalError::InsideArguments(internal_error, path) => Error::InsideArguments(
-                Box::new(Error::from(*internal_error)),
-                OwnedJsonPath::from(&path),
-            ),
             InternalError::NonFiltrableValue(path) => {
                 Error::NonFiltrableValue(OwnedJsonPath::from(&path))
             }
-            InternalError::QueryArguments(query_error) => Error::QueryArguments(query_error),
         }
     }
 }
 
 //TODO: maybe this is useless, it is only useful for the '?' syntax to convert a borrowed error into an owned error
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone)]
 pub enum InternalError<'a> {
     #[error("key '{0}' not found")]
     KeyNotFound(JsonPath<'a>),
@@ -57,12 +47,9 @@ pub enum InternalError<'a> {
     InsideArray(Box<Self>, JsonPath<'a>),
     #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(JsonPath<'a>),
-    #[error("{0} while processing arguments at '{1}'")]
-    InsideArguments(Box<Self>, JsonPath<'a>),
+
     #[error("tried to apply arguments in a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(JsonPath<'a>),
-    #[error("{0}")]
-    QueryArguments(#[from] query_arguments::Error),
 }
 
 impl Query<'_> {

@@ -1,6 +1,10 @@
 use std::fmt::{self, Display, Formatter};
 
-use super::{apply::InternalError, context::Context, OwnedJsonPath, QueryKey};
+use super::{
+    apply::InternalError,
+    context::{Context, JsonPath},
+    OwnedJsonPath, QueryKey,
+};
 use derive_getters::Getters;
 use derive_more::Constructor;
 use regex::Regex;
@@ -8,19 +12,31 @@ use serde_json::{Number, Value};
 use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
-pub enum Error {
+pub enum Error<'a> {
     // TODO: improve this error. We should report the QueryArgumentValue and the QueryArgumentOperation
     #[error("types '{value_type}' and '{argument_value_type}' are incompatible in '{operation_type}' operation at {path}")]
     IncompatibleTypes {
         value_type: String,
         argument_value_type: String,
         operation_type: String,
-        // TODO: maybe converting from JsonPath to OwnedJsonPath is expensive
-        path: OwnedJsonPath,
+        path: JsonPath<'a>,
     },
     #[error("cannot conver number '{0}' to f64 at {1}")]
     // TODO: maybe converting from JsonPath to OwnedJsonPath is expensive
-    NumberConversionError(Number, OwnedJsonPath),
+    NumberConversionError(Number, JsonPath<'a>),
+    #[error("{error} while processing arguments at '{context}'")]
+    InsideArguments {
+        error: Box<Self>,
+        context: JsonPath<'a>,
+    },
+    #[error("{0}")]
+    InternalError(InternalError<'a>),
+}
+
+impl<'a> From<InternalError<'a>> for Error<'a> {
+    fn from(internal_error: InternalError<'a>) -> Self {
+        Self::InternalError(internal_error)
+    }
 }
 
 pub trait ValueType {
@@ -129,8 +145,8 @@ impl Display for QueryArgumentOperation<'_> {
     }
 }
 
-impl QueryArgumentOperation<'_> {
-    fn satisfies(&self, value: &Value, context: &Context) -> Result<bool, Error> {
+impl<'a> QueryArgumentOperation<'a> {
+    fn satisfies(&self, value: &Value, context: &Context<'a>) -> Result<bool, Error<'a>> {
         match self {
             QueryArgumentOperation::Equal(argument_value) => {
                 self.satisfies_equal(argument_value, value, context)
@@ -161,9 +177,9 @@ impl QueryArgumentOperation<'_> {
 
     // TODO: maybe this is not the best way to do it @David pasa por el aro
     // this is a ñapa
-    fn satisfies_op_array<F>(array: &[Value], satisfies_op: F, context: &Context) -> bool
+    fn satisfies_op_array<F>(array: &[Value], satisfies_op: F, context: &Context<'a>) -> bool
     where
-        F: Fn(&Value, &Context) -> Result<bool, Error>,
+        F: Fn(&Value, &Context<'a>) -> Result<bool, Error<'a>>,
     {
         array
             .iter()
@@ -184,8 +200,8 @@ impl QueryArgumentOperation<'_> {
         &self,
         argument_value: &QueryArgumentValue,
         value: &Value,
-        context: &Context,
-    ) -> Result<bool, Error> {
+        context: &Context<'a>,
+    ) -> Result<bool, Error<'a>> {
         match (argument_value, value) {
             (QueryArgumentValue::String(argument_value), Value::String(value)) => {
                 Ok(argument_value == value)
@@ -197,7 +213,7 @@ impl QueryArgumentOperation<'_> {
                     // TODO: improve number value conversion\
                     .ok_or(Error::NumberConversionError(
                         value.clone(),
-                        OwnedJsonPath::from(context.path()),
+                        context.path().clone(),
                     ))
             }
             (QueryArgumentValue::Bool(argument_value), Value::Bool(value)) => {
@@ -205,7 +221,7 @@ impl QueryArgumentOperation<'_> {
             }
             (QueryArgumentValue::Null, Value::Null) => Ok(true),
             (_, Value::Array(array)) => {
-                let satisfies_op = |item: &Value, context: &Context| -> Result<bool, Error> {
+                let satisfies_op = |item: &Value, context: &Context<'a>| {
                     self.satisfies_equal(argument_value, item, context)
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
@@ -217,14 +233,14 @@ impl QueryArgumentOperation<'_> {
         &self,
         argument_value: f64,
         value: &Value,
-        context: &Context,
-    ) -> Result<bool, Error> {
+        context: &Context<'a>,
+    ) -> Result<bool, Error<'a>> {
         match value {
             Value::Number(value) => value.as_f64().map(|value| value > argument_value).ok_or(
-                Error::NumberConversionError(value.clone(), OwnedJsonPath::from(context.path())),
+                Error::NumberConversionError(value.clone(), context.path().clone()),
             ),
             Value::Array(array) => {
-                let satisfies_op = |item: &Value, context: &Context| -> Result<bool, Error> {
+                let satisfies_op = |item: &Value, context: &Context<'a>| {
                     self.satisfies_greater(argument_value, item, context)
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
@@ -237,14 +253,14 @@ impl QueryArgumentOperation<'_> {
         &self,
         argument_value: f64,
         value: &Value,
-        context: &Context,
-    ) -> Result<bool, Error> {
+        context: &Context<'a>,
+    ) -> Result<bool, Error<'a>> {
         match value {
             Value::Number(value) => value.as_f64().map(|value| value < argument_value).ok_or(
-                Error::NumberConversionError(value.clone(), OwnedJsonPath::from(context.path())),
+                Error::NumberConversionError(value.clone(), context.path().clone()),
             ),
             Value::Array(array) => {
-                let satisfies_op = |item: &Value, context: &Context| -> Result<bool, Error> {
+                let satisfies_op = |item: &Value, context: &Context<'a>| {
                     self.satisfies_less(argument_value, item, context)
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
@@ -257,12 +273,12 @@ impl QueryArgumentOperation<'_> {
         &self,
         argument_value: &Regex,
         value: &Value,
-        context: &Context,
-    ) -> Result<bool, Error> {
+        context: &Context<'a>,
+    ) -> Result<bool, Error<'a>> {
         match value {
             Value::String(value) => Ok(argument_value.is_match(value)),
             Value::Array(array) => {
-                let satisfies_op = |item: &Value, context: &Context| -> Result<bool, Error> {
+                let satisfies_op = |item: &Value, context: &Context<'a>| {
                     self.satisfies_match(argument_value, item, context)
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
@@ -275,8 +291,8 @@ impl QueryArgumentOperation<'_> {
         &self,
         argument_value: &T,
         value: &U,
-        context: &Context,
-    ) -> Error {
+        context: &Context<'a>,
+    ) -> Error<'a> {
         let value_type = value.value_type();
         let argument_value_type = argument_value.value_type();
         let operation_type = self.operation_type();
@@ -284,7 +300,7 @@ impl QueryArgumentOperation<'_> {
             value_type,
             argument_value_type,
             operation_type,
-            path: OwnedJsonPath::from(context.path()),
+            path: context.path().clone(),
         }
     }
 }
@@ -327,8 +343,11 @@ impl<'a> QueryArguments<'a> {
             argument
                 .satisfies(value, context)
                 .map_err(|error| {
-                    let argument_error =
-                        InternalError::InsideArguments(Box::new(error), context.path().clone());
+                    let argument_error = Error::InsideArguments {
+                        // TODO: include the argument.to_string() here?
+                        error: Box::new(error),
+                        context: context.path().clone(),
+                    };
                     log::warn!("{argument_error}");
                 })
                 .unwrap_or(false)
@@ -337,11 +356,7 @@ impl<'a> QueryArguments<'a> {
 }
 
 impl<'a> QueryArgument<'a> {
-    fn satisfies(
-        &'a self,
-        value: &Value,
-        context: &Context<'a>,
-    ) -> Result<bool, InternalError<'a>> {
+    fn satisfies(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, Error> {
         let argument_key = self.key();
         // The inspect does clone the inspected value and it may be very inefficient.
         // Although, it should be a primitive value cloning (or an array of primitive values)
@@ -352,6 +367,5 @@ impl<'a> QueryArgument<'a> {
 
         self.operation
             .satisfies(&inspected_value, &inspected_context)
-            .map_err(InternalError::from)
     }
 }

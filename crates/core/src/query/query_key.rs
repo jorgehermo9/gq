@@ -66,6 +66,8 @@ impl<'a> QueryKey<'a> {
         self.keys().last().expect("query key cannot be empty")
     }
 
+    // TODO: inspect should return the indexed context? in a lot of places we index and then create
+    // the indexed context
     // TODO: reduce code duplication with inspect_owned
     pub fn inspect(
         &'a self,
