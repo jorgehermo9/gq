@@ -335,10 +335,10 @@ impl Display for QueryArguments<'_> {
 }
 
 // TODO: maybe we should move this to the query_argument module
-impl<'a> QueryArguments<'a> {
+impl QueryArguments<'_> {
     //TODO: improve method naming
     //TODO: maybe parent_context is not necessary, think better about the errors
-    pub fn satisfies(&'a self, value: &Value, context: &Context<'a>) -> bool {
+    pub fn satisfies(&self, value: &Value, context: &Context) -> bool {
         self.0.iter().all(|argument| {
             argument
                 .satisfies(value, context)
@@ -346,6 +346,10 @@ impl<'a> QueryArguments<'a> {
                     let argument_error = Error::InsideArguments {
                         // TODO: include the argument.to_string() here?
                         error: Box::new(error),
+                        // TODO: print the context of the item (e.g. bill.products[0][1])
+                        // or the array where the arguments are being applied?
+                        // (e.g. bill.products)
+                        // maybe we need an array_context here instead of the item_context
                         context: context.path().clone(),
                     };
                     log::warn!("{argument_error}");
