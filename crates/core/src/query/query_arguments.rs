@@ -370,12 +370,7 @@ impl<'a> QueryArgument<'a> {
         // and it *should* be cheap...
         // Ideally, we will only need a &Value here, since we are only reading it...
         let inspected_value = argument_key.inspect(value, context)?;
-        match &inspected_value {
-            std::borrow::Cow::Borrowed(_) => dbg!("is borrow"),
-            std::borrow::Cow::Owned(_) => dbg!("is owned"),
-        };
         let inspected_context = context.push_query_key(argument_key);
-
         self.operation
             .satisfies(&inspected_value, &inspected_context)
     }
