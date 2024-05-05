@@ -57,13 +57,12 @@ impl Query<'_> {
         let root_context = Context::new();
 
         let root_query_key = self.key();
-        // TODO: think if this inspection is ok. There are not a lof of clones like the
-        // `inspect` function
         let new_root_json = root_query_key.inspect_owned_with_arguments(
             root_json,
             self.arguments(),
             &root_context,
         )?;
+        // TODO: maybe the inspect function should return the inspected context
         let new_context = root_context.push_query_key(root_query_key);
 
         Ok(self.do_apply(new_root_json, new_context)?)
