@@ -68,11 +68,13 @@ impl<'a> QueryKey<'a> {
 
     // TODO: inspect should return the indexed context? in a lot of places we index and then create
     // the indexed context
-    pub fn inspect(
+    // TODO: maybe we should move the InternalError::KeyNotFound to this module? so we are not using something
+    // of the apply module here.
+    pub fn inspect<'b>(
         &'a self,
-        value: &Value,
+        value: &'b Value,
         context: &Context<'a>,
-    ) -> Result<Value, InternalError<'a>> {
+    ) -> Result<Cow<'b, Value>, InternalError<'a>> {
         Self::do_inspect(
             Cow::Borrowed(value),
             self.keys(),
@@ -80,27 +82,12 @@ impl<'a> QueryKey<'a> {
             context,
         )
     }
-
-    pub fn inspect_with_arguments(
-        &'a self,
-        value: &Value,
-        arguments: &QueryArguments<'a>,
-        context: &Context<'a>,
-    ) -> Result<Value, InternalError<'a>> {
-        Self::do_inspect(Cow::Borrowed(value), self.keys(), arguments, context)
-    }
-
     pub fn inspect_owned(
         &'a self,
         value: Value,
         context: &Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
-        Self::do_inspect(
-            Cow::Owned(value),
-            self.keys(),
-            &QueryArguments::default(),
-            context,
-        )
+        self.inspect_owned_with_arguments(value, &QueryArguments::default(), context)
     }
 
     pub fn inspect_owned_with_arguments(
@@ -109,7 +96,7 @@ impl<'a> QueryKey<'a> {
         arguments: &QueryArguments<'a>,
         context: &Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
-        Self::do_inspect(Cow::Owned(value), self.keys(), arguments, context)
+        Self::do_inspect(Cow::Owned(value), self.keys(), arguments, context).map(Cow::into_owned)
     }
 
     // TODO:
@@ -117,12 +104,12 @@ impl<'a> QueryKey<'a> {
     // when we are given an owned value (for example, inspecting in the root query).
     // We still have the issue then the consumer wants to pass a reference as an input and only needs
     // a reference to the inspected value, not an owned Value (argument filtering).
-    pub fn do_inspect(
-        value: Cow<'_, Value>,
+    pub fn do_inspect<'b>(
+        value: Cow<'b, Value>,
         keys: &'a [AtomicQueryKey<'a>],
         parent_arguments: &QueryArguments<'a>,
         context: &Context<'a>,
-    ) -> Result<Value, InternalError<'a>> {
+    ) -> Result<Cow<'b, Value>, InternalError<'a>> {
         // TODO: split in do_inspect_object, do_inspect_array and do_inspect_primitive
 
         let result = match value {
@@ -134,7 +121,7 @@ impl<'a> QueryKey<'a> {
                 }
 
                 let Some((atomic_query_key, rest)) = keys.split_first() else {
-                    return Ok(value.into_owned());
+                    return Ok(value);
                 };
 
                 let raw_key = atomic_query_key.key();
@@ -192,8 +179,10 @@ impl<'a> QueryKey<'a> {
                             })
                             .ok()
                     })
+                    // We have to own the values if we want to return a Value::Array
+                    .map(Cow::into_owned)
                     .collect();
-                Value::Array(result)
+                Cow::Owned(Value::Array(result))
             }
             value => {
                 if !parent_arguments.0.is_empty() {
@@ -202,7 +191,7 @@ impl<'a> QueryKey<'a> {
                 if !keys.is_empty() {
                     return Err(InternalError::NonIndexableValue(context.path().clone()));
                 }
-                value.into_owned()
+                value
             }
         };
         Ok(result)

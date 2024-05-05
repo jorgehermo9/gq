@@ -112,7 +112,7 @@ trait QueryApply {
             let child_context = context.push_query_key(child_query_key);
 
             let child_value = match (child_value_result, child_context.array_context()) {
-                (Ok(value), _) => value,
+                (Ok(value), _) => value.into_owned(),
                 (Err(internal_error), None) => return Err(internal_error),
                 (Err(internal_error), Some(array_context)) => {
                     let array_error = InternalError::InsideArray(

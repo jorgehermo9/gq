@@ -362,11 +362,18 @@ impl QueryArguments<'_> {
 impl<'a> QueryArgument<'a> {
     fn satisfies(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, Error<'a>> {
         let argument_key = self.key();
+        // TODO: i think the comments below are fixed with the use of Cow in the inspect funcionts.
+        // Check this.
+
         // The inspect does clone the inspected value and it may be very inefficient.
         // Although, it should be a primitive value cloning (or an array of primitive values)
         // and it *should* be cheap...
         // Ideally, we will only need a &Value here, since we are only reading it...
         let inspected_value = argument_key.inspect(value, context)?;
+        match &inspected_value {
+            std::borrow::Cow::Borrowed(_) => dbg!("is borrow"),
+            std::borrow::Cow::Owned(_) => dbg!("is owned"),
+        };
         let inspected_context = context.push_query_key(argument_key);
 
         self.operation
