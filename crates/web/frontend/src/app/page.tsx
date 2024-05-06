@@ -8,7 +8,7 @@ import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { useCallback, useState } from "react";
-import { toast } from "sonner";
+import { applyGq } from "./page-utils";
 
 const Home = () => {
 	const [inputJson, setInputJson] = useState<string>('{"test": 1213}');
@@ -35,27 +35,20 @@ const Home = () => {
 	);
 
 	const updateOutputJson = useCallback(
-		(inputJson: string, inputQuery: string) => {
+		async (inputJson: string, inputQuery: string) => {
 			if (!gqWorker) return;
-			const toastId = toast.loading("Applying query to JSON...");
-			gqWorker
-				.postMessage({
-					query: inputQuery,
-					json: inputJson,
-					indent: jsonTabSize,
-				})
-				.then((res) => {
-					toast.success("Query applied to JSON", { id: toastId });
-					setErrorMessage(undefined);
-					setOutputJson(res);
-				})
-				.catch((err) => {
-					toast.error("Error while applying query to JSON", {
-						id: toastId,
-						duration: 5000,
-					});
-					setErrorMessage(err.message);
-				});
+			try {
+				const result = await applyGq(
+					inputJson,
+					inputQuery,
+					jsonTabSize,
+					gqWorker,
+				);
+				setErrorMessage(undefined);
+				setOutputJson(result);
+			} catch (err) {
+				setErrorMessage(err.message);
+			}
 		},
 		[gqWorker, jsonTabSize],
 	);

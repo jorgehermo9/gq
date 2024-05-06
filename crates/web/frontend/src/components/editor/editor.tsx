@@ -2,17 +2,16 @@ import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
+import { useWorker } from "@/providers/worker-provider";
 import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
-import { Eraser, Link } from "lucide-react";
+import { Eraser } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
+import { copyToClipboard, exportFile, formatCode } from "./editor-utils";
 import styles from "./editor.module.css";
 import urlPlugin from "./url-plugin";
-import { useFormat } from "@/providers/format-provider";
-import { useWorker } from "@/providers/worker-provider";
 
 interface Props {
 	value: string;
@@ -39,59 +38,40 @@ const Editor = ({
 	const [formatErrorMessage, setFormatErrorMessage] = useState<
 		string | undefined
 	>();
-	const { formatWorker } = useWorker();
 	const {
 		settings: {
 			formattingSettings: { jsonTabSize, queryTabSize },
 		},
 	} = useSettings();
+	const { formatWorker } = useWorker();
 	const indentSize = fileType === FileType.JSON ? jsonTabSize : queryTabSize;
 	const available = value.length < 100000000;
 
-	const formatCode = useCallback(() => {
+	const handleFormatCode = useCallback(async () => {
 		if (!formatWorker) return;
-		const toastId = toast.loading("Formatting code...");
-		formatWorker
-			.postMessage({ data: value, indent: indentSize, type: fileType })
-			.then((res) => {
-				toast.success("Code formatted!", { id: toastId });
-				setFormatErrorMessage(undefined);
-				onChange(res);
-			})
-			.catch((err) => {
-				toast.error(err.message, { id: toastId, duration: 5000 });
-				setFormatErrorMessage(err.message);
-			});
-	}, [value, onChange, formatWorker, fileType, indentSize]);
-
-	const copyToClipboard = useCallback(() => {
-		navigator.clipboard.writeText(value);
-		toast.success("Copied to your clipboard!");
-	}, [value]);
-
-	const exportFile = useCallback(
-		(fileName: string) => {
-			const blob = new Blob([value], { type: `application/${fileType}` });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = `${fileName}.${fileType}`;
-			a.click();
-			URL.revokeObjectURL(url);
-			toast.success("File exported succesfully!");
-		},
-		[value, fileType],
-	);
+		try {
+			const result = await formatCode(
+				value,
+				fileType,
+				indentSize,
+				formatWorker,
+			);
+			setFormatErrorMessage(undefined);
+			onChange(result);
+		} catch (e) {
+			setFormatErrorMessage(e.message);
+		}
+	}, [fileType, indentSize, onChange, value, formatWorker]);
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
 			if (!isFocused) return;
 			if (event.ctrlKey && event.key === "s") {
 				event.preventDefault();
-				formatCode();
+				handleFormatCode();
 			}
 		},
-		[isFocused, formatCode],
+		[isFocused, handleFormatCode],
 	);
 
 	useEffect(() => {
@@ -110,10 +90,10 @@ const Editor = ({
 					fileType={fileType}
 					defaultFileName={defaultFileName}
 					editable={editable}
-					onCopyToClipboard={copyToClipboard}
-					onFormatCode={formatCode}
+					onCopyToClipboard={() => copyToClipboard(value)}
+					onFormatCode={handleFormatCode}
 					onImportFile={onChange}
-					onExportFile={exportFile}
+					onExportFile={(fileName) => exportFile(value, fileName, fileType)}
 				/>
 			</div>
 

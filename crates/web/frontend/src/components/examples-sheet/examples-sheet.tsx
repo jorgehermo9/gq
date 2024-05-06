@@ -1,6 +1,9 @@
 "use client";
 
 import { gqTheme } from "@/lib/theme";
+import FileType from "@/model/file-type";
+import { useSettings } from "@/providers/settings-provider";
+import { useWorker } from "@/providers/worker-provider";
 import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
 import { SwatchBook } from "lucide-react";
@@ -18,12 +21,13 @@ import {
 import {
 	type Example,
 	type ExampleSection,
-	simpleAccessing,
 	arrayFiltering,
+	simpleAccessing,
+	propertyAccessing,
+	fieldAliasing,
+	examples,
+	queryExamples,
 } from "./examples";
-import { useSettings } from "@/providers/settings-provider";
-import FileType from "@/model/file-type";
-import { useWorker } from "@/providers/worker-provider";
 
 interface ExampleItemProps {
 	example: Example;
@@ -156,25 +160,24 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 					<SwatchBook className="w-5 h-5" />
 				</ActionButton>
 			</SheetTrigger>
-			<SheetContent side="left" className="sm:max-w-lg">
+			<SheetContent side="left" className="sm:max-w-lg overflow-y-scroll">
 				<SheetHeader>
 					<SheetTitle>Query Examples</SheetTitle>
 					<SheetDescription>
-						Check some query examples and import them into your editor with ease
+						Check some query examples and import them into your editor with
+						ease. There are endless possiblities!
 					</SheetDescription>
 				</SheetHeader>
-				<Separator />
-				<ExamplesSection
-					title="Simple accessing"
-					exampleSection={simpleAccessing}
-					onClick={handleClick}
-				/>
-				<Separator />
-				<ExamplesSection
-					title="Array filtering"
-					exampleSection={arrayFiltering}
-					onClick={handleClick}
-				/>
+				{queryExamples.map((exampleSection: ExampleSection) => (
+					<div key={exampleSection.title}>
+						<Separator />
+						<ExamplesSection
+							title={exampleSection.title}
+							exampleSection={exampleSection}
+							onClick={handleClick}
+						/>
+					</div>
+				))}
 			</SheetContent>
 		</Sheet>
 	);
