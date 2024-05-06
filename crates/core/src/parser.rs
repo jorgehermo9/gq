@@ -341,7 +341,7 @@ impl<'src> Parser<'src> {
     fn parse_regex(&mut self) -> Result<Regex> {
         match self.next_token()? {
             (Token::String(value), span) => {
-                Regex::new(dbg!(value)).map_err(|err| Error::Regex(err, span))
+                Regex::new(value).map_err(|err| Error::Regex(err, span))
             }
             (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
         }

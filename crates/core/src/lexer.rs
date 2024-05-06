@@ -57,7 +57,8 @@ pub enum Token<'src> {
     #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
     Number(f64),
     // Ssee https://github.com/maciejhirsz/logos/issues/133
-    #[regex(r#""(?:[^"]|\\")*""#, |lex| &lex.slice()[1..lex.slice().len() - 1])]
+    // This supports both single and double quoted strings
+    #[regex(r#"(?:"(?:[^"]|\\")*"|'(?:[^']|\\')*')"#, |lex| &lex.slice()[1..lex.slice().len() - 1])]
     String(&'src str),
     #[token("null")]
     Null,

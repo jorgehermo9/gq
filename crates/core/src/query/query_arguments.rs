@@ -3,7 +3,7 @@ use std::fmt::{self, Display, Formatter};
 use super::{
     apply::InternalError,
     context::{Context, JsonPath},
-    OwnedJsonPath, QueryKey,
+    QueryKey,
 };
 use derive_getters::Getters;
 use derive_more::Constructor;
@@ -13,13 +13,21 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
 pub enum Error<'a> {
-    // TODO: improve this error. We should report the QueryArgumentValue and the QueryArgumentOperation
-    #[error("types '{value_type}' and '{argument_value_type}' are incompatible in '{operation_type}' operation at {path}")]
-    IncompatibleTypes {
+    #[error("types '{value_type}' and '{operation_value_type}' are not comparable at '{context}'")]
+    IncomparableTypes {
         value_type: String,
-        argument_value_type: String,
+        operation_value_type: String,
+        context: JsonPath<'a>,
+    },
+
+    // TODO: handle this error
+    #[error(
+        "operation '{operation_type}' is not compatible with value type '{value_type}' at '{context}'"
+    )]
+    IncompatibleOperation {
+        value_type: String,
         operation_type: String,
-        path: JsonPath<'a>,
+        context: JsonPath<'a>,
     },
     #[error("cannot conver number '{0}' to f64 at {1}")]
     // TODO: maybe converting from JsonPath to OwnedJsonPath is expensive
@@ -39,6 +47,7 @@ impl<'a> From<InternalError<'a>> for Error<'a> {
     }
 }
 
+// TODO: This trait and implementations are very messy, re-structure them (in other modules?)
 pub trait ValueType {
     fn value_type(&self) -> String;
 }
@@ -76,6 +85,21 @@ impl ValueType for f64 {
 impl ValueType for Regex {
     fn value_type(&self) -> String {
         "regex".to_string()
+    }
+}
+
+impl ValueType for QueryArgumentOperation<'_> {
+    fn value_type(&self) -> String {
+        match self {
+            QueryArgumentOperation::Equal(value) => value.value_type(),
+            QueryArgumentOperation::NotEqual(value) => value.value_type(),
+            QueryArgumentOperation::Greater(value) => value.value_type(),
+            QueryArgumentOperation::GreaterEqual(value) => value.value_type(),
+            QueryArgumentOperation::Less(value) => value.value_type(),
+            QueryArgumentOperation::LessEqual(value) => value.value_type(),
+            QueryArgumentOperation::Match(value) => value.value_type(),
+            QueryArgumentOperation::NotMatch(value) => value.value_type(),
+        }
     }
 }
 
@@ -148,29 +172,29 @@ impl Display for QueryArgumentOperation<'_> {
 impl<'a> QueryArgumentOperation<'a> {
     fn satisfies(&self, value: &Value, context: &Context<'a>) -> Result<bool, Error<'a>> {
         match self {
-            QueryArgumentOperation::Equal(argument_value) => {
-                self.satisfies_equal(argument_value, value, context)
+            QueryArgumentOperation::Equal(operation_value) => {
+                self.satisfies_equal(operation_value, value, context)
             }
-            QueryArgumentOperation::NotEqual(argument_value) => self
-                .satisfies_equal(argument_value, value, context)
+            QueryArgumentOperation::NotEqual(operation_value) => self
+                .satisfies_equal(operation_value, value, context)
                 .map(|result| !result),
-            QueryArgumentOperation::Greater(argument_value) => {
-                self.satisfies_greater(*argument_value, value, context)
+            QueryArgumentOperation::Greater(operation_value) => {
+                self.satisfies_greater(*operation_value, value, context)
             }
-            QueryArgumentOperation::GreaterEqual(argument_value) => self
-                .satisfies_less(*argument_value, value, context)
+            QueryArgumentOperation::GreaterEqual(operation_value) => self
+                .satisfies_less(*operation_value, value, context)
                 .map(|result| !result),
-            QueryArgumentOperation::Less(argument_value) => {
-                self.satisfies_less(*argument_value, value, context)
+            QueryArgumentOperation::Less(operation_value) => {
+                self.satisfies_less(*operation_value, value, context)
             }
-            QueryArgumentOperation::LessEqual(argument_value) => self
-                .satisfies_greater(*argument_value, value, context)
+            QueryArgumentOperation::LessEqual(operation_value) => self
+                .satisfies_greater(*operation_value, value, context)
                 .map(|result| !result),
-            QueryArgumentOperation::Match(argument_value) => {
-                self.satisfies_match(argument_value, value, context)
+            QueryArgumentOperation::Match(operation_value) => {
+                self.satisfies_match(operation_value, value, context)
             }
-            QueryArgumentOperation::NotMatch(argument_value) => self
-                .satisfies_match(argument_value, value, context)
+            QueryArgumentOperation::NotMatch(operation_value) => self
+                .satisfies_match(operation_value, value, context)
                 .map(|result| !result),
         }
     }
@@ -198,109 +222,120 @@ impl<'a> QueryArgumentOperation<'a> {
     fn satisfies_equal(
         // TODO: this method should have a self parameter?
         &self,
-        argument_value: &QueryArgumentValue,
+        operation_value: &QueryArgumentValue,
         value: &Value,
         context: &Context<'a>,
     ) -> Result<bool, Error<'a>> {
-        match (argument_value, value) {
-            (QueryArgumentValue::String(argument_value), Value::String(value)) => {
-                Ok(argument_value == value)
+        match (operation_value, value) {
+            (QueryArgumentValue::String(operation_value), Value::String(value)) => {
+                Ok(operation_value == value)
             }
-            (QueryArgumentValue::Number(argument_value), Value::Number(value)) => {
+            (QueryArgumentValue::Number(operation_value), Value::Number(value)) => {
                 value
                     .as_f64()
-                    .map(|value| value == *argument_value)
+                    .map(|value| value == *operation_value)
                     // TODO: improve number value conversion\
                     .ok_or(Error::NumberConversionError(
                         value.clone(),
                         context.path().clone(),
                     ))
             }
-            (QueryArgumentValue::Bool(argument_value), Value::Bool(value)) => {
-                Ok(argument_value == value)
+            (QueryArgumentValue::Bool(operation_value), Value::Bool(value)) => {
+                Ok(operation_value == value)
             }
             (QueryArgumentValue::Null, Value::Null) => Ok(true),
             (_, Value::Array(array)) => {
                 let satisfies_op = |item: &Value, context: &Context<'a>| {
-                    self.satisfies_equal(argument_value, item, context)
+                    self.satisfies_equal(operation_value, item, context)
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => Err(self.incompatible_types_error(argument_value, value, context)),
+            _ => Err(self.incomparable_types_error(operation_value, value, context)),
         }
     }
     fn satisfies_greater(
         &self,
-        argument_value: f64,
+        operation_value: f64,
         value: &Value,
         context: &Context<'a>,
     ) -> Result<bool, Error<'a>> {
         match value {
-            Value::Number(value) => value.as_f64().map(|value| value > argument_value).ok_or(
+            Value::Number(value) => value.as_f64().map(|value| value > operation_value).ok_or(
                 Error::NumberConversionError(value.clone(), context.path().clone()),
             ),
             Value::Array(array) => {
                 let satisfies_op = |item: &Value, context: &Context<'a>| {
-                    self.satisfies_greater(argument_value, item, context)
+                    self.satisfies_greater(operation_value, item, context)
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => Err(self.incompatible_types_error(&argument_value, value, context)),
+            _ => Err(self.incomparable_types_error(&operation_value, value, context)),
         }
     }
 
     fn satisfies_less(
         &self,
-        argument_value: f64,
+        operation_value: f64,
         value: &Value,
         context: &Context<'a>,
     ) -> Result<bool, Error<'a>> {
         match value {
-            Value::Number(value) => value.as_f64().map(|value| value < argument_value).ok_or(
+            Value::Number(value) => value.as_f64().map(|value| value < operation_value).ok_or(
                 Error::NumberConversionError(value.clone(), context.path().clone()),
             ),
             Value::Array(array) => {
                 let satisfies_op = |item: &Value, context: &Context<'a>| {
-                    self.satisfies_less(argument_value, item, context)
+                    self.satisfies_less(operation_value, item, context)
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => Err(self.incompatible_types_error(&argument_value, value, context)),
+            _ => Err(self.incomparable_types_error(&operation_value, value, context)),
         }
     }
 
     fn satisfies_match(
         &self,
-        argument_value: &Regex,
+        operation_value: &Regex,
         value: &Value,
         context: &Context<'a>,
     ) -> Result<bool, Error<'a>> {
         match value {
-            Value::String(value) => Ok(argument_value.is_match(value)),
+            Value::String(value) => Ok(operation_value.is_match(value)),
             Value::Array(array) => {
                 let satisfies_op = |item: &Value, context: &Context<'a>| {
-                    self.satisfies_match(argument_value, item, context)
+                    self.satisfies_match(operation_value, item, context)
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => Err(self.incompatible_types_error(argument_value, value, context)),
+            _ => Err(self.incomparable_types_error(operation_value, value, context)),
         }
     }
 
-    fn incompatible_types_error<T: ValueType, U: ValueType>(
+    fn incomparable_types_error<T: ValueType, U: ValueType>(
         &self,
-        argument_value: &T,
+        operation_value: &T,
         value: &U,
         context: &Context<'a>,
     ) -> Error<'a> {
         let value_type = value.value_type();
-        let argument_value_type = argument_value.value_type();
-        let operation_type = self.operation_type();
-        Error::IncompatibleTypes {
+        let operation_value_type = operation_value.value_type();
+        Error::IncomparableTypes {
             value_type,
-            argument_value_type,
+            operation_value_type,
+            context: context.path().clone(),
+        }
+    }
+    fn incompatible_operation_error<T: ValueType>(
+        &self,
+        value: &T,
+        context: &Context<'a>,
+    ) -> Error<'a> {
+        let value_type = value.value_type();
+        let operation_type = self.operation_type();
+        Error::IncompatibleOperation {
+            value_type,
             operation_type,
-            path: context.path().clone(),
+            context: context.path().clone(),
         }
     }
 }
