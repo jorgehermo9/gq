@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 import { SettingsProvider } from "@/providers/settings-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { WorkerProvider } from "@/providers/worker-provider";
 import type { Metadata } from "next";
 import { Montserrat, Neuton } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
-import { WorkerProvider } from "@/providers/worker-provider";
 
 const neuton = Neuton({
 	subsets: ["latin"],
