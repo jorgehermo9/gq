@@ -79,24 +79,24 @@ const arrayFiltering: ExampleSection = {
     },
     queries: [
         {
-            query: "products(name = \"Product 2\")",
+            query: "products(name=\"Product 2\")",
             title: "Exact match",
             description:
-                "You can use the '=' or '!=' operators to match exactly any primitive value",
+                "You can use the `=` or `!=` operators to match exactly any primitive value",
         },
         {
-            query: "products(quantity >= 5)",
+            query: "products(quantity>=5)",
             title: "Numeric condition",
             description:
-                "Numeric filtering over the objects using any of the most common operators: '<', '>', '<=' or '>='",
+                "Numeric filtering over the objects using any of the most common operators: `<`, `>`, `<=` or `>=`",
         },
         {
-            query: "products(name !~ \"*3$\")",
+            query: "products(name!~\"*3$\")",
             title: "Regex match",
-            description: "String regex matching using the '~' or '!~' operators",
+            description: "String regex matching using the `~` or `!~` operators",
         },
         {
-            query: "products(quantity < 5).name",
+            query: "products(quantity<5).name",
             title: "Filter + accessing",
             description:
                 "Furthermore, you can always chain field accessing after any array filtering",
@@ -167,7 +167,7 @@ const otherExamples: ExampleSection = {
     queries: [
         {
             query:
-                "{\n\tproducts(price < 15).name: cheap\n\tproducts(price >= 15).name: expensive\n}",
+                "{\n\tproducts(price<15).name: cheap\n\tproducts(price>=15).name: expensive\n}",
             title: "Multiple filters + accessing",
             description:
                 "Combine multiple filters in the same query to create complex queries",
