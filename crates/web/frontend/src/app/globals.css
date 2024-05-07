@@ -60,6 +60,13 @@ textarea {
   resize: none;
 }
 
+code {
+  color: var(--foreground);
+  background-color: var(--muted-transparent);
+  padding: 0 0.4rem;
+  border-radius: calc(var(--radius) - 2px);
+}
+
 body::before {
   content: "";
   position: fixed;

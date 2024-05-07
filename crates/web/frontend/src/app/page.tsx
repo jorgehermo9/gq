@@ -25,15 +25,6 @@ const Home = () => {
 	} = useSettings();
 	const { gqWorker } = useWorker();
 
-	const onClickExample = useCallback(
-		(json: string, query: string) => {
-			setInputJson(json);
-			setInputQuery(query);
-			!autoApply && updateOutputJson(json, query);
-		},
-		[autoApply],
-	);
-
 	const updateOutputJson = useCallback(
 		async (inputJson: string, inputQuery: string) => {
 			if (!gqWorker) return;
@@ -51,6 +42,15 @@ const Home = () => {
 			}
 		},
 		[gqWorker, jsonTabSize],
+	);
+
+	const onClickExample = useCallback(
+		(json: string, query: string) => {
+			setInputJson(json);
+			setInputQuery(query);
+			!autoApply && updateOutputJson(json, query);
+		},
+		[autoApply, updateOutputJson],
 	);
 
 	useDebounce(

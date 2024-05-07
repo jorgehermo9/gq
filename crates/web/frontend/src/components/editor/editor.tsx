@@ -125,7 +125,6 @@ const Editor = ({
 						basicSetup={{
 							lineNumbers: true,
 							lintKeymap: true,
-							highlightActiveLineGutter: editable,
 						}}
 					/>
 				) : (
