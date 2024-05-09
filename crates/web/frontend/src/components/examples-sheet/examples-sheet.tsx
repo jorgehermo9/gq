@@ -216,7 +216,7 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 			</AlertDialog>
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
 				<SheetTrigger className={className} asChild>
-					<ActionButton description="Show playground settings" className="p-3">
+					<ActionButton description="Show query examples" className="p-3">
 						<CircleHelp className="w-5 h-5" />
 					</ActionButton>
 				</SheetTrigger>

@@ -3,7 +3,7 @@ import { SettingsProvider } from "@/providers/settings-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { WorkerProvider } from "@/providers/worker-provider";
 import type { Metadata } from "next";
-import { Montserrat, Neuton, Roboto_Mono } from "next/font/google";
+import { Fira_Code, Montserrat, Neuton, Roboto_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -13,7 +13,7 @@ const neuton = Neuton({
 	variable: "--font-serif",
 });
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
-const robotoMono = Roboto_Mono({
+const firaCode = Fira_Code({
 	subsets: ["latin"],
 	variable: "--font-mono",
 });
@@ -35,7 +35,7 @@ export default function RootLayout({
 					"min-h-screen antialiased",
 					montserrat.variable,
 					neuton.variable,
-					robotoMono.variable,
+					firaCode.variable,
 				)}
 			>
 				<Toaster
