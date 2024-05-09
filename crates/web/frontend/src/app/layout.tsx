@@ -3,7 +3,7 @@ import { SettingsProvider } from "@/providers/settings-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { WorkerProvider } from "@/providers/worker-provider";
 import type { Metadata } from "next";
-import { Montserrat, Neuton } from "next/font/google";
+import { Montserrat, Neuton, Roboto_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -13,6 +13,10 @@ const neuton = Neuton({
 	variable: "--font-serif",
 });
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
+const robotoMono = Roboto_Mono({
+	subsets: ["latin"],
+	variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
 	title: "Create Next App",
@@ -31,6 +35,7 @@ export default function RootLayout({
 					"min-h-screen antialiased",
 					montserrat.variable,
 					neuton.variable,
+					robotoMono.variable,
 				)}
 			>
 				<Toaster

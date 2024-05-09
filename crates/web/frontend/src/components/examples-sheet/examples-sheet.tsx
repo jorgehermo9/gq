@@ -6,7 +6,7 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
-import { BadgeHelp, CircleHelp, SwatchBook } from "lucide-react";
+import { CircleHelp } from "lucide-react";
 import { useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import { Separator } from "../ui/separator";
@@ -28,9 +28,8 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from "../ui/alert-dialog";
-import { on } from "events";
+import SimpleEditor from "../editor/simple-editor";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -61,7 +60,9 @@ const ExampleItemDescription = ({
 		{description.split(" ").map((word, index) =>
 			word.startsWith("`") ? (
 				// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-				<code key={index}>{word.slice(1, -1)}</code>
+				<code className="rounded-md" key={index}>
+					{word.slice(1, -1)}
+				</code>
 			) : (
 				// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
 				<span key={index}>{word}</span>
@@ -81,20 +82,10 @@ const ExampleItem = ({ example, onClick }: ExampleItemProps) => {
 				className="font-medium text-[0.85rem] mb-4 flex gap-1 flex-wrap"
 				description={example.description}
 			/>
-			<CodeMirror
+			<SimpleEditor
+				className="rounded-sm cursor-auto overflow-hidden"
 				onClick={(event) => event.stopPropagation()}
-				className="w-full rounded-lg text-[0.8rem] cursor-auto"
-				value={example.query}
-				height="100%"
-				theme={gqTheme}
-				extensions={[json()]}
-				editable={false}
-				basicSetup={{
-					lineNumbers: true,
-					lintKeymap: true,
-					highlightActiveLineGutter: false,
-					highlightActiveLine: false,
-				}}
+				content={example.query}
 			/>
 		</div>
 	);

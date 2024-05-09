@@ -25,7 +25,10 @@ const config = {
 					DEFAULT: "var(--accent)",
 					background: "var(--accent-background)",
 				},
-				muted: "var(--muted)",
+				muted: {
+					DEFAULT: "var(--muted)",
+					transparent: "var(--muted-transparent)",
+				},
 				error: "var(--error)",
 				success: "var(--success)",
 			},
