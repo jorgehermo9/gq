@@ -42,12 +42,10 @@ impl From<InternalError<'_>> for Error {
 pub enum InternalError<'a> {
     #[error("key '{0}' not found")]
     KeyNotFound(JsonPath<'a>),
-    // TODO: Think about the usefulness of this error
     #[error("{0} while indexing inside array '{1}'")]
     InsideArray(Box<Self>, JsonPath<'a>),
     #[error("tried to index a non-indexable value (neither object nor array) at '{0}'")]
     NonIndexableValue(JsonPath<'a>),
-
     #[error("tried to apply arguments in a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(JsonPath<'a>),
 }
@@ -77,7 +75,7 @@ trait QueryApply {
         context: Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
         match value {
-            Value::Object(object) => self.do_apply_object(object, context),
+            Value::Object(_) => self.do_apply_object(value, context),
             Value::Array(array) => Ok(self.do_apply_array(array, context)),
             _ => self.do_apply_primitive(value, context),
         }
@@ -96,19 +94,17 @@ trait QueryApply {
 
     fn do_apply_object<'a>(
         &'a self,
-        object: Map<String, Value>,
+        value: Value,
         context: Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
         if self.children().is_empty() {
-            return Ok(Value::Object(object));
+            return Ok(value);
         }
 
         let mut filtered_object = serde_json::Map::new();
-        // TODO: check if this is necessary or redundant
-        let value = &Value::Object(object);
         for child in self.children() {
             let child_query_key = child.key();
-            let child_value_result = child_query_key.inspect(value, &context);
+            let child_value_result = child_query_key.inspect(&value, &context);
             let child_context = context.push_query_key(child_query_key);
 
             let child_value = match (child_value_result, child_context.array_context()) {

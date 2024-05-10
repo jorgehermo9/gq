@@ -9,7 +9,6 @@ use serde_json::Value;
 
 use super::{apply::InternalError, context::Context, query_arguments::QueryArguments};
 
-// TODO: maybe we shouldn't name those types
 pub type OwnedRawKey = RawKey<'static>;
 
 #[derive(Debug, Clone, Constructor, Eq, PartialEq, Hash, Display)]
@@ -44,10 +43,6 @@ impl Display for AtomicQueryKey<'_> {
 pub struct QueryKey<'a> {
     keys: Vec<AtomicQueryKey<'a>>,
 }
-
-// TODO: maybe it does not make sense to have a .into_owned method, it pollutes a lot the QueryArguments
-// and it is mainly used on errors. Maybe the error should have simply a String that represents the QueryKey
-// and do not complicate this so much.
 
 impl Display for QueryKey<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {

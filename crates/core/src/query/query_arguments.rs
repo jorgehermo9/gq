@@ -1,4 +1,7 @@
-use std::fmt::{self, Display, Formatter};
+use std::{
+    borrow::Cow,
+    fmt::{self, Display, Formatter},
+};
 
 use super::{
     apply::InternalError,
@@ -19,8 +22,6 @@ pub enum Error<'a> {
         operation_value_type: String,
         context: JsonPath<'a>,
     },
-
-    // TODO: handle this error
     #[error(
         "operation '{operation_type}' is not compatible with value type '{value_type}' at '{context}'"
     )]
@@ -30,7 +31,6 @@ pub enum Error<'a> {
         context: JsonPath<'a>,
     },
     #[error("cannot conver number '{0}' to f64 at {1}")]
-    // TODO: maybe converting from JsonPath to OwnedJsonPath is expensive
     NumberConversionError(Number, JsonPath<'a>),
     #[error("{error} while processing arguments at '{context}'")]
     InsideArguments {
@@ -199,8 +199,6 @@ impl<'a> QueryArgumentOperation<'a> {
         }
     }
 
-    // TODO: maybe this is not the best way to do it @David pasa por el aro
-    // this is a ñapa
     fn satisfies_op_array<F>(array: &[Value], satisfies_op: F, context: &Context<'a>) -> bool
     where
         F: Fn(&Value, &Context<'a>) -> Result<bool, Error<'a>>,
@@ -220,7 +218,6 @@ impl<'a> QueryArgumentOperation<'a> {
     }
 
     fn satisfies_equal(
-        // TODO: this method should have a self parameter?
         &self,
         operation_value: &QueryArgumentValue,
         value: &Value,
@@ -244,6 +241,8 @@ impl<'a> QueryArgumentOperation<'a> {
                 Ok(operation_value == value)
             }
             (QueryArgumentValue::Null, Value::Null) => Ok(true),
+            (QueryArgumentValue::Null, _) => Ok(false),
+            (_, Value::Null) => Ok(false),
             (_, Value::Array(array)) => {
                 let satisfies_op = |item: &Value, context: &Context<'a>| {
                     self.satisfies_equal(operation_value, item, context)
@@ -269,7 +268,7 @@ impl<'a> QueryArgumentOperation<'a> {
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => Err(self.incomparable_types_error(&operation_value, value, context)),
+            _ => Err(self.incompatible_operation_error(value, context)),
         }
     }
 
@@ -289,7 +288,7 @@ impl<'a> QueryArgumentOperation<'a> {
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => Err(self.incomparable_types_error(&operation_value, value, context)),
+            _ => Err(self.incompatible_operation_error(value, context)),
         }
     }
 
@@ -307,7 +306,7 @@ impl<'a> QueryArgumentOperation<'a> {
                 };
                 Ok(Self::satisfies_op_array(array, satisfies_op, context))
             }
-            _ => Err(self.incomparable_types_error(operation_value, value, context)),
+            _ => Err(self.incompatible_operation_error(value, context)),
         }
     }
 
@@ -369,10 +368,8 @@ impl Display for QueryArguments<'_> {
     }
 }
 
-// TODO: maybe we should move this to the query_argument module
 impl QueryArguments<'_> {
     //TODO: improve method naming
-    //TODO: maybe parent_context is not necessary, think better about the errors
     pub fn satisfies(&self, value: &Value, context: &Context) -> bool {
         self.0.iter().all(|argument| {
             argument
@@ -381,10 +378,6 @@ impl QueryArguments<'_> {
                     let argument_error = Error::InsideArguments {
                         // TODO: include the argument.to_string() here?
                         error: Box::new(error),
-                        // TODO: print the context of the item (e.g. bill.products[0][1])
-                        // or the array where the arguments are being applied?
-                        // (e.g. bill.products)
-                        // maybe we need an array_context here instead of the item_context
                         context: context.path().clone(),
                     };
                     log::warn!("{argument_error}");
@@ -395,16 +388,19 @@ impl QueryArguments<'_> {
 }
 
 impl<'a> QueryArgument<'a> {
+    const DEFAULT_INSPECTED_VALUE: Cow<'static, Value> = Cow::Owned(Value::Null);
+
     fn satisfies(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, Error<'a>> {
         let argument_key = self.key();
-        // TODO: i think the comments below are fixed with the use of Cow in the inspect funcionts.
-        // Check this.
 
-        // The inspect does clone the inspected value and it may be very inefficient.
-        // Although, it should be a primitive value cloning (or an array of primitive values)
-        // and it *should* be cheap...
-        // Ideally, we will only need a &Value here, since we are only reading it...
-        let inspected_value = argument_key.inspect(value, context)?;
+        let inspected_value = match argument_key.inspect(value, context) {
+            Ok(value) => value,
+            // TODO: only return null value for the KeyNotFound error?
+            // TODO: the query inspection should not use InternalError, it is too generic
+            Err(InternalError::KeyNotFound(_)) => Self::DEFAULT_INSPECTED_VALUE,
+            Err(error) => return Err(error.into()),
+        };
+
         let inspected_context = context.push_query_key(argument_key);
         self.operation
             .satisfies(&inspected_value, &inspected_context)

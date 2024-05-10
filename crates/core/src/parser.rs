@@ -128,7 +128,6 @@ impl<'src> Parser<'src> {
                     .children(children)
                     .key(root_query_key)
                     .build()
-                    // TODO: Add arguments here. Maybe we should modify the grammar
                     .map_err(|err| Error::Construction(err.into(), root_span))
             }
             (_, root_span_end) => {
