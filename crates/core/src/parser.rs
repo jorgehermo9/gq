@@ -1,6 +1,12 @@
 use crate::lexer::{self, OwnedToken, Token};
-use crate::query::{AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryBuilder, QueryKey};
+use crate::query::query_arguments::{
+    QueryArgument, QueryArgumentOperation, QueryArgumentValue, QueryArguments,
+};
+use crate::query::{
+    AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryBuilder, QueryKey, RawKey,
+};
 use logos::{Logos, Span, SpannedIter};
+use regex::Regex;
 use std::borrow::Cow;
 use std::iter::Peekable;
 use thiserror::Error;
@@ -22,6 +28,8 @@ pub enum Error {
     Lexer(lexer::Error, Span),
     #[error("Query construction error: {0}")]
     Construction(crate::query::Error, Span),
+    #[error("Regex parsing error: {0}")]
+    Regex(regex::Error, Span),
 }
 
 impl Error {
@@ -32,6 +40,7 @@ impl Error {
             Self::UnexpectedTokenAfterRootQuery(span) => span,
             Self::Lexer(_, span) => span,
             Self::Construction(_, span) => span,
+            Self::Regex(_, span) => span,
         }
     }
 }
@@ -101,9 +110,12 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `S -> QUERY_KEY | QUERY_KEY { QUERY_CONTENT } | { QUERY_CONTENT }`
+    /// `S -> QUERY_ARGUMENTS ROOT_QUERY_KEY | QUERY_ARGUMENTS ROOT_QUERY_KEY { QUERY_CONTENT }`
     fn parse_root_query(&mut self) -> Result<Query<'src>> {
         let root_span_start = self.current_span()?;
+        let arguments = self.parse_query_arguments()?;
+        let root_query_key = self.parse_root_query_key()?;
+
         match self.peek()? {
             (Token::LBrace, _) => {
                 self.consume()?;
@@ -112,30 +124,19 @@ impl<'src> Parser<'src> {
                 let root_span = Self::span_between(root_span_start, root_span_end);
 
                 QueryBuilder::default()
+                    .arguments(arguments)
                     .children(children)
+                    .key(root_query_key)
                     .build()
                     .map_err(|err| Error::Construction(err.into(), root_span))
             }
-            _ => {
-                let root_key = self.parse_query_key()?;
-                match self.peek()? {
-                    (Token::LBrace, _) => {
-                        self.consume()?;
-                        let children = self.parse_query_content(&Token::RBrace)?;
-                        let root_span_end = self.consume()?;
-                        let root_span = Self::span_between(root_span_start, root_span_end);
-
-                        QueryBuilder::default()
-                            .key(root_key)
-                            .children(children)
-                            .build()
-                            .map_err(|err| Error::Construction(err.into(), root_span))
-                    }
-                    _ => QueryBuilder::default()
-                        .key(root_key)
-                        .build()
-                        .map_err(|err| Error::Construction(err.into(), root_span_start)),
-                }
+            (_, root_span_end) => {
+                let root_span = Self::span_between(root_span_start, root_span_end);
+                QueryBuilder::default()
+                    .arguments(arguments)
+                    .key(root_query_key)
+                    .build()
+                    .map_err(|err| Error::Construction(err.into(), root_span))
             }
         }
     }
@@ -190,17 +191,22 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_KEY -> key . QUERY_KEY | key
+    /// `ROOT_QUERY_KEY -> QUERY_KEY | ε`
+    ///
+    fn parse_root_query_key(&mut self) -> Result<QueryKey<'src>> {
+        match self.peek()? {
+            (Token::Key(_), _) => self.parse_query_key(),
+            _ => Ok(Default::default()),
+        }
+    }
+
+    /// # Grammar
+    /// `QUERY_KEY -> ATOMIC_QUERY_KEY . QUERY_KEY | ATOMIC_QUERY_KEY`
     fn parse_query_key(&mut self) -> Result<QueryKey<'src>> {
         let mut keys = Vec::new();
         loop {
-            match self.next_token()? {
-                (Token::Key(key), _) => keys.push(AtomicQueryKey::new(Cow::Borrowed(key))),
-                (unexpected_token, span) => {
-                    return Err(Error::UnexpectedToken(unexpected_token.into(), span))
-                }
-            }
-
+            let atomic_query_key = self.parse_atomic_query_key()?;
+            keys.push(atomic_query_key);
             match self.peek()? {
                 (Token::Dot, _) => {
                     self.consume()?;
@@ -211,13 +217,26 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// QUERY_ALIAS -> : key | ε
-    fn parse_query_alias(&mut self) -> Result<Option<AtomicQueryKey<'src>>> {
+    /// `ATOMIC_QUERY_KEY -> key QUERY_ARGUMENTS`
+    fn parse_atomic_query_key(&mut self) -> Result<AtomicQueryKey<'src>> {
+        match self.next_token()? {
+            (Token::Key(key), _) => {
+                let arguments = self.parse_query_arguments()?;
+                let raw_key = RawKey::new(Cow::Borrowed(key));
+                Ok(AtomicQueryKey::new(raw_key, arguments))
+            }
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+        }
+    }
+
+    /// # Grammar
+    /// `QUERY_ALIAS -> : key | ε`
+    fn parse_query_alias(&mut self) -> Result<Option<RawKey<'src>>> {
         match self.peek()? {
             (Token::Colon, _) => {
                 self.consume()?;
                 match self.next_token()? {
-                    (Token::Key(key), _) => Ok(Some(AtomicQueryKey::new(Cow::Borrowed(key)))),
+                    (Token::Key(key), _) => Ok(Some(RawKey::new(Cow::Borrowed(key)))),
                     (unexpected_token, span) => {
                         Err(Error::UnexpectedToken(unexpected_token.into(), span))
                     }
@@ -226,8 +245,109 @@ impl<'src> Parser<'src> {
             _ => Ok(None),
         }
     }
+    /// # Grammar
+    /// `QUERY_ARGUMENTS -> ( QUERY_ARGUMENTS_CONTENT ) | ε`
+    fn parse_query_arguments(&mut self) -> Result<QueryArguments<'src>> {
+        match self.peek()? {
+            (Token::LParen, _) => {
+                self.consume()?;
+                let arguments = QueryArguments::new(self.parse_query_arguments_content()?);
+                match self.next_token()? {
+                    (Token::RParen, _) => Ok(arguments),
+                    (unexpected_token, span) => {
+                        Err(Error::UnexpectedToken(unexpected_token.into(), span))
+                    }
+                }
+            }
+            _ => Ok(Default::default()),
+        }
+    }
+
+    /// # Grammar
+    /// `QUERY_ARGUMENTS_CONTENT -> QUERY_ARGUMENT , QUERY_ARGUMENTS_CONTENT | QUERY_ARGUMENT`
+    fn parse_query_arguments_content(&mut self) -> Result<Vec<QueryArgument<'src>>> {
+        let mut arguments = Vec::new();
+
+        loop {
+            let argument = self.parse_query_argument()?;
+            arguments.push(argument);
+
+            match self.peek()? {
+                (Token::Comma, _) => {
+                    self.consume()?;
+                }
+                _ => return Ok(arguments),
+            }
+        }
+    }
+
+    /// # Grammar
+    /// `QUERY_ARGUMENT -> QUERY_KEY QUERY_AGUMENT_OPERATION`
+    fn parse_query_argument(&mut self) -> Result<QueryArgument<'src>> {
+        let key = self.parse_query_key()?;
+        let operation = self.parse_query_argument_operation()?;
+        Ok(QueryArgument::new(key, operation))
+    }
+
+    /// # Grammar
+    /// `QUERY_AGUMENT_OPERATION -> = QUERY_ARGUMENT_VALUE | != QUERY_ARGUMENT_VALUE
+    ///     | > NUMBER | >= NUMBER
+    ///     | < NUMBER | <= NUMBER
+    ///     | ~ REGEX | !~ REGEX`
+
+    fn parse_query_argument_operation(&mut self) -> Result<QueryArgumentOperation<'src>> {
+        match self.next_token()? {
+            (Token::Equal, _) => Ok(QueryArgumentOperation::Equal(
+                self.parse_query_argument_value()?,
+            )),
+            (Token::NotEqual, _) => Ok(QueryArgumentOperation::NotEqual(
+                self.parse_query_argument_value()?,
+            )),
+            (Token::Greater, _) => Ok(QueryArgumentOperation::Greater(self.parse_number()?)),
+            (Token::GreaterEqual, _) => {
+                Ok(QueryArgumentOperation::GreaterEqual(self.parse_number()?))
+            }
+            (Token::Less, _) => Ok(QueryArgumentOperation::Less(self.parse_number()?)),
+            (Token::LessEqual, _) => Ok(QueryArgumentOperation::LessEqual(self.parse_number()?)),
+            (Token::Tilde, _) => Ok(QueryArgumentOperation::Match(self.parse_regex()?)),
+            (Token::NotTilde, _) => Ok(QueryArgumentOperation::NotMatch(self.parse_regex()?)),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+        }
+    }
+
+    /// # Grammar
+    /// `QUERY_ARGUMENT_VALUE -> string | number | boolean | null`
+    fn parse_query_argument_value(&mut self) -> Result<QueryArgumentValue<'src>> {
+        match self.next_token()? {
+            (Token::String(value), _) => Ok(QueryArgumentValue::String(value)),
+            (Token::Number(value), _) => Ok(QueryArgumentValue::Number(value)),
+            (Token::Bool(value), _) => Ok(QueryArgumentValue::Bool(value)),
+            (Token::Null, _) => Ok(QueryArgumentValue::Null),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+        }
+    }
+    /// # Grammar
+    /// `NUMBER -> number`
+    fn parse_number(&mut self) -> Result<f64> {
+        match self.next_token()? {
+            (Token::Number(value), _) => Ok(value),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+        }
+    }
+
+    /// # Grammar
+    /// `REGEX -> regex`
+    fn parse_regex(&mut self) -> Result<Regex> {
+        match self.next_token()? {
+            (Token::String(value), span) => {
+                Regex::new(value).map_err(|err| Error::Regex(err, span))
+            }
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+        }
+    }
 }
 
+// TODO this should be parametrized for T: Into<&'a str> or smth like that
 impl<'a> TryFrom<&'a str> for Query<'a> {
     type Error = Error;
 

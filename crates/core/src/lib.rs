@@ -8,7 +8,6 @@ pub mod query;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    // TODO: change this construction error? that groups parsing + validation errors?
     #[error("Error while parsing query: {0}")]
     Parser(#[from] parser::Error),
     #[error("Error while deserializing json: {0}")]

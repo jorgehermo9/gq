@@ -27,9 +27,41 @@ pub enum Token<'src> {
     Dot,
     #[token(":")]
     Colon,
+    #[token(",")]
+    Comma,
+    #[token("=")]
+    Equal,
+    #[token("!=")]
+    NotEqual,
+    #[token(">")]
+    Greater,
+    #[token(">=")]
+    GreaterEqual,
+    #[token("<")]
+    Less,
+    #[token("<=")]
+    LessEqual,
+    #[token("~")]
+    Tilde,
+    #[token("!~")]
+    NotTilde,
     // TODO: allow for more chars
     #[regex(r"[a-zA-Z_]\w*")]
     Key(&'src str),
+    // Values
+    #[token("false", |_| false)]
+    #[token("true", |_| true)]
+    Bool(bool),
+    // Got from https://logos.maciej.codes/examples/json.html, didn't even mind to understand it
+    // TODO: the unwrap is ok here? the regex should be valid for the f64 parsing
+    #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
+    Number(f64),
+    // Ssee https://github.com/maciejhirsz/logos/issues/133
+    // This supports both single and double quoted strings
+    #[regex(r#"(?:"(?:[^"]|\\")*"|'(?:[^']|\\')*')"#, |lex| &lex.slice()[1..lex.slice().len() - 1])]
+    String(&'src str),
+    #[token("null")]
+    Null,
     EOF,
 }
 
@@ -41,7 +73,20 @@ pub enum OwnedToken {
     RParen,
     Dot,
     Colon,
+    Comma,
+    Equal,
+    NotEqual,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+    Tilde,
+    NotTilde,
     Key(String),
+    Bool(bool),
+    Number(f64),
+    String(String),
+    Null,
     EOF,
 }
 
@@ -54,7 +99,20 @@ impl Display for OwnedToken {
             OwnedToken::RParen => write!(f, ")"),
             OwnedToken::Dot => write!(f, "."),
             OwnedToken::Colon => write!(f, ":"),
+            OwnedToken::Comma => write!(f, ","),
+            OwnedToken::Equal => write!(f, "="),
+            OwnedToken::NotEqual => write!(f, "!="),
+            OwnedToken::Greater => write!(f, ">"),
+            OwnedToken::GreaterEqual => write!(f, ">="),
+            OwnedToken::Less => write!(f, "<"),
+            OwnedToken::LessEqual => write!(f, "<="),
+            OwnedToken::Tilde => write!(f, "~"),
+            OwnedToken::NotTilde => write!(f, "!~"),
             OwnedToken::Key(key) => write!(f, "{key}"),
+            OwnedToken::Bool(b) => write!(f, "{b}"),
+            OwnedToken::Number(n) => write!(f, "{n}"),
+            OwnedToken::String(s) => write!(f, "{s}"),
+            OwnedToken::Null => write!(f, "null"),
             OwnedToken::EOF => write!(f, "EOF"),
         }
     }
@@ -69,7 +127,20 @@ impl From<Token<'_>> for OwnedToken {
             Token::RParen => OwnedToken::RParen,
             Token::Dot => OwnedToken::Dot,
             Token::Colon => OwnedToken::Colon,
+            Token::Comma => OwnedToken::Comma,
+            Token::Equal => OwnedToken::Equal,
+            Token::NotEqual => OwnedToken::NotEqual,
+            Token::Greater => OwnedToken::Greater,
+            Token::GreaterEqual => OwnedToken::GreaterEqual,
+            Token::Less => OwnedToken::Less,
+            Token::LessEqual => OwnedToken::LessEqual,
+            Token::Tilde => OwnedToken::Tilde,
+            Token::NotTilde => OwnedToken::NotTilde,
             Token::Key(key) => OwnedToken::Key(key.to_string()),
+            Token::Bool(b) => OwnedToken::Bool(b),
+            Token::Number(n) => OwnedToken::Number(n),
+            Token::String(s) => OwnedToken::String(s.to_string()),
+            Token::Null => OwnedToken::Null,
             Token::EOF => OwnedToken::EOF,
         }
     }
