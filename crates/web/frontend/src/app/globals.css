@@ -17,7 +17,7 @@
     --success: #8BAE82;
     --error: #f8d7da;
 
-    --muted-transparent: #9b99921a;
+    --muted-transparent: #9b99920f;
 
     --radius: 0.5rem;
   }
@@ -36,7 +36,7 @@
     --success: #8BAE82;
     --error: #983636;
 
-    --muted-transparent: #9b99921a;
+    --muted-transparent: #9b99920f;
   }
 }
 
@@ -52,12 +52,15 @@
   }
 }
 
-.neuton {
-  font-family: var(--font-neuton);
-}
-
 textarea {
   resize: none;
+}
+
+code {
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  background-color: var(--muted-transparent);
+  padding: 0 0.4rem;
 }
 
 body::before {

@@ -11,8 +11,7 @@ export const defaultSetting: CreateThemeOptions["settings"] = {
 	gutterBackground: "var(--background)",
 	gutterForeground: "var(--foreground)",
 	gutterActiveForeground: "var(--foreground)",
-	fontFamily:
-		'Menlo, Monaco, Consolas, "Andale Mono", "Ubuntu Mono", "Courier New", monospace',
+	fontFamily: "var(--font-mono)"
 };
 
 export function gqThemeInit(options?: Partial<CreateThemeOptions>) {

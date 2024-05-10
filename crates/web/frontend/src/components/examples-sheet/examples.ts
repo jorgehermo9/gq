@@ -55,6 +55,7 @@ const propertyAccessing: ExampleSection = {
 };
 
 const arrayFiltering: ExampleSection = {
+
     title: "Array filtering",
     json: {
         id: "Test",
