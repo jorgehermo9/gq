@@ -1,39 +1,38 @@
-use std::fs;
+use clap::{Parser, ValueEnum};
+use clio::{Input, Output};
+use serde_json::Value;
+use std::io::{BufReader, Read, Write};
+
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+#[clap(name = "gq")]
+struct Args {
+    /// JSON Input file, use '-' for stdin
+    #[clap(value_parser, default_value = "-")]
+    input: Input,
+
+    #[clap(long, short, value_parser)]
+    query_file: Option<Input>,
+
+    #[clap(long, short, value_parser)]
+    inline_query: Option<String>,
+    /// JSON Output file '-' for stdout
+    #[clap(long, short, value_parser, default_value = "-")]
+    output: Output,
+}
+
+fn get_input_json(input: Input) -> Result<Value, serde_json::Error> {
+    let buffered_reader = BufReader::new(input);
+    let input_json = serde_json::from_reader(buffered_reader)?;
+    Ok(input_json)
+}
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // configure log at INFO
-    std::env::set_var("RUST_LOG", "info");
-    pretty_env_logger::init();
+    let args = Args::parse();
+    let mut input = args.input;
+    let mut output = args.output;
 
-    let query_file = "example.gq";
-    let json_file = "example.json";
-    let query = fs::read_to_string(query_file)?;
-    let json = fs::read_to_string(json_file)?;
-    let result = gq_core::entrypoint(&query, &json);
+    let input_json = get_input_json(input)?;
 
-    match result {
-        Ok(query) => println!("{}", serde_json::to_string_pretty(&query).unwrap()),
-        Err(err) => {
-            use ariadne::{ColorGenerator, Label, Report, ReportKind, Source};
-
-            let mut colors = ColorGenerator::new();
-
-            let a = colors.next();
-            let span = if let gq_core::Error::Parser(err) = &err {
-                err.span().clone()
-            } else {
-                0..0
-            };
-            Report::build(ReportKind::Error, &query_file, span.start)
-                .with_message("Invalid GQ".to_string())
-                .with_label(
-                    Label::new((&query_file, span))
-                        .with_message(err.to_string())
-                        .with_color(a),
-                )
-                .finish()
-                .eprint((&query_file, Source::from(query)))
-                .unwrap();
-        }
-    };
     Ok(())
 }
