@@ -1,7 +1,7 @@
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 use clio::{Input, Output};
 use serde_json::Value;
-use std::io::{BufReader, Read, Write};
+use std::io::BufReader;
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
@@ -22,17 +22,13 @@ struct Args {
     output: Output,
 }
 
-fn get_input_json(input: Input) -> Result<Value, serde_json::Error> {
-    let buffered_reader = BufReader::new(input);
-    let input_json = serde_json::from_reader(buffered_reader)?;
-    Ok(input_json)
-}
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-    let mut input = args.input;
+    let input = BufReader::new(args.input);
     let mut output = args.output;
 
-    let input_json = get_input_json(input)?;
+    // TODO: remove this type annotation
+    let input_json: Value = serde_json::from_reader(input)?;
 
     Ok(())
 }
