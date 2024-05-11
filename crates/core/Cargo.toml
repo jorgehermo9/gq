@@ -10,5 +10,5 @@ derive_more = "0.99.17"
 log = "0.4.21"
 logos = "0.14.0"
 regex = "1.10.4"
-serde_json = "1.0.115"
+serde_json = { workspace = true }
 thiserror = "1.0.58"
