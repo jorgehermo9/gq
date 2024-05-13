@@ -22,6 +22,7 @@ pub fn format_query(query: &str, indent: usize) -> Result<String, JsError> {
 }
 
 fn pretty_format_json(value: &Value, indent: usize) -> Result<String, JsError> {
+    // TODO: use the pretty format trait from core
     if indent == 0 {
         return Ok(value.to_string());
     }

@@ -1,5 +1,7 @@
 use std::collections::HashSet;
+use std::default;
 use std::fmt::{self, Display, Formatter};
+use std::num::NonZeroUsize;
 
 use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
@@ -9,6 +11,8 @@ pub mod apply;
 mod context;
 pub mod query_arguments;
 mod query_key;
+
+use crate::format::{self, Indentation, PrettyFormat};
 
 pub use self::context::OwnedJsonPath;
 use self::query_arguments::QueryArguments;
@@ -132,18 +136,20 @@ impl<'a> ChildQuery<'a> {
 
 impl Display for Query<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let formatted = self.pretty_format(2);
+        let default_indentation: Indentation = Indentation::Spaces(NonZeroUsize::new(2).unwrap());
+        let formatted = match self.pretty_format(&default_indentation) {
+            Ok(formatted) => formatted,
+            Err(error) => panic!("Error formatting query: {error}"),
+        };
         formatted.fmt(f)
     }
 }
 
-impl Query<'_> {
+impl PrettyFormat for Query<'_> {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
-    pub fn pretty_format(&self, indent: usize) -> String {
+    fn pretty_format(&self, indentation: &Indentation) -> Result<String, format::Error> {
         let mut result = String::new();
-
-        let sep = if indent == 0 { ' ' } else { '\n' };
 
         let arguments = self.arguments();
         if !arguments.0.is_empty() {
@@ -153,30 +159,31 @@ impl Query<'_> {
         if !key.keys().is_empty() {
             if self.children().is_empty() {
                 result.push_str(&key.to_string());
-                return result;
+                return Ok(result);
             }
             result.push_str(&format!("{key} "));
         } else if self.children().is_empty() {
             result.push_str("{ }");
-            return result;
+            return Ok(result);
         }
 
-        result.push_str(&format!("{{{sep}"));
+        result.push_str(&format!("{{{}", indentation.level_separator()));
         for child in self.children() {
-            child.do_pretty_format(&mut result, indent, 1, sep);
+            child.do_pretty_format(&mut result, indentation, 1);
         }
         result.push('}');
 
-        result
+        Ok(result)
     }
 }
 impl ChildQuery<'_> {
-    fn do_pretty_format(&self, result: &mut String, indent: usize, level: usize, sep: char) {
-        let indentation = " ".repeat(indent * level);
+    fn do_pretty_format(&self, result: &mut String, indentation: &Indentation, level: usize) {
+        let indent_string = indentation.at_level(level);
+        let sep = indentation.level_separator();
 
         let query_key = self.key();
 
-        result.push_str(&format!("{indentation}{query_key}"));
+        result.push_str(&format!("{indent_string}{query_key}"));
         if let Some(alias) = self.alias() {
             result.push_str(&format!(": {alias}"));
         }
@@ -184,9 +191,9 @@ impl ChildQuery<'_> {
         if !self.children().is_empty() {
             result.push_str(&format!(" {{{sep}"));
             for child in self.children() {
-                child.do_pretty_format(result, indent, level + 1, sep);
+                child.do_pretty_format(result, indentation, level + 1);
             }
-            result.push_str(&format!("{indentation}}}{sep}"));
+            result.push_str(&format!("{indent_string}}}{sep}"));
         } else {
             result.push(sep);
         }
