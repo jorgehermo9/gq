@@ -5,7 +5,7 @@
 @layer base {
   :root {
     --background: #f0eee5;
-    --foreground: #373325;
+    --foreground: #141413;
     --accent: #D19781;
     --accent-background: #d1c2bb;
     --muted: #dbd8d1;
@@ -23,13 +23,13 @@
   }
 
   .dark {
-    --background: #1d1c16;
-    --foreground: #f2ecd4;
+    --background: #141413;
+    --foreground: #f6f2e2;
     --accent: #D19781;
     --accent-background: #4b3730;
     --muted: #3e3d34;
 
-    --code-primary: #c5bfaa;
+    --code-primary: #d0cab7;
     --code-secondary: #D19781;
     --code-tertiary: #B46141;
 
@@ -63,7 +63,7 @@ code {
   padding: 0 0.4rem;
 }
 
-body::before {
+/* body::before {
   content: "";
   position: fixed;
   top: 0;
@@ -73,7 +73,7 @@ body::before {
   background: url(https://grainy-gradients.vercel.app/noise.svg);
   filter: blur(0.5px);
   opacity: 0.2;
-}
+} */
 
 [data-type="success"]>[data-icon] {
   color: var(--success);

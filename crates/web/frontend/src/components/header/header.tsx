@@ -11,11 +11,11 @@ const Header = ({ onClickExample }: Props) => {
 	return (
 		<header className="w-full px-8 flex items-center justify-between mb-8">
 			<ExamplesSheet onClickExample={onClickExample} />
-			<h1 className="relative items-end text-5xl font-extrabold">
-				<span className="font-serif">
-					GQ <span className="font-normal">Playground</span>
+			<h1 className="relative items-end text-5xl">
+				<span className="font-bold">
+					GQ <span className="font-normal tracking-tight">Playground</span>
 				</span>
-				<Badge variant="secondary" className="absolute left-full bottom-4 ml-4">
+				<Badge variant="secondary" className="absolute left-full bottom-2 ml-4">
 					beta
 				</Badge>
 			</h1>
