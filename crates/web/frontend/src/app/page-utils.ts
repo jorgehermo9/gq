@@ -6,18 +6,19 @@ export const applyGq = async (
 	inputQuery: string,
 	tabSize: number,
 	gqWorker: PromiseWorker,
+	silent = false,
 ): Promise<string> => {
-	const toastId = toast.loading("Applying query to JSON...");
+	const toastId = silent ? undefined : toast.loading("Applying query to JSON...");
 	try {
 		const result = await gqWorker.postMessage({
 			query: inputQuery,
 			json: inputJson,
 			indent: tabSize,
 		});
-		toast.success("Query applied to JSON", { id: toastId });
+		!silent && toast.success("Query applied to JSON", { id: toastId });
 		return result;
 	} catch (err) {
-		toast.error("Error while applying query to JSON", {
+		!silent && toast.error("Error while applying query to JSON", {
 			id: toastId,
 			duration: 5000,
 		});

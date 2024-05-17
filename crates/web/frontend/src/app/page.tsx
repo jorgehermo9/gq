@@ -34,6 +34,7 @@ const Home = () => {
 					inputQuery,
 					jsonTabSize,
 					gqWorker,
+					autoApply && debounceTime < 500,
 				);
 				setErrorMessage(undefined);
 				setOutputJson(result);
@@ -41,7 +42,7 @@ const Home = () => {
 				setErrorMessage(err.message);
 			}
 		},
-		[gqWorker, jsonTabSize],
+		[gqWorker, jsonTabSize, autoApply, debounceTime],
 	);
 
 	const onClickExample = useCallback(
