@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::fmt::{self, Display, Formatter};
+use std::io;
 
 use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
@@ -172,6 +173,17 @@ impl PrettyFormat for Query<'_> {
         result.push('}');
 
         Ok(result)
+    }
+
+    // TODO: refactor this, so the main logic in written into a writer
+    // such as we do in the pretty_format of the serde_json::Value
+    fn pretty_format_to_writer<W: io::Write>(
+        &self,
+        mut writer: W,
+        indentation: &Indentation,
+    ) -> Result<(), format::Error> {
+        let formatted = self.pretty_format(indentation)?;
+        Ok(writer.write_all(formatted.as_bytes())?)
     }
 }
 impl ChildQuery<'_> {

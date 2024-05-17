@@ -1,5 +1,6 @@
 use std::{
     fmt::{self, Display, Formatter},
+    io,
     num::NonZeroUsize,
 };
 use thiserror::Error;
@@ -7,7 +8,9 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("Unexpected error while formatting: {0}")]
-    Unexpected(Box<dyn std::error::Error>),
+    Unexpected(Box<dyn std::error::Error + Send + Sync>),
+    #[error("Unexpected IO error while formatting: {0}")]
+    Io(#[from] io::Error),
 }
 
 pub enum Indentation {
@@ -62,4 +65,9 @@ impl Display for Indentation {
 
 pub trait PrettyFormat {
     fn pretty_format(&self, indentation: &Indentation) -> Result<String, Error>;
+    fn pretty_format_to_writer<W: io::Write>(
+        &self,
+        writer: W,
+        indentation: &Indentation,
+    ) -> Result<(), Error>;
 }
