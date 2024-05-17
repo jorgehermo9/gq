@@ -147,7 +147,7 @@ impl Display for Query<'_> {
 impl PrettyFormat for Query<'_> {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
-    fn pretty_format(&self, indentation: &Indentation) -> Result<String, format::Error> {
+    fn pretty_format(&self, indentation: &Indentation) -> format::Result<String> {
         let mut result = String::new();
 
         let arguments = self.arguments();
@@ -181,7 +181,7 @@ impl PrettyFormat for Query<'_> {
         &self,
         mut writer: W,
         indentation: &Indentation,
-    ) -> Result<(), format::Error> {
+    ) -> format::Result<()> {
         let formatted = self.pretty_format(indentation)?;
         Ok(writer.write_all(formatted.as_bytes())?)
     }

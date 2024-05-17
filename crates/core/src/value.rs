@@ -6,7 +6,7 @@ use serde_json::{ser::PrettyFormatter, Serializer, Value};
 use crate::format::{self, Indentation, PrettyFormat};
 
 impl PrettyFormat for Value {
-    fn pretty_format(&self, indentation: &Indentation) -> Result<String, format::Error> {
+    fn pretty_format(&self, indentation: &Indentation) -> format::Result<String> {
         let mut buf = Vec::new();
         self.pretty_format_to_writer(&mut buf, indentation)?;
         Ok(String::from_utf8(buf)?)
@@ -16,7 +16,7 @@ impl PrettyFormat for Value {
         &self,
         writer: W,
         indentation: &Indentation,
-    ) -> Result<(), format::Error> {
+    ) -> format::Result<()> {
         if let Indentation::Inline = indentation {
             return Ok(serde_json::to_writer(writer, self)?);
         }

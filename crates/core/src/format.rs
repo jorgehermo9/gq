@@ -5,6 +5,7 @@ use std::{
 };
 use thiserror::Error;
 
+pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("Unexpected error while formatting: {0}")]
@@ -63,11 +64,12 @@ impl Display for Indentation {
     }
 }
 
+// TODO: have an alias for the format result`type Result<T> = std::result::Result<T, Error>;`
 pub trait PrettyFormat {
-    fn pretty_format(&self, indentation: &Indentation) -> Result<String, Error>;
+    fn pretty_format(&self, indentation: &Indentation) -> Result<String>;
     fn pretty_format_to_writer<W: io::Write>(
         &self,
         writer: W,
         indentation: &Indentation,
-    ) -> Result<(), Error>;
+    ) -> Result<()>;
 }
