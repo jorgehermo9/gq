@@ -1,4 +1,4 @@
-use std::io::{BufReader, Read};
+use std::io::{self, BufReader, Read};
 
 use clio::Input;
 
@@ -15,7 +15,7 @@ pub struct InputQueryArgs {
 }
 
 impl InputQueryArgs {
-    pub fn query(self) -> Result<String, clio::Error> {
+    pub fn input_query(self) -> Result<String, io::Error> {
         // panic if both are provided or none
         match (self.query_file, self.query) {
             (None, None) => panic!("No query provided"),
