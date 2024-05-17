@@ -28,6 +28,7 @@ fn main() -> Result<()> {
     // TODO: output a colored json
     let indentation = args.output_format.indentation();
     result.pretty_format_to_writer(output, &indentation)?;
+    println!();
 
     Ok(())
 }
