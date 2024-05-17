@@ -7,6 +7,9 @@ use crate::format::{self, Indentation, PrettyFormat};
 
 impl PrettyFormat for Value {
     fn pretty_format(&self, indentation: &Indentation) -> Result<String, format::Error> {
+        if let Indentation::Inline = indentation {
+            return Ok(serde_json::to_string(self)?);
+        }
         let mut buf = Vec::new();
         let indentation_fmt = indentation.to_string();
         let formatter = serde_json::ser::PrettyFormatter::with_indent(indentation_fmt.as_bytes());

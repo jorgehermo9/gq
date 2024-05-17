@@ -1,7 +1,5 @@
 use std::collections::HashSet;
-use std::default;
 use std::fmt::{self, Display, Formatter};
-use std::num::NonZeroUsize;
 
 use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
@@ -136,7 +134,7 @@ impl<'a> ChildQuery<'a> {
 
 impl Display for Query<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let default_indentation: Indentation = Indentation::Spaces(NonZeroUsize::new(2).unwrap());
+        let default_indentation: Indentation = Indentation::with_spaces(2);
         let formatted = match self.pretty_format(&default_indentation) {
             Ok(formatted) => formatted,
             Err(error) => panic!("Error formatting query: {error}"),

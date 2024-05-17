@@ -1,6 +1,8 @@
-use gq_core::query::Query;
-use serde::Serialize;
-use serde_json::{ser::PrettyFormatter, Serializer, Value};
+use gq_core::{
+    format::{Indentation, PrettyFormat},
+    query::Query,
+};
+use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -18,18 +20,11 @@ pub fn format_json(json: &str, indent: usize) -> Result<String, JsError> {
 #[wasm_bindgen]
 pub fn format_query(query: &str, indent: usize) -> Result<String, JsError> {
     let query = Query::try_from(query)?;
-    Ok(query.pretty_format(indent))
+    let indentation = Indentation::with_spaces(indent);
+    Ok(query.pretty_format(&indentation)?)
 }
 
 fn pretty_format_json(value: &Value, indent: usize) -> Result<String, JsError> {
-    // TODO: use the pretty format trait from core
-    if indent == 0 {
-        return Ok(value.to_string());
-    }
-    let mut buf = Vec::new();
-    let indent = " ".repeat(indent);
-    let formatter = PrettyFormatter::with_indent(indent.as_bytes());
-    let mut serializer = Serializer::with_formatter(&mut buf, formatter);
-    value.serialize(&mut serializer)?;
-    Ok(String::from_utf8(buf)?)
+    let indentation = Indentation::with_spaces(indent);
+    Ok(value.pretty_format(&indentation)?)
 }

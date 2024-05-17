@@ -19,21 +19,35 @@ pub enum Indentation {
 impl Indentation {
     pub fn symbol(&self) -> &str {
         match self {
-            Indentation::Spaces(_) => " ",
-            Indentation::Tabs(_) => "\t",
-            Indentation::Inline => "",
+            Self::Spaces(_) => " ",
+            Self::Tabs(_) => "\t",
+            Self::Inline => "",
         }
     }
 
     pub fn level_separator(&self) -> char {
         match self {
-            Indentation::Spaces(_) | Indentation::Tabs(_) => '\n',
-            Indentation::Inline => ' ',
+            Self::Spaces(_) | Self::Tabs(_) => '\n',
+            Self::Inline => ' ',
         }
     }
 
     pub fn at_level(&self, level: usize) -> String {
         self.to_string().repeat(level)
+    }
+
+    pub fn with_spaces(n: usize) -> Self {
+        match n {
+            0 => Self::Inline,
+            n => Self::Spaces(NonZeroUsize::new(n).unwrap()),
+        }
+    }
+
+    pub fn with_tabs(n: usize) -> Self {
+        match n {
+            0 => Self::Inline,
+            n => Self::Tabs(NonZeroUsize::new(n).unwrap()),
+        }
     }
 }
 
