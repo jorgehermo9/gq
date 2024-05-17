@@ -25,7 +25,8 @@ fn main() -> Result<()> {
 
     let result = query.apply(json_input)?;
 
-    let indentation = args.indentation.indentation();
+    // TODO: output a colored json
+    let indentation = args.output_format.indentation();
     result.pretty_format_to_writer(output, &indentation)?;
 
     Ok(())

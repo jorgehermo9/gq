@@ -2,11 +2,12 @@ use clap::Parser;
 use clap_verbosity_flag::Verbosity;
 use clio::{Input, Output};
 
-pub use self::indentation::IndentationArgs;
 pub use self::input_query::InputQueryArgs;
+pub use self::output_format::IndentationArgs;
+use self::output_format::OutputFormatArgs;
 
-mod indentation;
 mod input_query;
+mod output_format;
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
@@ -25,7 +26,7 @@ pub struct Args {
     pub query_group: InputQueryArgs,
 
     #[clap(flatten)]
-    pub indentation: IndentationArgs,
+    pub output_format: OutputFormatArgs,
 
     /// Verbosity level
     #[command(flatten)]
