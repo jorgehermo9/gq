@@ -15,7 +15,8 @@ pub enum Error {
     Io(#[from] io::Error),
 }
 
-#[derive(Debug,Clone,Copy)]
+// TODO: implement default for indentation, so it is not hardcoded Spaces(2)
+#[derive(Debug, Clone, Copy)]
 pub enum Indentation {
     Spaces(NonZeroUsize),
     Tabs(NonZeroUsize),

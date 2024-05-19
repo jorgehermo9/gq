@@ -135,6 +135,7 @@ impl<'a> ChildQuery<'a> {
 
 impl Display for Query<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        // TODO: implement default for indentation, so it is not hardcoded Spaces(2)
         let default_indentation: Indentation = Indentation::with_spaces(2);
         let formatted = match self.pretty_format(&default_indentation) {
             Ok(formatted) => formatted,

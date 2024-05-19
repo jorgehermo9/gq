@@ -9,7 +9,8 @@ pub struct OutputFormatArgs {
     pub compact: bool,
 
     // Colorize output JSON
-    #[clap(long, default_value = "auto")]
+    #[clap(long, default_value_t = Colored::Auto)]
+    #[arg(value_enum)]
     pub colored: Colored,
 }
 
