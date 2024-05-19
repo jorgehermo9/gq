@@ -66,10 +66,11 @@ impl Display for Indentation {
 
 // TODO: have an alias for the format result`type Result<T> = std::result::Result<T, Error>;`
 pub trait PrettyFormat {
-    fn pretty_format(&self, indentation: &Indentation) -> Result<String>;
+    fn pretty_format(&self, indentation: &Indentation, colored: bool) -> Result<String>;
     fn pretty_format_to_writer<W: io::Write>(
         &self,
         writer: W,
         indentation: &Indentation,
+        colored: bool
     ) -> Result<()>;
 }

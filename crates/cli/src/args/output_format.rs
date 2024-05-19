@@ -5,8 +5,11 @@ pub struct OutputFormatArgs {
     #[clap(flatten)]
     indentation: IndentationArgs,
     /// Compact output
-    #[clap(short, long, conflicts_with_all = &["indent", "tab"])]
+    #[clap(long, conflicts_with_all = &["indent", "tab"])]
     compact: bool,
+    // Colorize output JSON
+    #[clap(long)]
+    pub colored: bool,
 }
 
 impl OutputFormatArgs {
@@ -18,6 +21,7 @@ impl OutputFormatArgs {
         }
     }
 }
+
 #[derive(Debug, clap::Args)]
 pub struct IndentationArgs {
     /// Use tabs for indentation

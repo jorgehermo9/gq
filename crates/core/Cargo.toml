@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+colored_json = "5.0.0"
 derive-getters = "0.3.0"
 derive_builder = "0.20.0"
 derive_more = "0.99.17"

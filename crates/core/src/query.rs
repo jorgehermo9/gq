@@ -136,7 +136,7 @@ impl<'a> ChildQuery<'a> {
 impl Display for Query<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let default_indentation: Indentation = Indentation::with_spaces(2);
-        let formatted = match self.pretty_format(&default_indentation) {
+        let formatted = match self.pretty_format(&default_indentation, false) {
             Ok(formatted) => formatted,
             Err(error) => panic!("Error formatting query: {error}"),
         };
@@ -147,7 +147,7 @@ impl Display for Query<'_> {
 impl PrettyFormat for Query<'_> {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
-    fn pretty_format(&self, indentation: &Indentation) -> format::Result<String> {
+    fn pretty_format(&self, indentation: &Indentation, colored: bool) -> format::Result<String> {
         let mut result = String::new();
 
         let arguments = self.arguments();
@@ -181,8 +181,9 @@ impl PrettyFormat for Query<'_> {
         &self,
         mut writer: W,
         indentation: &Indentation,
+        colored: bool,
     ) -> format::Result<()> {
-        let formatted = self.pretty_format(indentation)?;
+        let formatted = self.pretty_format(indentation, colored)?;
         Ok(writer.write_all(formatted.as_bytes())?)
     }
 }

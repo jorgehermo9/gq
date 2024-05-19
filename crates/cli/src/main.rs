@@ -27,7 +27,7 @@ fn main() -> Result<()> {
 
     // TODO: output a colored json (see https://docs.rs/colored_json/5.0.0/colored_json/struct.PrettyFormatter.html)
     let indentation = args.output_format.indentation();
-    result.pretty_format_to_writer(output, &indentation)?;
+    result.pretty_format_to_writer(output, &indentation, args.output_format.colored)?;
     println!();
 
     Ok(())
