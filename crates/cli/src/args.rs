@@ -1,4 +1,5 @@
-use clap::Parser;
+use clap::builder::{styling, Styles};
+use clap::{command, Parser};
 use clap_verbosity_flag::Verbosity;
 use clio::{Input, Output};
 
@@ -11,6 +12,10 @@ pub mod output_format;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
+#[command(styles = Styles::styled()
+    .header(styling::AnsiColor::Yellow.on_default() | styling::Effects::BOLD)
+    .usage(styling::AnsiColor::Yellow.on_default() | styling::Effects::BOLD)
+    .literal(styling::AnsiColor::Green.on_default()))]
 #[clap(name = "gq")]
 pub struct Args {
     /// JSON Input file, use '-' for stdin
