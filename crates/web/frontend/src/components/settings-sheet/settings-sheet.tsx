@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import {
 	setAutoApply,
 	setDebounceTime,
+	setFormatOnImport,
 	setJsonTabSize,
 	setQueryTabSize,
 } from "@/model/settings";
@@ -63,7 +64,6 @@ const SettingsSheet = ({ className }: Props) => {
 							Auto apply
 						</Label>
 						<Switch
-							defaultChecked
 							id="auto-apply"
 							checked={autoApplySettings.autoApply}
 							onCheckedChange={(checked) =>
@@ -93,7 +93,8 @@ const SettingsSheet = ({ className }: Props) => {
 				</div>
 				<Separator />
 				<div className="flex flex-col gap-4 w-full">
-					<h2 className="text-md font-semibold">Formatting</h2>
+					<h2 className="text-md font-semibold">Indentation</h2>
+
 					<div className="flex gap-8 ml-4">
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="json-tab-size">JSON indent</Label>
@@ -137,6 +138,23 @@ const SettingsSheet = ({ className }: Props) => {
 								</SelectContent>
 							</Select>
 						</div>
+					</div>
+				</div>
+				<div className="mt-4 flex flex-col gap-4 w-full">
+					<div className="flex gap-4 items-center">
+						<Label
+							htmlFor="format-on-import"
+							className="text-md font-semibold cursor-pointer"
+						>
+							Format on import
+						</Label>
+						<Switch
+							id="format-on-import"
+							checked={formattingSettings.formatOnImport}
+							onCheckedChange={(checked) =>
+								setSettings((prev) => setFormatOnImport(prev, checked))
+							}
+						/>
 					</div>
 				</div>
 			</SheetContent>

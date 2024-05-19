@@ -16,10 +16,11 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
+import { importFile, importUrl } from "./import-utils";
 
 interface Props {
 	fileType: FileType;
-	onImportFile: (fileName: string) => void;
+	onImportFile: (content: string) => void;
 	hidden?: boolean;
 }
 
@@ -30,38 +31,16 @@ const ImportButton = ({ fileType, onImportFile, hidden = false }: Props) => {
 
 	const handleImportFile = async () => {
 		if (!file) return;
-		const reader = new FileReader();
-		reader.onload = () => {
-			const content = reader.result as string;
-			onImportFile(content);
-			toast.success("File imported successfully!");
-			setOpen(false);
-			setFile(undefined);
-		};
-		reader.readAsText(file);
+		importFile(file, onImportFile);
+		setOpen(false);
+		setFile(undefined);
 	};
 
 	const handleImportUrl = () => {
-		const toastId = toast.loading("Importing file...");
-		fetch(url)
-			.then((res) => {
-				if (res.status !== 200) {
-					throw new Error(`Received ${res.status}`);
-				}
-				return res.text();
-			})
-			.then((content) => {
-				onImportFile(content);
-				toast.success("File imported successfully!", { id: toastId });
-				setOpen(false);
-				setUrl("");
-			})
-			.catch((error) => {
-				toast.error(`Failed to import file: ${error.message}`, {
-					id: toastId,
-					duration: 5000,
-				});
-			});
+		if (!url) return;
+		importUrl(url, onImportFile);
+		setOpen(false);
+		setUrl("");
 	};
 
 	const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {

@@ -40,14 +40,14 @@ const Editor = ({
 	>();
 	const {
 		settings: {
-			formattingSettings: { jsonTabSize, queryTabSize },
+			formattingSettings: { formatOnImport, jsonTabSize, queryTabSize },
 		},
 	} = useSettings();
 	const { formatWorker } = useWorker();
 	const indentSize = fileType === FileType.JSON ? jsonTabSize : queryTabSize;
 	const available = value.length < 100000000;
 
-	const handleFormatCode = useCallback(async () => {
+	const handleFormatCode = useCallback(async (value: string) => {
 		if (!formatWorker) return;
 		try {
 			const result = await formatCode(
@@ -61,17 +61,21 @@ const Editor = ({
 		} catch (e) {
 			setFormatErrorMessage(e.message);
 		}
-	}, [fileType, indentSize, onChange, value, formatWorker]);
+	}, [fileType, indentSize, onChange, formatWorker]);
+
+	const handleImportFile = useCallback(async (content: string) => {
+		formatOnImport ? handleFormatCode(content) : onChange(content)
+	}, [formatOnImport, handleFormatCode, onChange]);
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
 			if (!isFocused) return;
 			if (event.ctrlKey && event.key === "s") {
 				event.preventDefault();
-				handleFormatCode();
+				handleFormatCode(value);
 			}
 		},
-		[isFocused, handleFormatCode],
+		[isFocused, handleFormatCode, value],
 	);
 
 	useEffect(() => {
@@ -91,8 +95,8 @@ const Editor = ({
 					defaultFileName={defaultFileName}
 					editable={editable}
 					onCopyToClipboard={() => copyToClipboard(value)}
-					onFormatCode={handleFormatCode}
-					onImportFile={onChange}
+					onFormatCode={() => handleFormatCode(value)}
+					onImportFile={(content) => handleImportFile(content)}
 					onExportFile={(fileName) => exportFile(value, fileName, fileType)}
 				/>
 			</div>
