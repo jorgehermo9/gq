@@ -89,10 +89,10 @@ const arrayFiltering: ExampleSection = {
             query: "products(quantity>=5)",
             title: "Numeric condition",
             description:
-                "Numeric filtering over the objects using any of the most common operators: `<`, `>`, `<=` or `>=`",
+                "Numeric filtering over the objects using any of the most common operators: `<` `>` `<=` or `>=`",
         },
         {
-            query: "products(name!~\"*3$\")",
+            query: "products(name~\".*3$\")",
             title: "Regex match",
             description: "String regex matching using the `~` or `!~` operators",
         },
