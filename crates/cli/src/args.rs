@@ -6,8 +6,8 @@ pub use self::input_query::InputQueryArgs;
 pub use self::output_format::IndentationArgs;
 use self::output_format::OutputFormatArgs;
 
-mod input_query;
-mod output_format;
+pub mod input_query;
+pub mod output_format;
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
@@ -23,7 +23,7 @@ pub struct Args {
     pub output: Output,
 
     #[clap(flatten)]
-    pub query_group: InputQueryArgs,
+    pub input_query: InputQueryArgs,
 
     #[clap(flatten)]
     pub output_format: OutputFormatArgs,

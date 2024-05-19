@@ -3,13 +3,14 @@ use gq_core::format::Indentation;
 #[derive(Debug, clap::Args)]
 pub struct OutputFormatArgs {
     #[clap(flatten)]
-    indentation: IndentationArgs,
+    pub indentation: IndentationArgs,
     /// Compact output
     #[clap(long, conflicts_with_all = &["indent", "tab"])]
-    compact: bool,
+    pub compact: bool,
+
     // Colorize output JSON
-    #[clap(long)]
-    pub colored: bool,
+    #[clap(long, default_value = "auto")]
+    pub colored: Colored,
 }
 
 impl OutputFormatArgs {
@@ -40,4 +41,11 @@ impl IndentationArgs {
             Indentation::with_spaces(self.indent)
         }
     }
+}
+
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum Colored {
+    Auto,
+    Always,
+    Never,
 }
