@@ -1,0 +1,14 @@
+{
+	"bill": {
+		"products": [
+			{
+				"product": "product1",
+				"price": 100
+			},
+			{
+				"product": "product2",
+				"price": 200
+			}
+		]
+	}
+}

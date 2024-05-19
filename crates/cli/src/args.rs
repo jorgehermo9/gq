@@ -9,7 +9,6 @@ use self::output_format::OutputFormatArgs;
 pub mod input_query;
 pub mod output_format;
 
-/// Simple program to greet a person
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 #[clap(name = "gq")]
