@@ -9,9 +9,9 @@ pub struct OutputFormatArgs {
     pub compact: bool,
 
     // Colorize output JSON
-    #[clap(long, default_value_t = Colored::Auto)]
+    #[clap(long, default_value_t = Color::Auto)]
     #[arg(value_enum)]
-    pub colored: Colored,
+    pub color: Color,
 }
 
 impl OutputFormatArgs {
@@ -45,7 +45,7 @@ impl IndentationArgs {
 }
 
 #[derive(Debug, Clone, clap::ValueEnum)]
-pub enum Colored {
+pub enum Color {
     Auto,
     Always,
     Never,

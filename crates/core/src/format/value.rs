@@ -16,21 +16,26 @@ impl PrettyFormat for Value {
         self.pretty_format_to_writer(&mut buf, indentation)?;
         Ok(String::from_utf8(buf)?)
     }
+
     fn pretty_format_to_writer<W: io::Write>(
         &self,
         writer: &mut W,
         indentation: &Indentation,
     ) -> format::Result<()> {
-        if let Indentation::Inline = indentation {
-            return Ok(serde_json::to_writer(writer, self)?);
+        match indentation {
+            Indentation::Inline => {
+                let formatter = CompactFormatter {};
+                serialize_with_formatter(self, writer, formatter)
+            }
+            Indentation::Spaces(_) | Indentation::Tabs(_) => {
+                let indentation_fmt = indentation.to_string();
+                let formatter = PrettyFormatter::with_indent(indentation_fmt.as_bytes());
+                serialize_with_formatter(self, writer, formatter)
+            }
         }
-        let indentation_fmt = indentation.to_string();
-        let formatter = PrettyFormatter::with_indent(indentation_fmt.as_bytes());
-        serialize_with_formatter(self, writer, formatter)
     }
 }
 
-// TODO: reduce code duplication of PrettyFormat and PrettyFormatColored
 impl PrettyFormatColored for Value {
     fn pretty_format_colored(&self, indentation: &Indentation) -> format::Result<String> {
         let mut buf = Vec::new();
@@ -57,6 +62,7 @@ impl PrettyFormatColored for Value {
         }
     }
 }
+
 fn serialize_with_formatter<W: io::Write, F: Formatter>(
     value: &Value,
     writer: &mut W,
