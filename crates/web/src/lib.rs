@@ -21,10 +21,10 @@ pub fn format_json(json: &str, indent: usize) -> Result<String, JsError> {
 pub fn format_query(query: &str, indent: usize) -> Result<String, JsError> {
     let query = Query::try_from(query)?;
     let indentation = Indentation::with_spaces(indent);
-    Ok(query.pretty_format(&indentation, false)?)
+    Ok(query.pretty_format(&indentation)?)
 }
 
 fn pretty_format_json(value: &Value, indent: usize) -> Result<String, JsError> {
     let indentation = Indentation::with_spaces(indent);
-    Ok(value.pretty_format(&indentation, false)?)
+    Ok(value.pretty_format(&indentation)?)
 }

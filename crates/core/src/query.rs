@@ -136,7 +136,7 @@ impl<'a> ChildQuery<'a> {
 impl Display for Query<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let default_indentation: Indentation = Indentation::with_spaces(2);
-        let formatted = match self.pretty_format(&default_indentation, false) {
+        let formatted = match self.pretty_format(&default_indentation) {
             Ok(formatted) => formatted,
             Err(error) => panic!("Error formatting query: {error}"),
         };
@@ -147,7 +147,8 @@ impl Display for Query<'_> {
 impl PrettyFormat for Query<'_> {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
-    fn pretty_format(&self, indentation: &Indentation, colored: bool) -> format::Result<String> {
+    // TODO: implemente the formatter pattern for here, with a visitor and etc as serde does
+    fn pretty_format(&self, indentation: &Indentation) -> format::Result<String> {
         let mut result = String::new();
 
         let arguments = self.arguments();
@@ -179,11 +180,10 @@ impl PrettyFormat for Query<'_> {
     // such as we do in the pretty_format of the serde_json::Value
     fn pretty_format_to_writer<W: io::Write>(
         &self,
-        mut writer: W,
+        writer: &mut W,
         indentation: &Indentation,
-        colored: bool,
     ) -> format::Result<()> {
-        let formatted = self.pretty_format(indentation, colored)?;
+        let formatted = self.pretty_format(indentation)?;
         Ok(writer.write_all(formatted.as_bytes())?)
     }
 }

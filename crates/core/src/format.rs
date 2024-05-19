@@ -5,6 +5,7 @@ use std::{
 };
 use thiserror::Error;
 
+mod value;
 pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Error, Debug)]
 pub enum Error {
@@ -14,6 +15,7 @@ pub enum Error {
     Io(#[from] io::Error),
 }
 
+#[derive(Debug,Clone,Copy)]
 pub enum Indentation {
     Spaces(NonZeroUsize),
     Tabs(NonZeroUsize),
@@ -66,11 +68,19 @@ impl Display for Indentation {
 
 // TODO: have an alias for the format result`type Result<T> = std::result::Result<T, Error>;`
 pub trait PrettyFormat {
-    fn pretty_format(&self, indentation: &Indentation, colored: bool) -> Result<String>;
+    fn pretty_format(&self, indentation: &Indentation) -> Result<String>;
     fn pretty_format_to_writer<W: io::Write>(
         &self,
-        writer: W,
+        writer: &mut W,
         indentation: &Indentation,
-        colored: bool
+    ) -> Result<()>;
+}
+
+pub trait PrettyFormatColored {
+    fn pretty_format_colored(&self, indentation: &Indentation) -> Result<String>;
+    fn pretty_format_colored_to_writer<W: io::Write>(
+        &self,
+        writer: &mut W,
+        indentation: &Indentation,
     ) -> Result<()>;
 }
