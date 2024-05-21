@@ -64,7 +64,8 @@ const Editor = ({
 	}, [fileType, indentSize, onChange, formatWorker]);
 
 	const handleImportFile = useCallback(async (content: string) => {
-		formatOnImport ? handleFormatCode(content) : onChange(content)
+		onChange(content);
+		formatOnImport && handleFormatCode(content);
 	}, [formatOnImport, handleFormatCode, onChange]);
 
 	const handleKeyDown = useCallback(

@@ -140,7 +140,7 @@ const SettingsSheet = ({ className }: Props) => {
 						</div>
 					</div>
 				</div>
-				<div className="mt-4 flex flex-col gap-4 w-full">
+				<div className="mt-8 flex flex-col gap-4 w-full">
 					<div className="flex gap-4 items-center">
 						<Label
 							htmlFor="format-on-import"
