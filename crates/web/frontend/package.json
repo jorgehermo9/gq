@@ -4,7 +4,8 @@
     "private": true,
     "scripts": {
         "dev": "just build-wasm && npm i gq-web && next dev",
-        "build": "just build-wasm && npm i gq-web && next build",
+        "build-local": "just build-wasm && npm i gq-web && next build",
+        "build": "npm i gq-web && next build",
         "start": "next start",
         "check": "biome check ./src --apply"
     },
