@@ -1,0 +1,6 @@
+services:
+  gq-playground:
+    build: ./
+    image: gq-playground
+    ports:
+      - 3000:3000
