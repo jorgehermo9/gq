@@ -1,6 +1,16 @@
-import type FileType from "@/model/file-type";
+import FileType from "@/model/file-type";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
+import { json } from "@codemirror/lang-json";
+import { LanguageSupport } from "@codemirror/language";
+import {
+	CompletionContext,
+	CompletionResult,
+	CompletionSource,
+	autocompletion,
+} from "@codemirror/autocomplete";
+import urlPlugin from "./url-plugin";
+import { Extension } from "@uiw/react-codemirror";
 
 export const exportFile = (
 	value: string,
@@ -41,4 +51,29 @@ export const formatCode = async (
 		toast.error(err.message, { id: toastId, duration: 5000 });
 		throw err;
 	}
+};
+
+const jsonLanguage = json();
+const gqLanguage = json();
+
+const getLanguageByFileType = (fileType: FileType): LanguageSupport => {
+	if (fileType === FileType.JSON) {
+		return jsonLanguage;
+	} else if (fileType === FileType.GQ) {
+		return gqLanguage;
+	}
+	throw new Error("Invalid file type");
+};
+
+export const getExtensionsByFileType = (
+	fileType: FileType,
+	autocompleteFn: CompletionSource,
+): Extension[] => {
+	const language = getLanguageByFileType(fileType);
+	if (fileType === FileType.JSON) {
+		return [language, urlPlugin];
+	} else if (fileType === FileType.GQ) {
+		return [language, autocompletion({ override: [autocompleteFn] })];
+	}
+	throw new Error("Invalid file type");
 };

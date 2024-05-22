@@ -1,12 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import PromiseWorker from "webworker-promise";
 
 export const WorkerContext = createContext<
 	| {
 			formatWorker: PromiseWorker | undefined;
 			gqWorker: PromiseWorker | undefined;
+			lspWorker: 		PromiseWorker | undefined;
 	  }
 	| undefined
 >(undefined);
@@ -30,20 +31,26 @@ export const WorkerProvider = ({ children }: Props) => {
 	const [gqWorker, setGqWorker] = useState<PromiseWorker | undefined>(
 		undefined,
 	);
+	const [lspWorker, setLspWorker] = useState<PromiseWorker | undefined>(
+		undefined,
+	);
 
 	useEffect(() => {
 		setFormatWorker(
 			new PromiseWorker(
-				new Worker(new URL("../lib/format.ts", import.meta.url)),
+				new Worker(new URL("../worker/format.ts", import.meta.url)),
 			),
 		);
 		setGqWorker(
-			new PromiseWorker(new Worker(new URL("../lib/gq.ts", import.meta.url))),
+			new PromiseWorker(new Worker(new URL("../worker/gq.ts", import.meta.url))),
+		);
+		setLspWorker(
+			new PromiseWorker(new Worker(new URL("../worker/lsp.ts", import.meta.url))),
 		);
 	}, []);
 
 	return (
-		<WorkerContext.Provider value={{ formatWorker, gqWorker }}>
+		<WorkerContext.Provider value={{ formatWorker, gqWorker, lspWorker }}>
 			{children}
 		</WorkerContext.Provider>
 	);

@@ -1,8 +1,11 @@
+use lsp::completion_item::{CompletionItem, CompletionItemBuilder};
 use query::Query;
+use rowan::{TextRange, TextSize};
 use serde_json::Value;
 use thiserror::Error;
 
 pub mod lexer;
+pub mod lsp;
 pub mod parser;
 pub mod query;
 
@@ -24,4 +27,19 @@ pub fn entrypoint(query: &str, json: &str) -> Result<Value, Error> {
     let json: Value = serde_json::from_str(json)?;
     let query_result = query.apply(json)?;
     Ok(query_result)
+}
+
+pub fn completions(query: &str, position: u32, trigger: char) -> Vec<CompletionItem> {
+    let item = CompletionItemBuilder::default()
+        .source_range(TextRange::new(
+            TextSize::new(position),
+            TextSize::new(position),
+        ))
+        .completion("Test".to_string())
+        .label("Hello".to_string())
+        .detail("Hello World".to_string())
+        .documentation("Hello World".to_string())
+        .build()
+        .unwrap();
+    vec![item]
 }

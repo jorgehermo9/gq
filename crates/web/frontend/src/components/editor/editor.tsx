@@ -6,12 +6,20 @@ import { useWorker } from "@/providers/worker-provider";
 import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
 import { Eraser } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
-import { copyToClipboard, exportFile, formatCode } from "./editor-utils";
+import {
+	copyToClipboard,
+	exportFile,
+	formatCode,
+	getExtensionsByFileType,
+} from "./editor-utils";
 import styles from "./editor.module.css";
 import urlPlugin from "./url-plugin";
+import { CompletionContext, CompletionSource } from "@codemirror/autocomplete";
+import { MockCompletion } from "gq-web";
+import { Completion } from "@/model/completion";
 
 interface Props {
 	value: string;
@@ -43,30 +51,36 @@ const Editor = ({
 			formattingSettings: { formatOnImport, jsonTabSize, queryTabSize },
 		},
 	} = useSettings();
-	const { formatWorker } = useWorker();
+	const { formatWorker, lspWorker } = useWorker();
 	const indentSize = fileType === FileType.JSON ? jsonTabSize : queryTabSize;
 	const available = value.length < 100000000;
 
-	const handleFormatCode = useCallback(async (value: string) => {
-		if (!formatWorker) return;
-		try {
-			const result = await formatCode(
-				value,
-				fileType,
-				indentSize,
-				formatWorker,
-			);
-			setFormatErrorMessage(undefined);
-			onChange(result);
-		} catch (e) {
-			setFormatErrorMessage(e.message);
-		}
-	}, [fileType, indentSize, onChange, formatWorker]);
+	const handleFormatCode = useCallback(
+		async (value: string) => {
+			if (!formatWorker) return;
+			try {
+				const result = await formatCode(
+					value,
+					fileType,
+					indentSize,
+					formatWorker,
+				);
+				setFormatErrorMessage(undefined);
+				onChange(result);
+			} catch (e) {
+				setFormatErrorMessage(e.message);
+			}
+		},
+		[fileType, indentSize, onChange, formatWorker],
+	);
 
-	const handleImportFile = useCallback(async (content: string) => {
-		onChange(content);
-		formatOnImport && handleFormatCode(content);
-	}, [formatOnImport, handleFormatCode, onChange]);
+	const handleImportFile = useCallback(
+		async (content: string) => {
+			onChange(content);
+			formatOnImport && handleFormatCode(content);
+		},
+		[formatOnImport, handleFormatCode, onChange],
+	);
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
@@ -78,6 +92,28 @@ const Editor = ({
 		},
 		[isFocused, handleFormatCode, value],
 	);
+
+	const autocompleteGq: CompletionSource = async (context: CompletionContext) => {
+		if (!lspWorker) return null;
+		if (context.explicit) return null;
+		const trigger = context.matchBefore(/./);
+		if (trigger?.text !== ".") return null;
+		const completionItems: Completion[] = await lspWorker.postMessage({
+			query: value,
+			position: trigger.from,
+			trigger: trigger.text
+		});
+		return {
+			from: trigger.to,
+			options: completionItems.map((item) => ({
+				type: "text",
+				apply: item.completion,
+				label: item.label,
+				from: item.from,
+				to: item.to,
+			})),
+		};
+	};
 
 	useEffect(() => {
 		document.addEventListener("keydown", handleKeyDown);
@@ -125,9 +161,13 @@ const Editor = ({
 						onChange={onChange}
 						height="100%"
 						theme={gqTheme}
-						extensions={[json(), urlPlugin]}
+						extensions={getExtensionsByFileType(
+							fileType,
+							fileType === FileType.GQ ? autocompleteGq : undefined,
+						)}
 						editable={editable}
 						basicSetup={{
+							autocompletion: true,
 							lineNumbers: true,
 							lintKeymap: true,
 						}}
