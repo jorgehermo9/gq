@@ -1,4 +1,7 @@
-use clap::builder::{styling::{AnsiColor, Effects}, Styles};
+use clap::builder::{
+    styling::{AnsiColor, Effects},
+    Styles,
+};
 use clap::{command, Parser};
 use clap_verbosity_flag::Verbosity;
 use clio::{Input, Output};
@@ -22,7 +25,7 @@ pub struct Args {
     #[clap(long, short, value_parser, default_value = "-")]
     pub input: Input,
 
-    /// JSON Output file '-' for stdout
+    /// JSON Output file,use  '-' for stdout
     #[clap(long, short, value_parser, default_value = "-")]
     pub output: Output,
 

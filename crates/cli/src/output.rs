@@ -12,12 +12,12 @@ pub trait WriteValue {
 
 impl WriteValue for Output {
     fn write_value(self, value: &Value, output_format: &OutputFormatArgs) -> format::Result<()> {
-        let colored = &output_format.color;
+        let color = &output_format.color;
         let indentation = &output_format.indentation();
         let is_tty = self.is_tty();
         let mut buf_writer = BufWriter::new(self);
 
-        match colored {
+        match color {
             Color::Auto => {
                 if is_tty {
                     value.pretty_format_colored_to_writer(&mut buf_writer, indentation)?
@@ -25,9 +25,7 @@ impl WriteValue for Output {
                     value.pretty_format_to_writer(&mut buf_writer, indentation)?
                 }
             }
-            Color::Always => {
-                value.pretty_format_colored_to_writer(&mut buf_writer, indentation)?
-            }
+            Color::Always => value.pretty_format_colored_to_writer(&mut buf_writer, indentation)?,
             Color::Never => value.pretty_format_to_writer(&mut buf_writer, indentation)?,
         };
 
