@@ -1,2 +1,1 @@
-/target
-crates/web/frontend/pkg
+target/
