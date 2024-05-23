@@ -1,16 +1,17 @@
 import FileType from "@/model/file-type";
-import { toast } from "sonner";
-import type PromiseWorker from "webworker-promise";
-import { json } from "@codemirror/lang-json";
-import { LanguageSupport } from "@codemirror/language";
 import {
 	CompletionContext,
 	CompletionResult,
-	CompletionSource,
+	type CompletionSource,
 	autocompletion,
 } from "@codemirror/autocomplete";
+import { json } from "@codemirror/lang-json";
+import type { LanguageSupport } from "@codemirror/language";
+import type { Extension } from "@uiw/react-codemirror";
+import { toast } from "sonner";
+import type PromiseWorker from "webworker-promise";
 import urlPlugin from "./url-plugin";
-import { Extension } from "@uiw/react-codemirror";
+import { getAutocompleteGqFn } from "./editor-completions";
 
 export const exportFile = (
 	value: string,
@@ -59,7 +60,8 @@ const gqLanguage = json();
 const getLanguageByFileType = (fileType: FileType): LanguageSupport => {
 	if (fileType === FileType.JSON) {
 		return jsonLanguage;
-	} else if (fileType === FileType.GQ) {
+	}
+	if (fileType === FileType.GQ) {
 		return gqLanguage;
 	}
 	throw new Error("Invalid file type");
@@ -67,13 +69,14 @@ const getLanguageByFileType = (fileType: FileType): LanguageSupport => {
 
 export const getExtensionsByFileType = (
 	fileType: FileType,
-	autocompleteFn: CompletionSource,
+	lspWorker: PromiseWorker | undefined,
 ): Extension[] => {
 	const language = getLanguageByFileType(fileType);
 	if (fileType === FileType.JSON) {
 		return [language, urlPlugin];
-	} else if (fileType === FileType.GQ) {
-		return [language, autocompletion({ override: [autocompleteFn] })];
+	}
+	if (fileType === FileType.GQ) {
+		return [language, autocompletion({ override: [getAutocompleteGqFn(lspWorker)] })];
 	}
 	throw new Error("Invalid file type");
 };

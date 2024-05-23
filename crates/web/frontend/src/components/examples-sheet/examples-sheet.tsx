@@ -9,16 +9,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { CircleHelp } from "lucide-react";
 import { useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
-import { Separator } from "../ui/separator";
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from "../ui/sheet";
-import { type Example, type ExampleSection, queryExamples } from "./examples";
+import SimpleEditor from "../editor/simple-editor";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -29,7 +20,16 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "../ui/alert-dialog";
-import SimpleEditor from "../editor/simple-editor";
+import { Separator } from "../ui/separator";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "../ui/sheet";
+import { type Example, type ExampleSection, queryExamples } from "./examples";
 
 interface ExampleItemDescriptionProps {
 	description: string;

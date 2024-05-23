@@ -8,6 +8,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { Eraser } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ActionButton from "../action-button/action-button";
+import { getAutocompleteGqFn } from "./editor-completions";
 import EditorMenu from "./editor-menu";
 import {
 	copyToClipboard,
@@ -16,10 +17,6 @@ import {
 	getExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
-import urlPlugin from "./url-plugin";
-import { CompletionContext, CompletionSource } from "@codemirror/autocomplete";
-import { MockCompletion } from "gq-web";
-import { Completion } from "@/model/completion";
 
 interface Props {
 	value: string;
@@ -93,28 +90,6 @@ const Editor = ({
 		[isFocused, handleFormatCode, value],
 	);
 
-	const autocompleteGq: CompletionSource = async (context: CompletionContext) => {
-		if (!lspWorker) return null;
-		if (context.explicit) return null;
-		const trigger = context.matchBefore(/./);
-		if (trigger?.text !== ".") return null;
-		const completionItems: Completion[] = await lspWorker.postMessage({
-			query: value,
-			position: trigger.from,
-			trigger: trigger.text
-		});
-		return {
-			from: trigger.to,
-			options: completionItems.map((item) => ({
-				type: "text",
-				apply: item.completion,
-				label: item.label,
-				from: item.from,
-				to: item.to,
-			})),
-		};
-	};
-
 	useEffect(() => {
 		document.addEventListener("keydown", handleKeyDown);
 		return () => document.removeEventListener("keydown", handleKeyDown);
@@ -161,10 +136,7 @@ const Editor = ({
 						onChange={onChange}
 						height="100%"
 						theme={gqTheme}
-						extensions={getExtensionsByFileType(
-							fileType,
-							fileType === FileType.GQ ? autocompleteGq : undefined,
-						)}
+						extensions={getExtensionsByFileType(fileType, lspWorker)}
 						editable={editable}
 						basicSetup={{
 							autocompletion: true,

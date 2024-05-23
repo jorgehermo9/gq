@@ -51,7 +51,10 @@ const setDebounceTime = (
 	};
 };
 
-const setFormatOnImport = (settings: Settings, formatOnImport: boolean): Settings => {
+const setFormatOnImport = (
+	settings: Settings,
+	formatOnImport: boolean,
+): Settings => {
 	return {
 		...settings,
 		formattingSettings: {
@@ -59,7 +62,7 @@ const setFormatOnImport = (settings: Settings, formatOnImport: boolean): Setting
 			formatOnImport,
 		},
 	};
-}
+};
 
 const setJsonTabSize = (settings: Settings, jsonTabSize: number): Settings => {
 	return {

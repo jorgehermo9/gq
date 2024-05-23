@@ -1,5 +1,5 @@
-import { Completion } from "@/model/completion";
-import init, { completions, JsCompletionItem } from "gq-web";
+import type { Completion } from "@/model/completion";
+import init, { completions, type JsCompletionItem } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
 
 interface Message {

@@ -7,7 +7,7 @@ export const WorkerContext = createContext<
 	| {
 			formatWorker: PromiseWorker | undefined;
 			gqWorker: PromiseWorker | undefined;
-			lspWorker: 		PromiseWorker | undefined;
+			lspWorker: PromiseWorker | undefined;
 	  }
 	| undefined
 >(undefined);
@@ -42,10 +42,14 @@ export const WorkerProvider = ({ children }: Props) => {
 			),
 		);
 		setGqWorker(
-			new PromiseWorker(new Worker(new URL("../worker/gq.ts", import.meta.url))),
+			new PromiseWorker(
+				new Worker(new URL("../worker/gq.ts", import.meta.url)),
+			),
 		);
 		setLspWorker(
-			new PromiseWorker(new Worker(new URL("../worker/lsp.ts", import.meta.url))),
+			new PromiseWorker(
+				new Worker(new URL("../worker/lsp.ts", import.meta.url)),
+			),
 		);
 	}, []);
 
