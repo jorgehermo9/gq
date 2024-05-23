@@ -82,10 +82,11 @@ const Editor = ({
 	);
 
 	const handleChangeFileType = useCallback(async (fileType: FileType) => {
-		if (!converterWorker) return;
+		if (!converterWorker || !formatWorker) return;
 		setCurrentFileType(fileType);
-		const convertedValue = await convertCode(value, currentFileType, fileType, converterWorker);
-		onChange(convertedValue);
+		const convertedValue = await convertCode(value, fileType, converterWorker);
+		const formatedValue = await formatCode(convertedValue, fileType, indentSize, formatWorker);
+		onChange(formatedValue);
 	}, [onChange, converterWorker, value, currentFileType]);
 
 	const handleKeyDown = useCallback(

@@ -11,8 +11,8 @@ import { useCallback, useState } from "react";
 import { applyGq } from "./page-utils";
 
 const Home = () => {
-	const [inputJson, setInputJson] = useState<string>('{"test": 1213}');
-	const [inputQuery, setInputQuery] = useState<string>("{}");
+	const [inputJson, setInputJson] = useState<string>('{}');
+	const [inputQuery, setInputQuery] = useState<string>("");
 	const [outputJson, setOutputJson] = useState<string>("");
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(
 		undefined,

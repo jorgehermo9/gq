@@ -57,7 +57,7 @@ export const WorkerProvider = ({ children }: Props) => {
 		);
 		setConverterWorker(
 			new PromiseWorker(
-				new Worker(new URL("../worker/converter.ts", import.meta.url)),
+				new Worker(new URL("../worker/convert.ts", import.meta.url)),
 			),
 		);
 	}, []);

@@ -11,4 +11,5 @@ crate-type = ["cdylib"]
 wasm-bindgen = "0.2.92"
 gq-core = { path = "../core" }
 serde_json = { workspace = true }
+serde_yaml = { workspace = true }
 serde = "1.0.197"

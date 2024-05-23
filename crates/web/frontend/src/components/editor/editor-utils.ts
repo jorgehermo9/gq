@@ -49,18 +49,17 @@ export const formatCode = async (
 		throw err;
 	}
 };
+
 export const convertCode = async (
 	value: string,
-	from: FileType,
-	to: FileType,
+	type: FileType,
 	converterWorker: PromiseWorker,
 ): Promise<string> => {
 	const toastId = toast.loading("Converting code...");
 	try {
 		const response = await converterWorker.postMessage({
 			data: value,
-			from,
-			to,
+			type,
 		});
 		toast.success("Code converted!", { id: toastId });
 		return response;
@@ -69,7 +68,6 @@ export const convertCode = async (
 		throw err;
 	}
 }
-
 
 const jsonLanguage = json();
 const gqLanguage = json();
