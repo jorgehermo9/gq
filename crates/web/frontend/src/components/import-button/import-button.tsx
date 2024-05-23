@@ -17,6 +17,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { importFile, importUrl } from "./import-utils";
+import { getFileExtensions } from "@/model/file-type";
 
 interface Props {
 	fileType: FileType;
@@ -113,7 +114,7 @@ const ImportButton = ({ fileType, onImportFile, hidden = false }: Props) => {
 										id="file-import"
 										hidden
 										type="file"
-										accept={`.${fileType}`}
+										accept={getFileExtensions(fileType).map((ex) => `.${ex}`).join(",")}
 										onChange={(e) => {
 											setFile(e.target.files?.[0]);
 											e.target.value = "";

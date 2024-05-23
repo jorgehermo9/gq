@@ -84,9 +84,14 @@ const Editor = ({
 	const handleChangeFileType = useCallback(async (fileType: FileType) => {
 		if (!converterWorker || !formatWorker) return;
 		setCurrentFileType(fileType);
-		const convertedValue = await convertCode(value, fileType, converterWorker);
-		const formatedValue = await formatCode(convertedValue, fileType, indentSize, formatWorker);
-		onChange(formatedValue);
+		try {
+			const convertedValue = await convertCode(value, fileType, converterWorker);
+			const formattedValue = await formatCode(convertedValue, fileType, indentSize, formatWorker, true);
+			setEditorErrorMessage(undefined);
+			onChange(formattedValue);
+		} catch (e) {
+			setEditorErrorMessage(e.message);
+		}
 	}, [onChange, converterWorker, value, currentFileType]);
 
 	const handleKeyDown = useCallback(

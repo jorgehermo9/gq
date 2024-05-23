@@ -9,6 +9,7 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { useCallback, useState } from "react";
 import { applyGq } from "./page-utils";
+import { toast } from "sonner";
 
 const Home = () => {
 	const [inputJson, setInputJson] = useState<string>('{}');
@@ -26,7 +27,7 @@ const Home = () => {
 	const { gqWorker } = useWorker();
 
 	const updateOutputJson = useCallback(
-		async (inputJson: string, inputQuery: string) => {
+		async (inputJson: string, inputQuery: string, silent = false) => {
 			if (!gqWorker) return;
 			try {
 				const result = await applyGq(
@@ -34,7 +35,7 @@ const Home = () => {
 					inputQuery,
 					jsonTabSize,
 					gqWorker,
-					autoApply && debounceTime < 500,
+					silent || autoApply && debounceTime < 500,
 				);
 				setErrorMessage(undefined);
 				setOutputJson(result);
@@ -49,7 +50,8 @@ const Home = () => {
 		(json: string, query: string) => {
 			setInputJson(json);
 			setInputQuery(query);
-			!autoApply && updateOutputJson(json, query);
+			!autoApply && updateOutputJson(json, query, true);
+			toast.success("Example succesfully loaded!");
 		},
 		[autoApply, updateOutputJson],
 	);

@@ -34,18 +34,19 @@ export const formatCode = async (
 	fileType: FileType,
 	indentSize: number,
 	formatWorker: PromiseWorker,
+	silent = false,
 ): Promise<string> => {
-	const toastId = toast.loading("Formatting code...");
+	const toastId = silent ? undefined : toast.loading("Formatting code...");
 	try {
 		const response = await formatWorker.postMessage({
 			data: value,
 			indent: indentSize,
 			type: fileType,
 		});
-		toast.success("Code formatted!", { id: toastId });
+		!silent && toast.success("Code formatted!", { id: toastId });
 		return response;
 	} catch (err) {
-		toast.error(err.message, { id: toastId, duration: 5000 });
+		!silent && toast.error(err.message, { id: toastId, duration: 5000 });
 		throw err;
 	}
 };
