@@ -14,6 +14,7 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { getFileExtensions } from "@/model/file-type";
 
 interface Props {
 	defaultFileName: string;
@@ -61,7 +62,7 @@ const ExportButton = ({ defaultFileName, fileType, onExportFile }: Props) => {
 							onChange={(e) => setFileName(e.target.value)}
 						/>
 						<span className="absolute right-[1px] border border-accent-background py-2 px-4 h-9.5 rounded-r-md text-sm bg-accent-background">
-							.{fileType.toString()}
+							.{getFileExtensions(fileType)[0]}
 						</span>
 					</div>
 

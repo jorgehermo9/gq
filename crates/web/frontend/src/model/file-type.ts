@@ -11,7 +11,7 @@ export const getFileExtensions = (fileType: FileType): string[] => {
 		case FileType.GQ:
 			return ["gq"];
 		case FileType.YAML:
-			return ["yaml", "yml"];
+			return ["yml", "yaml"];
 	}
 }
 

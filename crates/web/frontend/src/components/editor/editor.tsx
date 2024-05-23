@@ -14,7 +14,7 @@ import {
 	copyToClipboard,
 	exportFile,
 	formatCode,
-	getExtensionsByFileType,
+	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
 import EditorTitle from "./editor-title";
@@ -148,7 +148,7 @@ const Editor = ({
 						onChange={onChange}
 						height="100%"
 						theme={gqTheme}
-						extensions={getExtensionsByFileType(currentFileType, lspWorker)}
+						extensions={getCodemirrorExtensionsByFileType(currentFileType, lspWorker)}
 						editable={editable}
 						basicSetup={{
 							autocompletion: true,

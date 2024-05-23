@@ -74,7 +74,7 @@ const jsonLanguage = json();
 const gqLanguage = json();
 const yamlLanguage = yaml();
 
-const getLanguageByFileType = (fileType: FileType): LanguageSupport => {
+const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport => {
 	switch (fileType) {
 		case FileType.JSON:
 			return jsonLanguage;
@@ -87,11 +87,11 @@ const getLanguageByFileType = (fileType: FileType): LanguageSupport => {
 	}
 };
 
-export const getExtensionsByFileType = (
+export const getCodemirrorExtensionsByFileType = (
 	fileType: FileType,
 	lspWorker: PromiseWorker | undefined,
 ): Extension[] => {
-	const language = getLanguageByFileType(fileType);
+	const language = getCodemirrorLanguageByFileType(fileType);
 	switch (fileType) {
 		case FileType.JSON:
 			return [language, urlPlugin];
