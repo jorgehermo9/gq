@@ -1,11 +1,7 @@
 import FileType from "@/model/file-type";
-import {
-	CompletionContext,
-	CompletionResult,
-	type CompletionSource,
-	autocompletion,
-} from "@codemirror/autocomplete";
+import { autocompletion } from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
+import { yaml } from "@codemirror/lang-yaml";
 import type { LanguageSupport } from "@codemirror/language";
 import type { Extension } from "@uiw/react-codemirror";
 import { toast } from "sonner";
@@ -53,18 +49,43 @@ export const formatCode = async (
 		throw err;
 	}
 };
+export const convertCode = async (
+	value: string,
+	from: FileType,
+	to: FileType,
+	converterWorker: PromiseWorker,
+): Promise<string> => {
+	const toastId = toast.loading("Converting code...");
+	try {
+		const response = await converterWorker.postMessage({
+			data: value,
+			from,
+			to,
+		});
+		toast.success("Code converted!", { id: toastId });
+		return response;
+	} catch (err) {
+		toast.error(err.message, { id: toastId, duration: 5000 });
+		throw err;
+	}
+}
+
 
 const jsonLanguage = json();
 const gqLanguage = json();
+const yamlLanguage = yaml();
 
 const getLanguageByFileType = (fileType: FileType): LanguageSupport => {
-	if (fileType === FileType.JSON) {
-		return jsonLanguage;
+	switch (fileType) {
+		case FileType.JSON:
+			return jsonLanguage;
+		case FileType.GQ:
+			return gqLanguage;
+		case FileType.YAML:
+			return yamlLanguage;
+		default:
+			throw new Error("Invalid file type");
 	}
-	if (fileType === FileType.GQ) {
-		return gqLanguage;
-	}
-	throw new Error("Invalid file type");
 };
 
 export const getExtensionsByFileType = (
@@ -72,11 +93,14 @@ export const getExtensionsByFileType = (
 	lspWorker: PromiseWorker | undefined,
 ): Extension[] => {
 	const language = getLanguageByFileType(fileType);
-	if (fileType === FileType.JSON) {
-		return [language, urlPlugin];
+	switch (fileType) {
+		case FileType.JSON:
+			return [language, urlPlugin];
+		case FileType.GQ:
+			return [language, autocompletion({ override: [getAutocompleteGqFn(lspWorker)] })];
+		case FileType.YAML:
+			return [language, urlPlugin];
+		default:
+			throw new Error("Invalid file type");
 	}
-	if (fileType === FileType.GQ) {
-		return [language, autocompletion({ override: [getAutocompleteGqFn(lspWorker)] })];
-	}
-	throw new Error("Invalid file type");
 };

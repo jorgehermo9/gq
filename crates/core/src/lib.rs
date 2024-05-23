@@ -36,10 +36,21 @@ pub fn completions(query: &str, position: u32, trigger: char) -> Vec<CompletionI
             TextSize::new(position),
         ))
         .completion("Test".to_string())
-        .label("Hello".to_string())
+        .label("another_item".to_string())
         .detail("Hello World".to_string())
         .documentation("Hello World".to_string())
         .build()
         .unwrap();
-    vec![item]
+    let another_item = CompletionItemBuilder::default()
+        .source_range(TextRange::new(
+            TextSize::new(position),
+            TextSize::new(position),
+        ))
+        .completion("Test".to_string())
+        .label("item".to_string())
+        .detail("Hello World".to_string())
+        .documentation("Hello World".to_string())
+        .build()
+        .unwrap();
+    vec![item, another_item]
 }
