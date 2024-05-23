@@ -25,3 +25,29 @@ pub fn entrypoint(query: &str, json: &str) -> Result<Value, Error> {
     let query_result = query.apply(json)?;
     Ok(query_result)
 }
+
+pub fn completions(query: &str, position: u32, trigger: char) -> Vec<CompletionItem> {
+    let item = CompletionItemBuilder::default()
+        .source_range(TextRange::new(
+            TextSize::new(position),
+            TextSize::new(position),
+        ))
+        .completion("Test".to_string())
+        .label("another_item".to_string())
+        .detail("Hello World".to_string())
+        .documentation("Hello World".to_string())
+        .build()
+        .unwrap();
+    let another_item = CompletionItemBuilder::default()
+        .source_range(TextRange::new(
+            TextSize::new(position),
+            TextSize::new(position),
+        ))
+        .completion("Test".to_string())
+        .label("item".to_string())
+        .detail("Hello World".to_string())
+        .documentation("Hello World".to_string())
+        .build()
+        .unwrap();
+    vec![item, another_item]
+}

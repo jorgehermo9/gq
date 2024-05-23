@@ -69,17 +69,17 @@ const Home = () => {
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
 						value={inputJson}
 						onChange={setInputJson}
-						title="Input JSON"
+						title="Input"
 						defaultFileName="input"
-						fileType={FileType.JSON}
+						fileTypes={[FileType.JSON, FileType.YAML]}
 					/>
 					<Editor
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
 						value={inputQuery}
 						onChange={setInputQuery}
-						title="Input Query"
+						title="Input"
 						defaultFileName="query"
-						fileType={FileType.GQ}
+						fileTypes={[FileType.GQ]}
 					/>
 				</aside>
 				<ApplyButton
@@ -91,10 +91,10 @@ const Home = () => {
 						className="w-[44vw] h-[80vh]"
 						value={outputJson}
 						onChange={setOutputJson}
-						title="Output JSON"
+						title="Output"
 						editable={false}
 						defaultFileName="output"
-						fileType={FileType.JSON}
+						fileTypes={[FileType.JSON, FileType.YAML]}
 						errorMessage={errorMessage}
 					/>
 				</aside>

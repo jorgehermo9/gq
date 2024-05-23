@@ -56,3 +56,22 @@
 	opacity: 0;
 	visibility: hidden;
 }
+
+.languageToggle {
+	@apply pr-2 py-1 rounded-lg flex items-center justify-center gap-2 cursor-pointer select-none;
+
+	& span {
+		font-size: 1.125rem;
+		line-height: 1.75rem;
+		font-weight: 700;
+		transition: color 0.1s;
+
+		&[data-active="true"] {
+			color: var(--accent);
+		}
+
+		&[data-active="false"] {
+			color: var(--accent-background);
+		}
+	}
+}

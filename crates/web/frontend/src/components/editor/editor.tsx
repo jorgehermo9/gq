@@ -9,15 +9,27 @@ import { Eraser } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
+<<<<<<< Updated upstream
 import { copyToClipboard, exportFile, formatCode } from "./editor-utils";
 import styles from "./editor.module.css";
 import urlPlugin from "./url-plugin";
+=======
+import {
+	convertCode,
+	copyToClipboard,
+	exportFile,
+	formatCode,
+	getExtensionsByFileType,
+} from "./editor-utils";
+import styles from "./editor.module.css";
+import EditorTitle from "./editor-title";
+>>>>>>> Stashed changes
 
 interface Props {
 	value: string;
 	title: string;
 	defaultFileName: string;
-	fileType: FileType;
+	fileTypes: FileType[];
 	onChange: (value: string) => void;
 	className?: string;
 	errorMessage?: string;
@@ -28,14 +40,15 @@ const Editor = ({
 	value,
 	title,
 	defaultFileName,
-	fileType,
+	fileTypes,
 	onChange,
 	className,
 	errorMessage,
 	editable = true,
 }: Props) => {
 	const [isFocused, setIsFocused] = useState(false);
-	const [formatErrorMessage, setFormatErrorMessage] = useState<
+	const [currentFileType, setCurrentFileType] = useState<FileType>(fileTypes[0]);
+	const [editorErrorMessage, setEditorErrorMessage] = useState<
 		string | undefined
 	>();
 	const {
@@ -43,6 +56,7 @@ const Editor = ({
 			formattingSettings: { formatOnImport, jsonTabSize, queryTabSize },
 		},
 	} = useSettings();
+<<<<<<< Updated upstream
 	const { formatWorker } = useWorker();
 	const indentSize = fileType === FileType.JSON ? jsonTabSize : queryTabSize;
 	const available = value.length < 100000000;
@@ -62,11 +76,42 @@ const Editor = ({
 			setFormatErrorMessage(e.message);
 		}
 	}, [fileType, indentSize, onChange, formatWorker]);
+=======
+	const { formatWorker, lspWorker, converterWorker } = useWorker();
+	const indentSize = currentFileType === FileType.JSON ? jsonTabSize : queryTabSize;
+	const available = value.length < 100000000;
+
+	const handleFormatCode = useCallback(
+		async (value: string) => {
+			if (!formatWorker) return;
+			try {
+				const result = await formatCode(
+					value,
+					currentFileType,
+					indentSize,
+					formatWorker,
+				);
+				setEditorErrorMessage(undefined);
+				onChange(result);
+			} catch (e) {
+				setEditorErrorMessage(e.message);
+			}
+		},
+		[currentFileType, indentSize, onChange, formatWorker],
+	);
+>>>>>>> Stashed changes
 
 	const handleImportFile = useCallback(async (content: string) => {
 		onChange(content);
 		formatOnImport && handleFormatCode(content);
 	}, [formatOnImport, handleFormatCode, onChange]);
+
+	const handleChangeFileType = useCallback(async (fileType: FileType) => {
+		if (!converterWorker) return;
+		setCurrentFileType(fileType);
+		const convertedValue = await convertCode(value, currentFileType, fileType, converterWorker);
+		onChange(convertedValue);
+	}, [onChange, converterWorker, value, currentFileType]);
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
@@ -87,18 +132,15 @@ const Editor = ({
 	return (
 		<div className={cn("flex flex-col gap-2", className)}>
 			<div className="flex gap-4 items-center">
-				<h2 className="text-lg">
-					<span className="font-smibold">{title.split(" ")[0]}</span>
-					<span className="font-bold"> {title.split(" ")[1]}</span>
-				</h2>
+				<EditorTitle title={title} fileTypes={fileTypes} currentFileType={currentFileType} setFileType={handleChangeFileType} />
 				<EditorMenu
-					fileType={fileType}
+					fileType={currentFileType}
 					defaultFileName={defaultFileName}
 					editable={editable}
 					onCopyToClipboard={() => copyToClipboard(value)}
 					onFormatCode={() => handleFormatCode(value)}
 					onImportFile={(content) => handleImportFile(content)}
-					onExportFile={(fileName) => exportFile(value, fileName, fileType)}
+					onExportFile={(fileName) => exportFile(value, fileName, currentFileType)}
 				/>
 			</div>
 
@@ -109,14 +151,14 @@ const Editor = ({
 				className={`${styles.editor} relative h-full rounded-lg overflow-hidden`}
 			>
 				<div
-					data-visible={!editable && (!!errorMessage || !!formatErrorMessage)}
+					data-visible={!editable && (!!errorMessage || !!editorErrorMessage)}
 					className={styles["error-overlay"]}
 				/>
 				<span
-					data-visible={!!errorMessage || !!formatErrorMessage}
+					data-visible={!!errorMessage || !!editorErrorMessage}
 					className={styles["error-content"]}
 				>
-					{errorMessage || formatErrorMessage}
+					{errorMessage || editorErrorMessage}
 				</span>
 				{available ? (
 					<CodeMirror
@@ -125,7 +167,11 @@ const Editor = ({
 						onChange={onChange}
 						height="100%"
 						theme={gqTheme}
+<<<<<<< Updated upstream
 						extensions={[json(), urlPlugin]}
+=======
+						extensions={getExtensionsByFileType(currentFileType, lspWorker)}
+>>>>>>> Stashed changes
 						editable={editable}
 						basicSetup={{
 							lineNumbers: true,
