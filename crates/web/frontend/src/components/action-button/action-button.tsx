@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button, ButtonProps } from "@/components/ui/button";
 import {
 	HoverCard,
 	HoverCardContent,
@@ -12,7 +12,7 @@ import {
 	TooltipTrigger,
 } from "../ui/tooltip";
 
-interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface Props extends ButtonProps {
 	description: string;
 	side?: "top" | "bottom" | "left" | "right";
 	disabled?: boolean;
@@ -27,6 +27,7 @@ const ActionButton = ({
 	children,
 	className,
 	hidden,
+	variant = "outline",
 	...props
 }: Props) => {
 	return (
@@ -36,7 +37,7 @@ const ActionButton = ({
 					<TooltipTrigger asChild>
 						<Button
 							className={cn("w-fit h-fit", className)}
-							variant="outline"
+							variant={variant}
 							size="icon"
 							disabled={disabled}
 							{...props}

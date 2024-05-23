@@ -1,6 +1,7 @@
 import type FileType from "@/model/file-type";
 import styles from "./editor.module.css";
 import { useCallback } from "react";
+import ActionButton from "../action-button/action-button";
 
 interface Props {
 	title: string;
@@ -21,14 +22,14 @@ const EditorTitle = ({ title, fileTypes, currentFileType, setFileType }: Props) 
 				fileTypes.length === 1 ? (
 					<span className="text-lg font-bold text-accent"> {currentFileType.toUpperCase()}</span>
 				) : (
-					<div className={styles.languageToggle} onClick={handleClick}>
+					<ActionButton className={styles.languageToggle} onClick={handleClick} description="Change file type" variant="ghost">
 						<span data-active={fileTypes[0] === currentFileType}>
 							{fileTypes[0].toUpperCase()}
 						</span>
 						<span data-active={fileTypes[1] === currentFileType}>
 							{fileTypes[1].toUpperCase()}
 						</span>
-					</div>
+					</ActionButton>
 				)
 			}
 		</h2>
