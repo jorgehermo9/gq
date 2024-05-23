@@ -37,7 +37,7 @@ export default function RootLayout({
 					offset="32px"
 					duration={2000}
 					visibleToasts={4}
-					expand={true}
+					expand={false}
 					toastOptions={{
 						closeButton: false,
 						unstyled: true,

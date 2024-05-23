@@ -51,7 +51,7 @@ const Home = () => {
 			setInputJson(json);
 			setInputQuery(query);
 			!autoApply && updateOutputJson(json, query, true);
-			toast.success("Example succesfully loaded!");
+			toast.success("Example loaded!");
 		},
 		[autoApply, updateOutputJson],
 	);
