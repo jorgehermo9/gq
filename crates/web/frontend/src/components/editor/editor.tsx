@@ -3,17 +3,11 @@ import { cn } from "@/lib/utils";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
-import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
 import { Eraser } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
-<<<<<<< Updated upstream
-import { copyToClipboard, exportFile, formatCode } from "./editor-utils";
-import styles from "./editor.module.css";
-import urlPlugin from "./url-plugin";
-=======
 import {
 	convertCode,
 	copyToClipboard,
@@ -23,7 +17,6 @@ import {
 } from "./editor-utils";
 import styles from "./editor.module.css";
 import EditorTitle from "./editor-title";
->>>>>>> Stashed changes
 
 interface Props {
 	value: string;
@@ -56,27 +49,6 @@ const Editor = ({
 			formattingSettings: { formatOnImport, jsonTabSize, queryTabSize },
 		},
 	} = useSettings();
-<<<<<<< Updated upstream
-	const { formatWorker } = useWorker();
-	const indentSize = fileType === FileType.JSON ? jsonTabSize : queryTabSize;
-	const available = value.length < 100000000;
-
-	const handleFormatCode = useCallback(async (value: string) => {
-		if (!formatWorker) return;
-		try {
-			const result = await formatCode(
-				value,
-				fileType,
-				indentSize,
-				formatWorker,
-			);
-			setFormatErrorMessage(undefined);
-			onChange(result);
-		} catch (e) {
-			setFormatErrorMessage(e.message);
-		}
-	}, [fileType, indentSize, onChange, formatWorker]);
-=======
 	const { formatWorker, lspWorker, converterWorker } = useWorker();
 	const indentSize = currentFileType === FileType.JSON ? jsonTabSize : queryTabSize;
 	const available = value.length < 100000000;
@@ -99,12 +71,14 @@ const Editor = ({
 		},
 		[currentFileType, indentSize, onChange, formatWorker],
 	);
->>>>>>> Stashed changes
 
-	const handleImportFile = useCallback(async (content: string) => {
-		onChange(content);
-		formatOnImport && handleFormatCode(content);
-	}, [formatOnImport, handleFormatCode, onChange]);
+	const handleImportFile = useCallback(
+		async (content: string) => {
+			onChange(content);
+			formatOnImport && handleFormatCode(content);
+		},
+		[formatOnImport, handleFormatCode, onChange],
+	);
 
 	const handleChangeFileType = useCallback(async (fileType: FileType) => {
 		if (!converterWorker) return;
@@ -167,11 +141,7 @@ const Editor = ({
 						onChange={onChange}
 						height="100%"
 						theme={gqTheme}
-<<<<<<< Updated upstream
-						extensions={[json(), urlPlugin]}
-=======
 						extensions={getExtensionsByFileType(currentFileType, lspWorker)}
->>>>>>> Stashed changes
 						editable={editable}
 						basicSetup={{
 							lineNumbers: true,

@@ -5,17 +5,11 @@ import PromiseWorker from "webworker-promise";
 
 export const WorkerContext = createContext<
 	| {
-<<<<<<< Updated upstream
-			formatWorker: PromiseWorker | undefined;
-			gqWorker: PromiseWorker | undefined;
-	  }
-=======
 		formatWorker: PromiseWorker | undefined;
 		gqWorker: PromiseWorker | undefined;
 		lspWorker: PromiseWorker | undefined;
 		converterWorker: PromiseWorker | undefined;
 	}
->>>>>>> Stashed changes
 	| undefined
 >(undefined);
 
@@ -38,15 +32,12 @@ export const WorkerProvider = ({ children }: Props) => {
 	const [gqWorker, setGqWorker] = useState<PromiseWorker | undefined>(
 		undefined,
 	);
-<<<<<<< Updated upstream
-=======
 	const [lspWorker, setLspWorker] = useState<PromiseWorker | undefined>(
 		undefined,
 	);
 	const [converterWorker, setConverterWorker] = useState<PromiseWorker | undefined>(
 		undefined,
 	);
->>>>>>> Stashed changes
 
 	useEffect(() => {
 		setFormatWorker(
@@ -55,7 +46,14 @@ export const WorkerProvider = ({ children }: Props) => {
 			),
 		);
 		setGqWorker(
-			new PromiseWorker(new Worker(new URL("../lib/gq.ts", import.meta.url))),
+			new PromiseWorker(
+				new Worker(new URL("../worker/gq.ts", import.meta.url)),
+			),
+		);
+		setLspWorker(
+			new PromiseWorker(
+				new Worker(new URL("../worker/lsp.ts", import.meta.url)),
+			),
 		);
 		setConverterWorker(
 			new PromiseWorker(
@@ -65,11 +63,7 @@ export const WorkerProvider = ({ children }: Props) => {
 	}, []);
 
 	return (
-<<<<<<< Updated upstream
-		<WorkerContext.Provider value={{ formatWorker, gqWorker }}>
-=======
 		<WorkerContext.Provider value={{ formatWorker, gqWorker, lspWorker, converterWorker }}>
->>>>>>> Stashed changes
 			{children}
 		</WorkerContext.Provider>
 	);

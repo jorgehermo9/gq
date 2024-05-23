@@ -1,15 +1,13 @@
-<<<<<<< Updated upstream
-import type FileType from "@/model/file-type";
-=======
 import FileType from "@/model/file-type";
 import { autocompletion } from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
 import type { LanguageSupport } from "@codemirror/language";
 import type { Extension } from "@uiw/react-codemirror";
->>>>>>> Stashed changes
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
+import urlPlugin from "./url-plugin";
+import { getAutocompleteGqFn } from "./editor-completions";
 
 export const exportFile = (
 	value: string,
@@ -51,9 +49,6 @@ export const formatCode = async (
 		throw err;
 	}
 };
-<<<<<<< Updated upstream
-=======
-
 export const convertCode = async (
 	value: string,
 	from: FileType,
@@ -74,6 +69,7 @@ export const convertCode = async (
 		throw err;
 	}
 }
+
 
 const jsonLanguage = json();
 const gqLanguage = json();
@@ -108,4 +104,3 @@ export const getExtensionsByFileType = (
 			throw new Error("Invalid file type");
 	}
 };
->>>>>>> Stashed changes
