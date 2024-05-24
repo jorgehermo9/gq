@@ -1,15 +1,13 @@
 use lsp::completion_item::{CompletionItem, CompletionItemBuilder};
-use query::Query;
 use rowan::{TextRange, TextSize};
-use serde_json::Value;
 use thiserror::Error;
 
+pub mod data_type;
 pub mod format;
 pub mod lexer;
 pub mod lsp;
 pub mod parser;
 pub mod query;
-pub mod data_type;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -19,16 +17,6 @@ pub enum Error {
     Serde(#[from] serde_json::Error),
     #[error("Error while applying query: {0}")]
     ApplyQuery(#[from] query::apply::Error),
-}
-
-// TODO: be more generic over the input. Maybe someone wants to call this with an already
-// constructed Value, (for example, a web server) and we should not force them to
-// serialize it to a string and then parse it again.
-pub fn entrypoint(query: &str, json: &str) -> Result<Value, Error> {
-    let query = Query::try_from(query)?;
-    let json: Value = serde_json::from_str(json)?;
-    let query_result = query.apply(json)?;
-    Ok(query_result)
 }
 
 pub fn completions(query: &str, position: u32, trigger: char) -> Vec<CompletionItem> {
