@@ -1,39 +1,28 @@
-use std::fs;
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // configure log at INFO
-    std::env::set_var("RUST_LOG", "info");
-    pretty_env_logger::init();
+use anyhow::Result;
+use clap::Parser;
+use gq_cli::{args::Args, output::WriteValue};
+use gq_core::query::Query;
+use std::io::BufReader;
+/// Simple program to greet a person
 
-    let query_file = "example.gq";
-    let json_file = "example.json";
-    let query = fs::read_to_string(query_file)?;
-    let json = fs::read_to_string(json_file)?;
-    let result = gq_core::entrypoint(&query, &json);
+fn main() -> Result<()> {
+    let args = Args::parse();
 
-    match result {
-        Ok(query) => println!("{}", serde_json::to_string_pretty(&query).unwrap()),
-        Err(err) => {
-            use ariadne::{ColorGenerator, Label, Report, ReportKind, Source};
+    env_logger::Builder::new()
+        .filter_level(args.verbose.log_level_filter())
+        .init();
 
-            let mut colors = ColorGenerator::new();
+    let buf_input = BufReader::new(args.input);
 
-            let a = colors.next();
-            let span = if let gq_core::Error::Parser(err) = &err {
-                err.span().clone()
-            } else {
-                0..0
-            };
-            Report::build(ReportKind::Error, &query_file, span.start)
-                .with_message("Invalid GQ".to_string())
-                .with_label(
-                    Label::new((&query_file, span))
-                        .with_message(err.to_string())
-                        .with_color(a),
-                )
-                .finish()
-                .eprint((&query_file, Source::from(query)))
-                .unwrap();
-        }
-    };
+    let input_json = serde_json::from_reader(buf_input)?;
+    let input_query = args.input_query.input_query()?;
+
+    // TODO: modify the try_from to Into<&str> so this can be just `&query`
+    let query = Query::try_from(input_query.as_str())?;
+
+    let result = query.apply(input_json)?;
+
+    args.output.write_value(&result, &args.output_format)?;
+
     Ok(())
 }

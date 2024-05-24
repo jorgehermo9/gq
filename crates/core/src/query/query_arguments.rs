@@ -397,7 +397,10 @@ impl<'a> QueryArgument<'a> {
             Ok(value) => value,
             // TODO: only return null value for the KeyNotFound error?
             // TODO: the query inspection should not use InternalError, it is too generic
-            Err(InternalError::KeyNotFound(_)) => Self::DEFAULT_INSPECTED_VALUE,
+            Err(error @ InternalError::KeyNotFound(_)) => {
+                log::info!("{error}, using null value");
+                Self::DEFAULT_INSPECTED_VALUE
+            }
             Err(error) => return Err(error.into()),
         };
 

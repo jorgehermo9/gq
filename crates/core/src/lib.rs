@@ -4,6 +4,7 @@ use rowan::{TextRange, TextSize};
 use serde_json::Value;
 use thiserror::Error;
 
+pub mod format;
 pub mod lexer;
 pub mod lsp;
 pub mod parser;
