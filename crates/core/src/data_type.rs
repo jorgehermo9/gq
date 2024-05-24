@@ -6,10 +6,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("json parsing error: {0}")]
     Json(#[from] serde_json::Error),
-
     #[error("yaml parsing error: {0}")]
     Yaml(#[from] serde_yaml::Error),
-
     #[error("format error: {0}")]
     Format(#[from] format::Error),
 }
@@ -55,6 +53,7 @@ impl DataType {
     pub fn pretty_format(&self, value: &Value, indentation: &Indentation) -> Result<String, Error> {
         let result = match self {
             DataType::Json => value.pretty_format(indentation)?,
+            // TODO: the yaml pretty format is the default?
             DataType::Yaml => serde_yaml::to_string(&value)?,
         };
         Ok(result)
