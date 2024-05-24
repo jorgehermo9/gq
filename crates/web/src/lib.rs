@@ -1,21 +1,37 @@
+use data_type::JsDataType;
+use gq_core::data_type::DataType;
 use gq_core::format::{Indentation, PrettyFormat};
 use gq_core::query::Query;
 use lsp::JsCompletionItem;
 use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
-mod lsp;
+pub mod data_type;
+pub mod lsp;
 
 #[wasm_bindgen]
-pub fn gq(query: &str, json: &str, indent: usize) -> Result<String, JsError> {
-    let result = gq_core::entrypoint(query, json)?;
-    pretty_format_json(&result, indent)
+pub fn gq(
+    query: &str,
+    data: &str,
+    input_type: JsDataType,
+    output_type: JsDataType,
+    indent: usize,
+) -> Result<String, JsError> {
+    let query = Query::try_from(query)?;
+    let value = DataType::from(input_type).value_from_str(data)?;
+    let result = query.apply(value)?;
+
+    let indentation = Indentation::with_spaces(indent);
+    let output_type = DataType::from(output_type);
+    Ok(output_type.pretty_format(&result, &indentation)?)
 }
 
 #[wasm_bindgen]
-pub fn format_json(json: &str, indent: usize) -> Result<String, JsError> {
-    let value: Value = serde_json::from_str(json)?;
-    pretty_format_json(&value, indent)
+pub fn format_data(data: &str, data_type: JsDataType, indent: usize) -> Result<String, JsError> {
+    let data_type = DataType::from(data_type);
+    let value = data_type.value_from_str(data)?;
+    let indentation = Indentation::with_spaces(indent);
+    Ok(data_type.pretty_format(&value, &indentation)?)
 }
 
 #[wasm_bindgen]
@@ -26,15 +42,18 @@ pub fn format_query(query: &str, indent: usize) -> Result<String, JsError> {
 }
 
 #[wasm_bindgen]
-pub fn convert_to_yaml(json: &str) -> Result<String, JsError> {
-    let value: Value = serde_json::from_str(json)?;
-    Ok(serde_yaml::to_string(&value)?)
-}
+pub fn pretty_convert_to(
+    data: &str,
+    input_type: JsDataType,
+    output_type: JsDataType,
+    indent: usize,
+) -> Result<String, JsError> {
+    let input_type = DataType::from(input_type);
+    let output_type = DataType::from(output_type);
+    let indentation = Indentation::with_spaces(indent);
 
-#[wasm_bindgen]
-pub fn convert_to_json(yaml: &str) -> Result<String, JsError> {
-    let value: Value = serde_yaml::from_str(yaml)?;
-    Ok(serde_json::to_string(&value)?)
+    // TODO: should we pretty format here? In the frontend we will call to pretty format after this
+    Ok(input_type.pretty_convert_to(data, &output_type, &indentation)?)
 }
 
 #[wasm_bindgen]
@@ -43,9 +62,4 @@ pub fn completions(query: &str, position: u32, trigger: char) -> Vec<JsCompletio
         .into_iter()
         .map(JsCompletionItem::new)
         .collect()
-}
-
-fn pretty_format_json(value: &Value, indent: usize) -> Result<String, JsError> {
-    let indentation = Indentation::with_spaces(indent);
-    Ok(value.pretty_format(&indentation)?)
 }

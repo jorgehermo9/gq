@@ -9,6 +9,7 @@ pub mod lexer;
 pub mod lsp;
 pub mod parser;
 pub mod query;
+pub mod data_type;
 
 #[derive(Debug, Error)]
 pub enum Error {
