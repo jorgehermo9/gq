@@ -1,13 +1,17 @@
+import type { Data } from "@/model/data";
+import type FileType from "@/model/file-type";
 import init, { gq } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
 
 interface Message {
 	query: string;
-	json: string;
+	data: Data;
+	outputFileType: FileType;
 	indent: number;
 }
 
-registerWebworker(async ({ query, json, indent }: Message) => {
+registerWebworker(async ({ query, data, outputFileType, indent }: Message) => {
 	await init();
-	return gq(query, json, indent);
+	console.log(query, data.content, data.type, outputFileType, indent);
+	return gq(query, data.content, data.type, outputFileType, indent);
 });

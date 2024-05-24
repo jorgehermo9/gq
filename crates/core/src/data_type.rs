@@ -20,7 +20,7 @@ pub enum DataType {
 
 impl DataType {
     pub fn value_from_str(&self, data: &str) -> Result<Value, Error> {
-        let result = match self {
+        let result: Value = match self {
             DataType::Json => serde_json::from_str(data)?,
             DataType::Yaml => serde_yaml::from_str(data)?,
         };
@@ -54,7 +54,7 @@ impl DataType {
         let result = match self {
             DataType::Json => value.pretty_format(indentation)?,
             // TODO: the yaml pretty format is the default?
-            DataType::Yaml => serde_yaml::to_string(&value)?,
+            DataType::Yaml => serde_yaml::to_string(value)?,
         };
         Ok(result)
     }

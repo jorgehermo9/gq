@@ -24,7 +24,7 @@ import {
 	setAutoApply,
 	setDebounceTime,
 	setFormatOnImport,
-	setJsonTabSize,
+	setDataTabSize,
 	setQueryTabSize,
 } from "@/model/settings";
 import { useSettings } from "@/providers/settings-provider";
@@ -99,9 +99,9 @@ const SettingsSheet = ({ className }: Props) => {
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="json-tab-size">JSON indent</Label>
 							<Select
-								value={formattingSettings.jsonTabSize.toString()}
+								value={formattingSettings.dataTabSize.toString()}
 								onValueChange={(value) =>
-									setSettings((prev) => setJsonTabSize(prev, Number(value)))
+									setSettings((prev) => setDataTabSize(prev, Number(value)))
 								}
 							>
 								<SelectTrigger className="w-24">

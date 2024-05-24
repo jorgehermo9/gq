@@ -10,7 +10,7 @@ export type AutoApplySettings = {
 
 export type FormattingSettings = {
 	formatOnImport: boolean;
-	jsonTabSize: number;
+	dataTabSize: number;
 	queryTabSize: number;
 };
 
@@ -22,7 +22,7 @@ const getDefaultSettings = (): Settings => {
 		},
 		formattingSettings: {
 			formatOnImport: true,
-			jsonTabSize: 2,
+			dataTabSize: 2,
 			queryTabSize: 2,
 		},
 	};
@@ -64,12 +64,12 @@ const setFormatOnImport = (
 	};
 };
 
-const setJsonTabSize = (settings: Settings, jsonTabSize: number): Settings => {
+const setDataTabSize = (settings: Settings, dataTabSize: number): Settings => {
 	return {
 		...settings,
 		formattingSettings: {
 			...settings.formattingSettings,
-			jsonTabSize,
+			dataTabSize: dataTabSize,
 		},
 	};
 };
@@ -92,6 +92,6 @@ export {
 	setAutoApply,
 	setDebounceTime,
 	setFormatOnImport,
-	setJsonTabSize,
+	setDataTabSize,
 	setQueryTabSize,
 };

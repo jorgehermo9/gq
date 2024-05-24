@@ -1,9 +1,10 @@
 import ActionButton from "@/components/action-button/action-button";
 import { formatBytes } from "@/lib/utils";
+import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
+import { getFileExtensions } from "@/model/file-type";
 import { File, FileUp, Trash } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -17,29 +18,36 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { importFile, importUrl } from "./import-utils";
-import { getFileExtensions } from "@/model/file-type";
 
 interface Props {
-	fileType: FileType;
-	onImportFile: (content: string) => void;
+	importableType: FileType;
+	onImportFile: (data: Data) => void;
 	hidden?: boolean;
 }
 
-const ImportButton = ({ fileType, onImportFile, hidden = false }: Props) => {
+const ImportButton = ({
+	importableType,
+	onImportFile,
+	hidden = false,
+}: Props) => {
 	const [open, setOpen] = useState(false);
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<File>();
 
 	const handleImportFile = async () => {
 		if (!file) return;
-		importFile(file, onImportFile);
+		importFile(file, (fileContent) =>
+			onImportFile({ content: fileContent, type: importableType }),
+		);
 		setOpen(false);
 		setFile(undefined);
 	};
 
 	const handleImportUrl = () => {
 		if (!url) return;
-		importUrl(url, onImportFile);
+		importUrl(url, (fileContent) =>
+			onImportFile({ content: fileContent, type: importableType }),
+		);
 		setOpen(false);
 		setUrl("");
 	};
@@ -114,7 +122,9 @@ const ImportButton = ({ fileType, onImportFile, hidden = false }: Props) => {
 										id="file-import"
 										hidden
 										type="file"
-										accept={getFileExtensions(fileType).map((ex) => `.${ex}`).join(",")}
+										accept={getFileExtensions(importableType)
+											.map((ex) => `.${ex}`)
+											.join(",")}
 										onChange={(e) => {
 											setFile(e.target.files?.[0]);
 											e.target.value = "";

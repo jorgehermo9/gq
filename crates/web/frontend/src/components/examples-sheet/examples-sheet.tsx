@@ -30,6 +30,7 @@ import {
 	SheetTrigger,
 } from "../ui/sheet";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
+import { formatCode } from "../editor/editor-utils";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -98,7 +99,7 @@ const ExamplesSection = ({
 }: ExampleSectionProps) => {
 	const {
 		settings: {
-			formattingSettings: { jsonTabSize },
+			formattingSettings: { dataTabSize: jsonTabSize },
 		},
 	} = useSettings();
 
@@ -148,28 +149,17 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedExample, setSelectedExample] = useState<
 		| {
-				json: string;
-				query: string;
-		  }
+			json: string;
+			query: string;
+		}
 		| undefined
 	>();
 	const {
 		settings: {
-			formattingSettings: { jsonTabSize, queryTabSize },
+			formattingSettings: { dataTabSize, queryTabSize },
 		},
 	} = useSettings();
 	const { formatWorker } = useWorker();
-
-	const formatCode = useCallback(
-		(value: string, indentSize: number, fileType: FileType) => {
-			return formatWorker?.postMessage({
-				data: value,
-				indent: indentSize,
-				type: fileType,
-			});
-		},
-		[formatWorker],
-	);
 
 	const handleClick = useCallback((json: string, query: string) => {
 		setSelectedExample({ json, query });
@@ -178,20 +168,23 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 
 	const handleSubmit = useCallback(async () => {
 		if (!selectedExample) return;
+		if (!formatWorker) return;
 		const formattedJson = await formatCode(
-			selectedExample.json,
-			jsonTabSize,
-			FileType.JSON,
+			{ content: selectedExample.json, type: FileType.JSON },
+			dataTabSize,
+			formatWorker,
+			true
 		);
 		const formattedQuery = await formatCode(
-			selectedExample.query,
+			{ content: selectedExample.query, type: FileType.GQ },
 			queryTabSize,
-			FileType.GQ,
+			formatWorker,
+			true
 		);
 		setSheetOpen(false);
 		setDialogOpen(false);
 		onClickExample(formattedJson, formattedQuery);
-	}, [jsonTabSize, queryTabSize, formatCode, onClickExample, selectedExample]);
+	}, [dataTabSize, queryTabSize, onClickExample, selectedExample, formatWorker]);
 
 	return (
 		<>

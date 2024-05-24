@@ -1,20 +1,21 @@
-import FileType from "@/model/file-type";
-import init, { convert_to_json, convert_to_yaml, format_query } from "gq-web";
+import type { Data } from "@/model/data";
+import type FileType from "@/model/file-type";
+import { getDataType } from "@/model/file-type";
+import init, { convert_data_to } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
 
 interface Message {
-	data: string;
-	type: FileType;
+	data: Data;
+	outputType: FileType;
+	indent: number;
 }
 
-registerWebworker(async ({ data, type }: Message) => {
+registerWebworker(async ({ data, outputType, indent }: Message) => {
 	await init();
-	switch (type) {
-		case FileType.JSON:
-			return convert_to_json(data);
-		case FileType.YAML:
-			return convert_to_yaml(data);
-		default:
-			throw new Error("Invalid file type");
-	}
+	return convert_data_to(
+		data.content,
+		getDataType(data.type),
+		getDataType(outputType),
+		indent,
+	);
 });

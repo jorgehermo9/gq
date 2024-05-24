@@ -8,7 +8,7 @@ export const WorkerContext = createContext<
 		formatWorker: PromiseWorker | undefined;
 		gqWorker: PromiseWorker | undefined;
 		lspWorker: PromiseWorker | undefined;
-		converterWorker: PromiseWorker | undefined;
+		convertWorker: PromiseWorker | undefined;
 	}
 	| undefined
 >(undefined);
@@ -35,9 +35,9 @@ export const WorkerProvider = ({ children }: Props) => {
 	const [lspWorker, setLspWorker] = useState<PromiseWorker | undefined>(
 		undefined,
 	);
-	const [converterWorker, setConverterWorker] = useState<PromiseWorker | undefined>(
-		undefined,
-	);
+	const [convertWorker, setConvertWorker] = useState<
+		PromiseWorker | undefined
+	>(undefined);
 
 	useEffect(() => {
 		setFormatWorker(
@@ -55,7 +55,7 @@ export const WorkerProvider = ({ children }: Props) => {
 				new Worker(new URL("../worker/lsp.ts", import.meta.url)),
 			),
 		);
-		setConverterWorker(
+		setConvertWorker(
 			new PromiseWorker(
 				new Worker(new URL("../worker/convert.ts", import.meta.url)),
 			),
@@ -63,7 +63,9 @@ export const WorkerProvider = ({ children }: Props) => {
 	}, []);
 
 	return (
-		<WorkerContext.Provider value={{ formatWorker, gqWorker, lspWorker, converterWorker }}>
+		<WorkerContext.Provider
+			value={{ formatWorker, gqWorker, lspWorker, convertWorker }}
+		>
 			{children}
 		</WorkerContext.Provider>
 	);

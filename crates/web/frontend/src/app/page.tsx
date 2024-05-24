@@ -4,81 +4,138 @@ import ApplyButton from "@/components/apply-button/apply-button";
 import Editor from "@/components/editor/editor";
 import Header from "@/components/header/header";
 import useDebounce from "@/hooks/useDebounce";
+import { type Data, empty } from "@/model/data";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { useCallback, useState } from "react";
-import { applyGq } from "./page-utils";
 import { toast } from "sonner";
+import { applyGq, convertCode } from "./page-utils";
 
 const Home = () => {
-	const [inputJson, setInputJson] = useState<string>('{}');
-	const [inputQuery, setInputQuery] = useState<string>("");
-	const [outputJson, setOutputJson] = useState<string>("");
+	const [inputData, setInputData] = useState<Data>(empty(FileType.JSON));
+	const [inputQuery, setInputQuery] = useState<Data>(empty(FileType.GQ));
+	const [outputData, setOutputData] = useState<Data>(empty(FileType.JSON));
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(
 		undefined,
 	);
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
-			formattingSettings: { jsonTabSize },
+			formattingSettings: { dataTabSize },
 		},
 	} = useSettings();
-	const { gqWorker } = useWorker();
+	const { gqWorker, convertWorker } = useWorker();
 
-	const updateOutputJson = useCallback(
-		async (inputJson: string, inputQuery: string, silent = false) => {
+	const updateOutputData = useCallback(
+		async (inputData: Data, inputQuery: Data, silent = false) => {
 			if (!gqWorker) return;
 			try {
 				const result = await applyGq(
-					inputJson,
+					inputData,
 					inputQuery,
-					jsonTabSize,
+					outputData.type,
+					dataTabSize,
 					gqWorker,
-					silent || autoApply && debounceTime < 500,
+					silent || (autoApply && debounceTime < 500),
 				);
 				setErrorMessage(undefined);
-				setOutputJson(result);
+				setOutputData(result);
 			} catch (err) {
 				setErrorMessage(err.message);
 			}
 		},
-		[gqWorker, jsonTabSize, autoApply, debounceTime],
+		[gqWorker, dataTabSize, autoApply, debounceTime, outputData.type],
 	);
 
-	const onClickExample = useCallback(
+	const handleClickExample = useCallback(
 		(json: string, query: string) => {
-			setInputJson(json);
-			setInputQuery(query);
-			!autoApply && updateOutputJson(json, query, true);
+			const jsonData = { content: json, type: FileType.JSON };
+			const queryData = { content: query, type: FileType.GQ };
+			setInputData(jsonData);
+			setInputQuery(queryData);
+			!autoApply && updateOutputData(jsonData, queryData, true);
 			toast.success("Example loaded!");
 		},
-		[autoApply, updateOutputJson],
+		[autoApply, updateOutputData],
+	);
+
+	const handleChangeInputDataContent = useCallback(
+		(content: string) => setInputData({ ...inputData, content }),
+		[inputData],
+	);
+	const handleChangeInputQueryContent = useCallback(
+		(content: string) => setInputQuery({ ...inputQuery, content }),
+		[inputQuery],
+	);
+	const handleChangeOutputDataContent = useCallback(
+		(content: string) => setOutputData({ ...outputData, content }),
+		[outputData],
+	);
+
+	const handleChangeInputDataFileType = useCallback(
+		async (fileType: FileType) => {
+			console.log(fileType)
+			if (!convertWorker) return;
+			try {
+				const convertedData = await convertCode(
+					inputData,
+					fileType,
+					dataTabSize,
+					convertWorker,
+				);
+				setErrorMessage(undefined);
+				setInputData(convertedData);
+			} catch (e) {
+				setErrorMessage(e.message);
+			}
+		},
+		[inputData, dataTabSize, convertWorker],
+	);
+
+	const handleChangeOutputDataFileType = useCallback(
+		async (fileType: FileType) => {
+			if (!convertWorker) return;
+			try {
+				const convertedData = await convertCode(
+					outputData,
+					fileType,
+					dataTabSize,
+					convertWorker,
+				);
+				setErrorMessage(undefined);
+				setOutputData(convertedData);
+			} catch (e) {
+				setErrorMessage(e.message);
+			}
+		},
+		[outputData, dataTabSize, convertWorker],
 	);
 
 	useDebounce(
-		() => autoApply && updateOutputJson(inputJson, inputQuery),
+		() => autoApply && updateOutputData(inputData, inputQuery),
 		debounceTime,
-		[inputJson, inputQuery],
+		[inputData, inputQuery],
 	);
 
 	return (
 		<main className="flex flex-col items-center p-8 h-screen">
-			<Header onClickExample={onClickExample} />
+			<Header onClickExample={handleClickExample} />
 			<section className="mt-4 flex gap-8 items-center justify-center w-full h-[80vh]">
 				<aside className="w-[44vw] h-[80vh] flex flex-col gap-8">
 					<Editor
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
-						value={inputJson}
-						onChange={setInputJson}
+						data={inputData}
+						onChangeContent={handleChangeInputDataContent}
+						onChangeFileType={handleChangeInputDataFileType}
 						title="Input"
 						defaultFileName="input"
 						fileTypes={[FileType.JSON, FileType.YAML]}
 					/>
 					<Editor
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
-						value={inputQuery}
-						onChange={setInputQuery}
+						data={inputQuery}
+						onChangeContent={handleChangeInputQueryContent}
 						title="Input"
 						defaultFileName="query"
 						fileTypes={[FileType.GQ]}
@@ -86,13 +143,14 @@ const Home = () => {
 				</aside>
 				<ApplyButton
 					autoApply={autoApply}
-					onClick={() => updateOutputJson(inputJson, inputQuery)}
+					onClick={() => updateOutputData(inputData, inputQuery)}
 				/>
 				<aside className="w-[44vw] h-[80vh] flex flex-col">
 					<Editor
 						className="w-[44vw] h-[80vh]"
-						value={outputJson}
-						onChange={setOutputJson}
+						data={outputData}
+						onChangeContent={handleChangeOutputDataContent}
+						onChangeFileType={handleChangeOutputDataFileType}
 						title="Output"
 						editable={false}
 						defaultFileName="output"

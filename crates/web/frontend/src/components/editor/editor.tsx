@@ -1,108 +1,90 @@
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { type Data, empty } from "@/model/data";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import CodeMirror from "@uiw/react-codemirror";
 import { Eraser } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
-import { getAutocompleteGqFn } from "./editor-completions";
 import EditorMenu from "./editor-menu";
+import EditorTitle from "./editor-title";
 import {
-	convertCode,
 	copyToClipboard,
 	exportFile,
 	formatCode,
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
-import EditorTitle from "./editor-title";
 
 interface Props {
-	value: string;
+	data: Data;
 	title: string;
 	defaultFileName: string;
 	fileTypes: FileType[];
-	onChange: (value: string) => void;
+	onChangeContent: (content: string) => void;
+	onChangeFileType?: (fileType: FileType) => void;
 	className?: string;
 	errorMessage?: string;
 	editable?: boolean;
 }
 
 const Editor = ({
-	value,
+	data,
 	title,
 	defaultFileName,
 	fileTypes,
-	onChange,
+	onChangeContent,
+	onChangeFileType,
 	className,
 	errorMessage,
 	editable = true,
 }: Props) => {
 	const [isFocused, setIsFocused] = useState(false);
-	const [currentFileType, setCurrentFileType] = useState<FileType>(fileTypes[0]);
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
 		string | undefined
 	>();
 	const {
 		settings: {
-			formattingSettings: { formatOnImport, jsonTabSize, queryTabSize },
+			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },
 		},
 	} = useSettings();
-	const { formatWorker, lspWorker, converterWorker } = useWorker();
-	const indentSize = currentFileType === FileType.JSON ? jsonTabSize : queryTabSize;
-	const available = value.length < 100000000;
+	const { formatWorker, lspWorker } = useWorker();
+	const indentSize = data.type === FileType.GQ ? queryTabSize : dataTabSize;
+	const available = data.content.length < 100000000;
 
 	const handleFormatCode = useCallback(
-		async (value: string) => {
+		async (data: Data) => {
 			if (!formatWorker) return;
 			try {
-				const result = await formatCode(
-					value,
-					currentFileType,
-					indentSize,
-					formatWorker,
-				);
+				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
-				onChange(result);
+				onChangeContent(result);
 			} catch (e) {
 				setEditorErrorMessage(e.message);
 			}
 		},
-		[currentFileType, indentSize, onChange, formatWorker],
+		[indentSize, onChangeContent, formatWorker],
 	);
 
 	const handleImportFile = useCallback(
-		async (content: string) => {
-			onChange(content);
-			formatOnImport && handleFormatCode(content);
+		async (data: Data) => {
+			onChangeContent(data.content);
+			formatOnImport && handleFormatCode(data);
 		},
-		[formatOnImport, handleFormatCode, onChange],
+		[formatOnImport, handleFormatCode, onChangeContent],
 	);
-
-	const handleChangeFileType = useCallback(async (fileType: FileType) => {
-		if (!converterWorker || !formatWorker) return;
-		setCurrentFileType(fileType);
-		try {
-			const convertedValue = await convertCode(value, fileType, converterWorker);
-			const formattedValue = await formatCode(convertedValue, fileType, indentSize, formatWorker, true);
-			setEditorErrorMessage(undefined);
-			onChange(formattedValue);
-		} catch (e) {
-			setEditorErrorMessage(e.message);
-		}
-	}, [onChange, converterWorker, value, currentFileType]);
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
 			if (!isFocused) return;
 			if (event.ctrlKey && event.key === "s") {
 				event.preventDefault();
-				handleFormatCode(value);
+				handleFormatCode(data);
 			}
 		},
-		[isFocused, handleFormatCode, value],
+		[isFocused, handleFormatCode, data],
 	);
 
 	useEffect(() => {
@@ -113,15 +95,20 @@ const Editor = ({
 	return (
 		<div className={cn("flex flex-col gap-2", className)}>
 			<div className="flex gap-4 items-center">
-				<EditorTitle title={title} fileTypes={fileTypes} currentFileType={currentFileType} setFileType={handleChangeFileType} />
+				<EditorTitle
+					title={title}
+					fileTypes={fileTypes}
+					currentFileType={data.type}
+					setFileType={onChangeFileType}
+				/>
 				<EditorMenu
-					fileType={currentFileType}
-					defaultFileName={defaultFileName}
+					fileType={data.type}
+					defaultFilename={defaultFileName}
 					editable={editable}
-					onCopyToClipboard={() => copyToClipboard(value)}
-					onFormatCode={() => handleFormatCode(value)}
-					onImportFile={(content) => handleImportFile(content)}
-					onExportFile={(fileName) => exportFile(value, fileName, currentFileType)}
+					onCopyToClipboard={() => copyToClipboard(data)}
+					onFormatCode={() => handleFormatCode(data)}
+					onImportFile={(data) => handleImportFile(data)}
+					onExportFile={(filename) => exportFile(data, filename)}
 				/>
 			</div>
 
@@ -144,11 +131,11 @@ const Editor = ({
 				{available ? (
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"
-						value={value}
-						onChange={onChange}
+						value={data.content}
+						onChange={onChangeContent}
 						height="100%"
 						theme={gqTheme}
-						extensions={getCodemirrorExtensionsByFileType(currentFileType, lspWorker)}
+						extensions={getCodemirrorExtensionsByFileType(data.type, lspWorker)}
 						editable={editable}
 						basicSetup={{
 							autocompletion: true,
@@ -168,7 +155,7 @@ const Editor = ({
 						{editable && (
 							<ActionButton
 								className="py-2 px-4"
-								onClick={() => onChange("{}")}
+								onClick={() => onChangeContent(empty(data.type).content)}
 								description="Clear the input by deleting all the content"
 							>
 								<div className="flex gap-2">

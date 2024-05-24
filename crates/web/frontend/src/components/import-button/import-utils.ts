@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-export const importFile = (file: File, callback: (content: string) => void) => {
+export const importFile = (file: File, callback: (data: string) => void) => {
 	const reader = new FileReader();
 	reader.onload = () => {
 		const content = reader.result as string;

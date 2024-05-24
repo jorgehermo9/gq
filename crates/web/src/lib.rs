@@ -3,7 +3,6 @@ use gq_core::data_type::DataType;
 use gq_core::format::{Indentation, PrettyFormat};
 use gq_core::query::Query;
 use lsp::JsCompletionItem;
-use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 pub mod data_type;
@@ -42,7 +41,7 @@ pub fn format_query(query: &str, indent: usize) -> Result<String, JsError> {
 }
 
 #[wasm_bindgen]
-pub fn pretty_convert_to(
+pub fn convert_data_to(
     data: &str,
     input_type: JsDataType,
     output_type: JsDataType,
