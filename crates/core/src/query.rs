@@ -145,6 +145,7 @@ impl Display for Query<'_> {
     }
 }
 
+// TODO: move this into the format module
 impl PrettyFormat for Query<'_> {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
