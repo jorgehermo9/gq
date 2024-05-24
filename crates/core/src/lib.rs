@@ -2,6 +2,7 @@ use query::Query;
 use serde_json::Value;
 use thiserror::Error;
 
+pub mod format;
 pub mod lexer;
 pub mod parser;
 pub mod query;
