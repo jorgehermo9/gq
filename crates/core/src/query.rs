@@ -137,7 +137,7 @@ impl Display for Query<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         // TODO: implement default for indentation, so it is not hardcoded Spaces(2)
         let default_indentation: Indentation = Indentation::with_spaces(2);
-        let formatted = match self.pretty_format(&default_indentation) {
+        let formatted = match self.pretty_format(default_indentation) {
             Ok(formatted) => formatted,
             Err(error) => panic!("Error formatting query: {error}"),
         };
@@ -150,7 +150,7 @@ impl PrettyFormat for Query<'_> {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
     // TODO: implemente the formatter pattern for here, with a visitor and etc as serde does
-    fn pretty_format(&self, indentation: &Indentation) -> format::Result<String> {
+    fn pretty_format(&self, indentation: Indentation) -> format::Result<String> {
         let mut result = String::new();
 
         let arguments = self.arguments();
@@ -183,14 +183,14 @@ impl PrettyFormat for Query<'_> {
     fn pretty_format_to_writer<W: io::Write>(
         &self,
         writer: &mut W,
-        indentation: &Indentation,
+        indentation: Indentation,
     ) -> format::Result<()> {
         let formatted = self.pretty_format(indentation)?;
         Ok(writer.write_all(formatted.as_bytes())?)
     }
 }
 impl ChildQuery<'_> {
-    fn do_pretty_format(&self, result: &mut String, indentation: &Indentation, level: usize) {
+    fn do_pretty_format(&self, result: &mut String, indentation: Indentation, level: usize) {
         let indent_string = indentation.at_level(level);
         let sep = indentation.level_separator();
 

@@ -2,7 +2,7 @@ use lsp::completion_item::{CompletionItem, CompletionItemBuilder};
 use rowan::{TextRange, TextSize};
 use thiserror::Error;
 
-pub mod data_type;
+pub mod data;
 pub mod format;
 pub mod lexer;
 pub mod lsp;

@@ -1,58 +1,60 @@
-use data_type::JsDataType;
-use gq_core::data_type::DataType;
+use data::JsDataType;
+use gq_core::data::Data;
 use gq_core::format::{Indentation, PrettyFormat};
 use gq_core::query::Query;
 use lsp::JsCompletionItem;
 use wasm_bindgen::prelude::*;
 
-pub mod data_type;
+use crate::data::JsData;
+
+pub mod data;
 pub mod lsp;
 
 #[wasm_bindgen]
 pub fn gq(
     query: &str,
-    data: &str,
-    input_type: JsDataType,
+    data: JsData,
     output_type: JsDataType,
     indent: usize,
-) -> Result<String, JsError> {
+) -> Result<JsData, JsError> {
     let query = Query::try_from(query)?;
-    let value = DataType::from(input_type).value_from_str(data)?;
-    let result = query.apply(value)?;
-
+    let core_data = Data::from(data);
+    let value = core_data.value()?;
     let indentation = Indentation::with_spaces(indent);
-    let output_type = DataType::from(output_type);
-    Ok(output_type.pretty_format(&result, &indentation)?)
+
+    let result = query.apply(value)?;
+    let output_data = Data::pretty_from_value(&result, output_type.into(), indentation)?;
+
+    Ok(output_data.into())
 }
 
 #[wasm_bindgen]
-pub fn format_data(data: &str, data_type: JsDataType, indent: usize) -> Result<String, JsError> {
-    let data_type = DataType::from(data_type);
-    let value = data_type.value_from_str(data)?;
+pub fn format_data(data: JsData, indent: usize) -> Result<JsData, JsError> {
+    let core_data = Data::from(data);
     let indentation = Indentation::with_spaces(indent);
-    Ok(data_type.pretty_format(&value, &indentation)?)
+
+    let pretty_data = core_data.pretty_format(indentation)?;
+    Ok(pretty_data.into())
 }
 
 #[wasm_bindgen]
 pub fn format_query(query: &str, indent: usize) -> Result<String, JsError> {
     let query = Query::try_from(query)?;
     let indentation = Indentation::with_spaces(indent);
-    Ok(query.pretty_format(&indentation)?)
+    Ok(query.pretty_format(indentation)?)
 }
 
 #[wasm_bindgen]
 pub fn convert_data_to(
-    data: &str,
-    input_type: JsDataType,
+    data: JsData,
     output_type: JsDataType,
     indent: usize,
-) -> Result<String, JsError> {
-    let input_type = DataType::from(input_type);
-    let output_type = DataType::from(output_type);
+) -> Result<JsData, JsError> {
+    let core_data = Data::from(data);
     let indentation = Indentation::with_spaces(indent);
 
-    // TODO: should we pretty format here? In the frontend we will call to pretty format after this
-    Ok(input_type.pretty_convert_to(data, &output_type, &indentation)?)
+    let converted_data = core_data.pretty_convert_to(output_type.into(), indentation)?;
+    Ok(converted_data.into())
 }
 
 #[wasm_bindgen]

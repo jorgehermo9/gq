@@ -11,7 +11,7 @@ use serde_json::{
 use super::PrettyFormatColored;
 
 impl PrettyFormat for Value {
-    fn pretty_format(&self, indentation: &Indentation) -> format::Result<String> {
+    fn pretty_format(&self, indentation: Indentation) -> format::Result<String> {
         let mut buf = Vec::new();
         self.pretty_format_to_writer(&mut buf, indentation)?;
         Ok(String::from_utf8(buf)?)
@@ -20,7 +20,7 @@ impl PrettyFormat for Value {
     fn pretty_format_to_writer<W: io::Write>(
         &self,
         writer: &mut W,
-        indentation: &Indentation,
+        indentation: Indentation,
     ) -> format::Result<()> {
         match indentation {
             Indentation::Inline => {
@@ -37,7 +37,7 @@ impl PrettyFormat for Value {
 }
 
 impl PrettyFormatColored for Value {
-    fn pretty_format_colored(&self, indentation: &Indentation) -> format::Result<String> {
+    fn pretty_format_colored(&self, indentation: Indentation) -> format::Result<String> {
         let mut buf = Vec::new();
         self.pretty_format_colored_to_writer(&mut buf, indentation)?;
         Ok(String::from_utf8(buf)?)
@@ -46,7 +46,7 @@ impl PrettyFormatColored for Value {
     fn pretty_format_colored_to_writer<W: io::Write>(
         &self,
         writer: &mut W,
-        indentation: &Indentation,
+        indentation: Indentation,
     ) -> format::Result<()> {
         let indentation_fmt = indentation.to_string();
         match indentation {
