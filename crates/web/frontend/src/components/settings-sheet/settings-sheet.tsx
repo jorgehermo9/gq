@@ -22,9 +22,9 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import {
 	setAutoApply,
+	setDataTabSize,
 	setDebounceTime,
 	setFormatOnImport,
-	setDataTabSize,
 	setQueryTabSize,
 } from "@/model/settings";
 import { useSettings } from "@/providers/settings-provider";

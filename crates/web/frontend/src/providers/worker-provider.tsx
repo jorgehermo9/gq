@@ -5,11 +5,11 @@ import PromiseWorker from "webworker-promise";
 
 export const WorkerContext = createContext<
 	| {
-		formatWorker: PromiseWorker | undefined;
-		gqWorker: PromiseWorker | undefined;
-		lspWorker: PromiseWorker | undefined;
-		convertWorker: PromiseWorker | undefined;
-	}
+			formatWorker: PromiseWorker | undefined;
+			gqWorker: PromiseWorker | undefined;
+			lspWorker: PromiseWorker | undefined;
+			convertWorker: PromiseWorker | undefined;
+	  }
 	| undefined
 >(undefined);
 
@@ -35,9 +35,9 @@ export const WorkerProvider = ({ children }: Props) => {
 	const [lspWorker, setLspWorker] = useState<PromiseWorker | undefined>(
 		undefined,
 	);
-	const [convertWorker, setConvertWorker] = useState<
-		PromiseWorker | undefined
-	>(undefined);
+	const [convertWorker, setConvertWorker] = useState<PromiseWorker | undefined>(
+		undefined,
+	);
 
 	useEffect(() => {
 		setFormatWorker(

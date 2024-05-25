@@ -9,6 +9,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { CircleHelp } from "lucide-react";
 import { useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
+import { formatCode } from "../editor/editor-utils";
 import SimpleEditor from "../editor/simple-editor";
 import {
 	AlertDialog,
@@ -30,7 +31,6 @@ import {
 	SheetTrigger,
 } from "../ui/sheet";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
-import { formatCode } from "../editor/editor-utils";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -77,6 +77,7 @@ const ExampleItem = ({ example, onClick }: ExampleItemProps) => {
 		<div
 			className="p-4 border rounded-lg hover:border-accent transition-colors cursor-pointer"
 			onClick={() => onClick(example.query)}
+			onKeyDown={(event) => event.key === "Enter" && onClick(example.query)}
 		>
 			<h3 className="font-semibold text-sm mb-1">{example.title}</h3>
 			<ExampleItemDescription
@@ -149,9 +150,9 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedExample, setSelectedExample] = useState<
 		| {
-			json: string;
-			query: string;
-		}
+				json: string;
+				query: string;
+		  }
 		| undefined
 	>();
 	const {
@@ -173,18 +174,24 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 			{ content: selectedExample.json, type: FileType.JSON },
 			dataTabSize,
 			formatWorker,
-			true
+			true,
 		);
 		const formattedQuery = await formatCode(
 			{ content: selectedExample.query, type: FileType.GQ },
 			queryTabSize,
 			formatWorker,
-			true
+			true,
 		);
 		setSheetOpen(false);
 		setDialogOpen(false);
 		onClickExample(formattedJson, formattedQuery);
-	}, [dataTabSize, queryTabSize, onClickExample, selectedExample, formatWorker]);
+	}, [
+		dataTabSize,
+		queryTabSize,
+		onClickExample,
+		selectedExample,
+		formatWorker,
+	]);
 
 	return (
 		<>

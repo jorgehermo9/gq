@@ -13,5 +13,11 @@ interface Message {
 
 registerWebworker(async ({ query, data, outputType, indent }: Message) => {
 	await init();
-	return gq(query.content, data.content, getDataType(data.type), getDataType(outputType), indent);
+	return gq(
+		query.content,
+		data.content,
+		getDataType(data.type),
+		getDataType(outputType),
+		indent,
+	);
 });

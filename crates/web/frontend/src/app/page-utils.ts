@@ -21,17 +21,25 @@ export const applyGq = async (
 			outputType: outputType,
 			indent: indent,
 		});
-		!silent && toast.success(`Query applied to ${inputData.type.toUpperCase()}`, { id: toastId });
+		!silent &&
+			toast.success(`Query applied to ${inputData.type.toUpperCase()}`, {
+				id: toastId,
+			});
 		return {
 			content: result,
 			type: outputType,
 		};
 	} catch (err) {
 		!silent &&
-			toast.error(`Error while applying query to ${inputData.type.toUpperCase()}: ${err.message}`, {
-				id: toastId,
-				duration: 5000,
-			});
+			toast.error(
+				`Error while applying query to ${inputData.type.toUpperCase()}: ${
+					err.message
+				}`,
+				{
+					id: toastId,
+					duration: 5000,
+				},
+			);
 		throw err;
 	}
 };

@@ -1,10 +1,10 @@
 import type FileType from "@/model/file-type";
-import { useCallback } from "react";
-import ActionButton from "../action-button/action-button";
-import styles from "./editor.module.css";
 import { Link2, Link2Off, Unlink2 } from "lucide-react";
-import { Button } from "../ui/button";
+import { useCallback } from "react";
 import { toast } from "sonner";
+import ActionButton from "../action-button/action-button";
+import { Button } from "../ui/button";
+import styles from "./editor.module.css";
 
 interface Props {
 	title: string;
@@ -28,12 +28,15 @@ const EditorTitle = ({
 		setFileType(currentFileType === fileTypes[0] ? fileTypes[1] : fileTypes[0]);
 	}, [currentFileType, fileTypes, setFileType]);
 
-	const handleLinkClick = useCallback((e: React.MouseEvent) => {
-		if (!setLinked) return;
-		toast.info(`${linked ? "Unlinked" : "Linked"} editors!`);
-		setLinked(!linked);
-		e.stopPropagation();
-	}, [linked, setLinked]);
+	const handleLinkClick = useCallback(
+		(e: React.MouseEvent) => {
+			if (!setLinked) return;
+			toast.info(`${linked ? "Unlinked" : "Linked"} editors!`);
+			setLinked(!linked);
+			e.stopPropagation();
+		},
+		[linked, setLinked],
+	);
 
 	return (
 		<h2 className="flex gap-2 justify-center items-center">
@@ -46,14 +49,25 @@ const EditorTitle = ({
 				<div
 					className={styles.languageToggle}
 					onClick={handleClick}
+					onKeyDown={(e) => e.key === "Enter" && handleClick()}
 				>
-					<div className={styles.languageToggleLinkContainer} onClick={(e) => e.stopPropagation()}>
-						<ActionButton className="p-2" description={`${linked ? "Link" : "Unlink"} input and output editors`} onClick={handleLinkClick}>
-							{
-								linked
-									? <Link2 className="w-3 h-3" />
-									: <Link2Off className="w-3 h-3" />
-							}
+					<div
+						className={styles.languageToggleLinkContainer}
+						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.key === "Enter" && e.stopPropagation()}
+					>
+						<ActionButton
+							className="p-2"
+							description={`${
+								linked ? "Link" : "Unlink"
+							} input and output editors`}
+							onClick={handleLinkClick}
+						>
+							{linked ? (
+								<Link2 className="w-3 h-3" />
+							) : (
+								<Link2Off className="w-3 h-3" />
+							)}
 						</ActionButton>
 					</div>
 					<span data-active={fileTypes[0] === currentFileType}>
@@ -62,9 +76,9 @@ const EditorTitle = ({
 					<span data-active={fileTypes[1] === currentFileType}>
 						{fileTypes[1].toUpperCase()}
 					</span>
-				</div >
+				</div>
 			)}
-		</h2 >
+		</h2>
 	);
 };
 

@@ -92,7 +92,7 @@ const Home = () => {
 					fileType,
 					dataTabSize,
 					convertWorker,
-					true
+					true,
 				);
 				setOutputData(outputConvertedData);
 			} catch (e) {
@@ -120,7 +120,7 @@ const Home = () => {
 					fileType,
 					dataTabSize,
 					convertWorker,
-					true
+					true,
 				);
 				setInputData(inputConvertedData);
 			} catch (e) {
@@ -147,7 +147,6 @@ const Home = () => {
 		},
 		[outputData, handleChangeInputDataFileType],
 	);
-
 
 	useDebounce(
 		() => autoApply && updateOutputData(inputData, inputQuery),
