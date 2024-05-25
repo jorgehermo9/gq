@@ -58,12 +58,10 @@
 }
 
 .languageToggle {
-	@apply pr-2 py-1 rounded-lg flex items-center justify-center gap-2 cursor-pointer select-none;
+	@apply p-0 pr-2 py-1 rounded-lg flex items-center justify-center gap-2 select-none cursor-pointer relative;
 
 	& span {
-		font-size: 1.125rem;
-		line-height: 1.75rem;
-		font-weight: 700;
+		@apply text-lg font-bold;
 		transition: color 0.1s;
 
 		&[data-active="true"] {
@@ -74,4 +72,14 @@
 			color: var(--accent-background);
 		}
 	}
+}
+
+.languageToggleLinkContainer {
+	@apply pb-1 w-full flex items-center justify-center absolute bottom-full cursor-auto;
+	opacity: 0;
+	transition: opacity 0.2s 0.5s ease-in-out;
+}
+
+.languageToggle:hover>.languageToggleLinkContainer {
+	opacity: 1;
 }

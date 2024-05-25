@@ -97,7 +97,7 @@ const SettingsSheet = ({ className }: Props) => {
 
 					<div className="flex gap-8 ml-4">
 						<div className="flex flex-col gap-2">
-							<Label htmlFor="json-tab-size">JSON indent</Label>
+							<Label htmlFor="json-tab-size">Data indent</Label>
 							<Select
 								value={formattingSettings.dataTabSize.toString()}
 								onValueChange={(value) =>

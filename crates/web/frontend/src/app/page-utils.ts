@@ -13,22 +13,22 @@ export const applyGq = async (
 ): Promise<Data> => {
 	const toastId = silent
 		? undefined
-		: toast.loading("Applying query to JSON...");
+		: toast.loading(`Applying query to ${inputData.type.toUpperCase()}...`);
 	try {
 		const result = await gqWorker.postMessage({
-			query: inputQuery.content,
+			query: inputQuery,
 			data: inputData,
-			outputFileType: outputType,
+			outputType: outputType,
 			indent: indent,
 		});
-		!silent && toast.success("Query applied to JSON", { id: toastId });
+		!silent && toast.success(`Query applied to ${inputData.type.toUpperCase()}`, { id: toastId });
 		return {
 			content: result,
 			type: outputType,
 		};
 	} catch (err) {
 		!silent &&
-			toast.error(`Error while applying query to JSON: ${err.message}`, {
+			toast.error(`Error while applying query to ${inputData.type.toUpperCase()}: ${err.message}`, {
 				id: toastId,
 				duration: 5000,
 			});
@@ -41,21 +41,22 @@ export const convertCode = async (
 	outputType: FileType,
 	indent: number,
 	convertWorker: PromiseWorker,
+	silent = false,
 ): Promise<Data> => {
-	const toastId = toast.loading("Converting code...");
+	const toastId = silent ? undefined : toast.loading("Converting code...");
 	try {
 		const response = await convertWorker.postMessage({
 			data: data,
 			outputType: outputType,
 			indent: indent,
 		});
-		toast.success("Code converted!", { id: toastId });
+		!silent && toast.success("Code converted!", { id: toastId });
 		return {
 			content: response,
 			type: outputType,
 		};
 	} catch (err) {
-		toast.error(err.message, { id: toastId, duration: 5000 });
+		!silent && toast.error(err.message, { id: toastId, duration: 5000 });
 		throw err;
 	}
 };

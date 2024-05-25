@@ -5,13 +5,13 @@ import init, { gq } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
 
 interface Message {
-	query: string;
+	query: Data;
 	data: Data;
-	outputFileType: FileType;
+	outputType: FileType;
 	indent: number;
 }
 
-registerWebworker(async ({ query, data, outputFileType, indent }: Message) => {
+registerWebworker(async ({ query, data, outputType, indent }: Message) => {
 	await init();
-	return gq(query, data.content, getDataType(data.type), getDataType(outputFileType), indent);
+	return gq(query.content, data.content, getDataType(data.type), getDataType(outputType), indent);
 });

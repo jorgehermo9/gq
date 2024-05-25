@@ -16,6 +16,7 @@ const Home = () => {
 	const [inputData, setInputData] = useState<Data>(empty(FileType.JSON));
 	const [inputQuery, setInputQuery] = useState<Data>(empty(FileType.GQ));
 	const [outputData, setOutputData] = useState<Data>(empty(FileType.JSON));
+	const [linked, setLinked] = useState(true);
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(
 		undefined,
 	);
@@ -75,8 +76,7 @@ const Home = () => {
 
 	const handleChangeInputDataFileType = useCallback(
 		async (fileType: FileType) => {
-			console.log(fileType)
-			if (!convertWorker) return;
+			if (!convertWorker || fileType === inputData.type) return;
 			try {
 				const convertedData = await convertCode(
 					inputData,
@@ -86,16 +86,25 @@ const Home = () => {
 				);
 				setErrorMessage(undefined);
 				setInputData(convertedData);
+				if (!linked) return;
+				const outputConvertedData = await convertCode(
+					outputData,
+					fileType,
+					dataTabSize,
+					convertWorker,
+					true
+				);
+				setOutputData(outputConvertedData);
 			} catch (e) {
 				setErrorMessage(e.message);
 			}
 		},
-		[inputData, dataTabSize, convertWorker],
+		[inputData, dataTabSize, convertWorker, outputData, linked],
 	);
 
 	const handleChangeOutputDataFileType = useCallback(
 		async (fileType: FileType) => {
-			if (!convertWorker) return;
+			if (!convertWorker || fileType === outputData.type) return;
 			try {
 				const convertedData = await convertCode(
 					outputData,
@@ -105,12 +114,40 @@ const Home = () => {
 				);
 				setErrorMessage(undefined);
 				setOutputData(convertedData);
+				if (!linked) return;
+				const inputConvertedData = await convertCode(
+					inputData,
+					fileType,
+					dataTabSize,
+					convertWorker,
+					true
+				);
+				setInputData(inputConvertedData);
 			} catch (e) {
 				setErrorMessage(e.message);
 			}
 		},
-		[outputData, dataTabSize, convertWorker],
+		[outputData, dataTabSize, convertWorker, inputData, linked],
 	);
+
+	const handleChangeInputLinked = useCallback(
+		(linked: boolean) => {
+			setLinked(linked);
+			if (!linked) return;
+			handleChangeOutputDataFileType(inputData.type);
+		},
+		[inputData, handleChangeOutputDataFileType],
+	);
+
+	const handleChangeOutputLinked = useCallback(
+		(linked: boolean) => {
+			setLinked(linked);
+			if (!linked) return;
+			handleChangeInputDataFileType(outputData.type);
+		},
+		[outputData, handleChangeInputDataFileType],
+	);
+
 
 	useDebounce(
 		() => autoApply && updateOutputData(inputData, inputQuery),
@@ -127,6 +164,8 @@ const Home = () => {
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
 						data={inputData}
 						onChangeContent={handleChangeInputDataContent}
+						linked={linked}
+						onChangeLinked={handleChangeInputLinked}
 						onChangeFileType={handleChangeInputDataFileType}
 						title="Input"
 						defaultFileName="input"
@@ -150,6 +189,8 @@ const Home = () => {
 						className="w-[44vw] h-[80vh]"
 						data={outputData}
 						onChangeContent={handleChangeOutputDataContent}
+						linked={linked}
+						onChangeLinked={handleChangeOutputLinked}
 						onChangeFileType={handleChangeOutputDataFileType}
 						title="Output"
 						editable={false}

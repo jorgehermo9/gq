@@ -11,7 +11,8 @@ interface Message {
 registerWebworker(async ({ data, indent }: Message) => {
 	await init();
 	switch (data.type) {
-		case FileType.JSON || FileType.YAML:
+		case FileType.JSON:
+		case FileType.YAML:
 			return format_data(data.content, getDataType(data.type), indent);
 		case FileType.GQ:
 			return format_query(data.content, indent);

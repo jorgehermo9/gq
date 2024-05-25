@@ -24,6 +24,8 @@ interface Props {
 	defaultFileName: string;
 	fileTypes: FileType[];
 	onChangeContent: (content: string) => void;
+	linked?: boolean;
+	onChangeLinked?: (linked: boolean) => void;
 	onChangeFileType?: (fileType: FileType) => void;
 	className?: string;
 	errorMessage?: string;
@@ -36,6 +38,8 @@ const Editor = ({
 	defaultFileName,
 	fileTypes,
 	onChangeContent,
+	linked,
+	onChangeLinked,
 	onChangeFileType,
 	className,
 	errorMessage,
@@ -100,6 +104,8 @@ const Editor = ({
 					fileTypes={fileTypes}
 					currentFileType={data.type}
 					setFileType={onChangeFileType}
+					linked={linked}
+					setLinked={onChangeLinked}
 				/>
 				<EditorMenu
 					fileType={data.type}
