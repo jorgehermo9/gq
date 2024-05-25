@@ -62,6 +62,7 @@ impl<'a> Data<'a> {
         })
     }
 
+    // TODO: replace this method by From<Data> for Value...
     pub fn value(&self) -> Result<Value, Error> {
         self.data_type.value_from_str(&self.payload)
     }
