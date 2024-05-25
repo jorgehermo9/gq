@@ -24,8 +24,8 @@ interface Props {
 	defaultFileName: string;
 	fileTypes: FileType[];
 	onChangeContent: (content: string) => void;
-	linked?: boolean;
-	onChangeLinked?: (linked: boolean) => void;
+	focused: boolean;
+	onChangeFocused: (focused: boolean) => void;
 	onChangeFileType?: (fileType: FileType) => void;
 	className?: string;
 	errorMessage?: string;
@@ -38,14 +38,13 @@ const Editor = ({
 	defaultFileName,
 	fileTypes,
 	onChangeContent,
-	linked,
-	onChangeLinked,
+	focused,
+	onChangeFocused,
 	onChangeFileType,
 	className,
 	errorMessage,
 	editable = true,
 }: Props) => {
-	const [isFocused, setIsFocused] = useState(false);
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
 		string | undefined
 	>();
@@ -82,13 +81,13 @@ const Editor = ({
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
-			if (!isFocused) return;
+			if (!focused) return;
 			if (event.ctrlKey && event.key === "s") {
 				event.preventDefault();
 				handleFormatCode(data);
 			}
 		},
-		[isFocused, handleFormatCode, data],
+		[focused, handleFormatCode, data],
 	);
 
 	useEffect(() => {
@@ -104,8 +103,6 @@ const Editor = ({
 					fileTypes={fileTypes}
 					currentFileType={data.type}
 					setFileType={onChangeFileType}
-					linked={linked}
-					setLinked={onChangeLinked}
 				/>
 				<EditorMenu
 					fileType={data.type}
@@ -119,9 +116,9 @@ const Editor = ({
 			</div>
 
 			<div
-				data-focus={isFocused}
-				onFocus={() => setIsFocused(true)}
-				onBlur={() => setIsFocused(false)}
+				data-focus={focused}
+				onFocus={() => onChangeFocused(true)}
+				onBlur={() => onChangeFocused(false)}
 				className={`${styles.editor} relative h-full rounded-lg overflow-hidden`}
 			>
 				<div

@@ -4,11 +4,13 @@
 
 .editor[data-focus="true"] {
 	border: 2px solid var(--accent);
+	scrollbar-color: var(--accent-background) var(--muted-transparent);
 	@apply shadow-lg;
 }
 
 .editor[data-focus="false"] {
 	border: 2px solid var(--accent-background);
+	scrollbar-color: var(--accent-background) var(--muted-transparent);
 	@apply shadow-md;
 }
 
@@ -58,7 +60,7 @@
 }
 
 .languageToggle {
-	@apply p-0 pr-2 py-1 rounded-lg flex items-center justify-center gap-2 select-none cursor-pointer relative;
+	@apply p-0 pr-2 rounded-lg flex items-center justify-center gap-2 select-none cursor-pointer relative;
 
 	& span {
 		@apply text-lg font-bold;
@@ -72,14 +74,4 @@
 			color: var(--accent-background);
 		}
 	}
-}
-
-.languageToggleLinkContainer {
-	@apply pb-1 w-full flex items-center justify-center absolute bottom-full cursor-auto;
-	opacity: 0;
-	transition: opacity 0.2s 0.5s ease-in-out;
-}
-
-.languageToggle:hover>.languageToggleLinkContainer {
-	opacity: 1;
 }

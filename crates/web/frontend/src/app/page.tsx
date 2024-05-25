@@ -11,6 +11,9 @@ import { useWorker } from "@/providers/worker-provider";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { applyGq, convertCode } from "./page-utils";
+import ActionButton from "@/components/action-button/action-button";
+import { Link2, Link2Off } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const Home = () => {
 	const [inputData, setInputData] = useState<Data>(empty(FileType.JSON));
@@ -20,6 +23,9 @@ const Home = () => {
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(
 		undefined,
 	);
+	const [inputEditorFocused, setInputEditorFocused] = useState(false);
+	const [queryEditorFocused, setQueryEditorFocused] = useState(false);
+	const [outputEditorFocused, setOutputEditorFocused] = useState(false);
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
@@ -130,22 +136,13 @@ const Home = () => {
 		[outputData, dataTabSize, convertWorker, inputData, linked],
 	);
 
-	const handleChangeInputLinked = useCallback(
-		(linked: boolean) => {
-			setLinked(linked);
-			if (!linked) return;
-			handleChangeOutputDataFileType(inputData.type);
-		},
-		[inputData, handleChangeOutputDataFileType],
-	);
-
-	const handleChangeOutputLinked = useCallback(
-		(linked: boolean) => {
-			setLinked(linked);
-			if (!linked) return;
-			handleChangeInputDataFileType(outputData.type);
-		},
-		[outputData, handleChangeInputDataFileType],
+	const handleChangeLinked = useCallback(() => {
+		setLinked(!linked);
+		toast.info(`${linked ? "Unlinked" : "Linked"} editors!`);
+		if (linked) return;
+		handleChangeOutputDataFileType(inputData.type);
+	},
+		[linked, inputData, handleChangeOutputDataFileType],
 	);
 
 	useDebounce(
@@ -157,14 +154,14 @@ const Home = () => {
 	return (
 		<main className="flex flex-col items-center p-8 h-screen">
 			<Header onClickExample={handleClickExample} />
-			<section className="mt-4 flex gap-8 items-center justify-center w-full h-[80vh]">
+			<section className="mt-4 flex items-center justify-center w-full h-[80vh]">
 				<aside className="w-[44vw] h-[80vh] flex flex-col gap-8">
 					<Editor
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
 						data={inputData}
 						onChangeContent={handleChangeInputDataContent}
-						linked={linked}
-						onChangeLinked={handleChangeInputLinked}
+						focused={inputEditorFocused}
+						onChangeFocused={setInputEditorFocused}
 						onChangeFileType={handleChangeInputDataFileType}
 						title="Input"
 						defaultFileName="input"
@@ -174,22 +171,47 @@ const Home = () => {
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
 						data={inputQuery}
 						onChangeContent={handleChangeInputQueryContent}
+						focused={queryEditorFocused}
+						onChangeFocused={setQueryEditorFocused}
 						title="Input"
 						defaultFileName="query"
 						fileTypes={[FileType.GQ]}
 					/>
 				</aside>
-				<ApplyButton
-					autoApply={autoApply}
-					onClick={() => updateOutputData(inputData, inputQuery)}
-				/>
+				<div className="h-full flex justify-center items-center px-8 relative">
+					<div className="absolute top-40 flex w-full items-center">
+						{/* TODO: Research about transition in gradient colors */}
+						<div className={cn("h-0.5 w-full bg-gradient-to-r transition-colors",
+							linked ? (inputEditorFocused ? "from-accent to-accent" : "from-accent-background to-accent") : (inputEditorFocused ? "from-accent to-accent-background" : "from-accent-background to-accent-background")
+						)} />
+						<ActionButton
+							className={cn("p-2 min-w-max border-2", linked ? "border-accent" : "border-accent-background")}
+							description={`${linked ? "Link" : "Unlink"
+								} input and output editor file types`}
+							onClick={handleChangeLinked}
+						>
+							{linked ? (
+								<Link2 className="w-3 h-3" />
+							) : (
+								<Link2Off className="w-3 h-3" />
+							)}
+						</ActionButton>
+						<div className={cn("h-0.5 w-full bg-gradient-to-r transition-colors",
+							linked ? (outputEditorFocused ? "from-accent to-accent" : "from-accent to-accent-background") : (outputEditorFocused ? "from-accent-background to-accent" : "from-accent-background to-accent-background")
+						)} />
+					</div>
+					<ApplyButton
+						autoApply={autoApply}
+						onClick={() => updateOutputData(inputData, inputQuery)}
+					/>
+				</div>
 				<aside className="w-[44vw] h-[80vh] flex flex-col">
 					<Editor
 						className="w-[44vw] h-[80vh]"
 						data={outputData}
 						onChangeContent={handleChangeOutputDataContent}
-						linked={linked}
-						onChangeLinked={handleChangeOutputLinked}
+						focused={outputEditorFocused}
+						onChangeFocused={setOutputEditorFocused}
 						onChangeFileType={handleChangeOutputDataFileType}
 						title="Output"
 						editable={false}
@@ -199,7 +221,7 @@ const Home = () => {
 					/>
 				</aside>
 			</section>
-		</main>
+		</main >
 	);
 };
 
