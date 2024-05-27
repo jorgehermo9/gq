@@ -62,13 +62,8 @@ impl<'a> Data<'a> {
         })
     }
 
-    // TODO: replace this method by From<Data> for Value...
-    pub fn value(&self) -> Result<Value, Error> {
-        self.data_type.value_from_str(&self.payload)
-    }
-
     pub fn convert_to(&self, target_type: DataType) -> Result<Data, Error> {
-        let value = self.value()?;
+        let value = Value::try_from(self)?;
         let payload = target_type.value_to_string(&value)?;
         let data = Self {
             payload: Cow::Owned(payload),
@@ -82,7 +77,7 @@ impl<'a> Data<'a> {
         target_type: DataType,
         indentation: Indentation,
     ) -> Result<Data, Error> {
-        let value = self.value()?;
+        let value = Value::try_from(self)?;
         let payload = target_type.pretty_format(&value, indentation)?;
         let data = Self {
             payload: Cow::Owned(payload),
@@ -124,5 +119,13 @@ impl DataType {
             DataType::Yaml => serde_yaml::to_string(value)?,
         };
         Ok(result)
+    }
+}
+
+impl TryFrom<&Data<'_>> for Value {
+    type Error = Error;
+    
+    fn try_from(data: &Data) -> Result<Self, Self::Error> {
+        data.data_type.value_from_str(&data.payload)
     }
 }

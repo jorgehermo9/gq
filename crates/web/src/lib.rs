@@ -3,6 +3,7 @@ use gq_core::data::Data;
 use gq_core::format::{Indentation, PrettyFormat};
 use gq_core::query::Query;
 use lsp::JsCompletionItem;
+use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 use crate::data::JsData;
@@ -19,7 +20,7 @@ pub fn gq(
 ) -> Result<JsData, JsError> {
     let query = Query::try_from(query)?;
     let core_data = Data::from(data);
-    let value = core_data.value()?;
+    let value = Value::try_from(&core_data)?;
     let indentation = Indentation::with_spaces(indent);
 
     let result = query.apply(value)?;
