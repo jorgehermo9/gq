@@ -17,7 +17,7 @@ export const getFileExtensions = (fileType: FileType): string[] => {
 	}
 };
 
-export const getDataType = (fileType: FileType): JsDataType => {
+export const fileTypeToDTO = (fileType: FileType): JsDataType => {
 	switch (fileType) {
 		case FileType.JSON:
 			return JsDataType.Json;
@@ -27,5 +27,16 @@ export const getDataType = (fileType: FileType): JsDataType => {
 			throw new Error("Invalid data file type");
 	}
 };
+
+export const fileTypeToModel = (dto: JsDataType) => {
+	switch (dto) {
+		case JsDataType.Json:
+			return FileType.JSON;
+		case JsDataType.Yaml:
+			return FileType.YAML;
+		default:
+			throw new Error("Invalid dto file type");
+	}
+}
 
 export default FileType;

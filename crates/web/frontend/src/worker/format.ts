@@ -1,5 +1,5 @@
-import type { Data } from "@/model/data";
-import FileType, { getDataType } from "@/model/file-type";
+import { dataToDTO, dataToModel, type Data } from "@/model/data";
+import FileType, { fileTypeToDTO } from "@/model/file-type";
 import init, { format_data, format_query } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
 
@@ -8,14 +8,21 @@ interface Message {
 	indent: number;
 }
 
-registerWebworker(async ({ data, indent }: Message) => {
+registerWebworker(async ({ data, indent }: Message): Promise<Data> => {
 	await init();
 	switch (data.type) {
 		case FileType.JSON:
-		case FileType.YAML:
-			return format_data(data.content, getDataType(data.type), indent);
-		case FileType.GQ:
-			return format_query(data.content, indent);
+		case FileType.YAML: {
+			const result = format_data(dataToDTO(data), indent);
+			return dataToModel(result);
+		}
+		case FileType.GQ: {
+			const result = format_query(data.content, indent);
+			return {
+				content: result,
+				type: FileType.GQ
+			};
+		}
 		default:
 			throw new Error("Invalid file type");
 	}

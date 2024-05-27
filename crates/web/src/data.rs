@@ -24,6 +24,7 @@ pub struct JsData {
     pub data_type: JsDataType,
 }
 
+#[wasm_bindgen]
 impl JsData {
     pub fn json(data: String) -> Self {
         Self {

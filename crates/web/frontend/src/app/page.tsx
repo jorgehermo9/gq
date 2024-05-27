@@ -14,6 +14,7 @@ import { applyGq, convertCode } from "./page-utils";
 import ActionButton from "@/components/action-button/action-button";
 import { Link2, Link2Off } from "lucide-react";
 import { cn } from "@/lib/utils";
+import styles from "./page.module.css";
 
 const Home = () => {
 	const [inputData, setInputData] = useState<Data>(empty(FileType.JSON));
@@ -56,12 +57,10 @@ const Home = () => {
 	);
 
 	const handleClickExample = useCallback(
-		(json: string, query: string) => {
-			const jsonData = { content: json, type: FileType.JSON };
-			const queryData = { content: query, type: FileType.GQ };
-			setInputData(jsonData);
-			setInputQuery(queryData);
-			!autoApply && updateOutputData(jsonData, queryData, true);
+		(json: Data, query: Data) => {
+			setInputData(json);
+			setInputQuery(query);
+			!autoApply && updateOutputData(json, query, true);
 			toast.success("Example loaded!");
 		},
 		[autoApply, updateOutputData],
@@ -181,9 +180,7 @@ const Home = () => {
 				<div className="h-full flex justify-center items-center px-8 relative">
 					<div className="absolute top-40 flex w-full items-center">
 						{/* TODO: Research about transition in gradient colors */}
-						<div className={cn("h-0.5 w-full bg-gradient-to-r transition-colors",
-							linked ? (inputEditorFocused ? "from-accent to-accent" : "from-accent-background to-accent") : (inputEditorFocused ? "from-accent to-accent-background" : "from-accent-background to-accent-background")
-						)} />
+						<div className={styles.linkLeftBorder} data-editor-focused={inputEditorFocused} data-linked={linked} />
 						<ActionButton
 							className={cn("p-2 min-w-max border-2", linked ? "border-accent" : "border-accent-background")}
 							description={`${linked ? "Link" : "Unlink"
@@ -196,9 +193,7 @@ const Home = () => {
 								<Link2Off className="w-3 h-3" />
 							)}
 						</ActionButton>
-						<div className={cn("h-0.5 w-full bg-gradient-to-r transition-colors",
-							linked ? (outputEditorFocused ? "from-accent to-accent" : "from-accent to-accent-background") : (outputEditorFocused ? "from-accent-background to-accent" : "from-accent-background to-accent-background")
-						)} />
+						<div className={styles.linkRightBorder} data-editor-focused={outputEditorFocused} data-linked={linked} />
 					</div>
 					<ApplyButton
 						autoApply={autoApply}

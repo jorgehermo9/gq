@@ -15,7 +15,7 @@ export const applyGq = async (
 		? undefined
 		: toast.loading(`Applying query to ${inputData.type.toUpperCase()}...`);
 	try {
-		const result = await gqWorker.postMessage({
+		const result: Data = await gqWorker.postMessage({
 			query: inputQuery,
 			data: inputData,
 			outputType: outputType,
@@ -25,21 +25,11 @@ export const applyGq = async (
 			toast.success(`Query applied to ${inputData.type.toUpperCase()}`, {
 				id: toastId,
 			});
-		return {
-			content: result,
-			type: outputType,
-		};
+		return result;
 	} catch (err) {
 		!silent &&
-			toast.error(
-				`Error while applying query to ${inputData.type.toUpperCase()}: ${
-					err.message
-				}`,
-				{
-					id: toastId,
-					duration: 5000,
-				},
-			);
+			toast.error(`Error while applying query to ${inputData.type.toUpperCase()}: ${err.message}`,
+				{ id: toastId, duration: 5000 });
 		throw err;
 	}
 };
@@ -53,16 +43,13 @@ export const convertCode = async (
 ): Promise<Data> => {
 	const toastId = silent ? undefined : toast.loading("Converting code...");
 	try {
-		const response = await convertWorker.postMessage({
+		const result: Data = await convertWorker.postMessage({
 			data: data,
 			outputType: outputType,
 			indent: indent,
 		});
 		!silent && toast.success("Code converted!", { id: toastId });
-		return {
-			content: response,
-			type: outputType,
-		};
+		return result;
 	} catch (err) {
 		!silent && toast.error(err.message, { id: toastId, duration: 5000 });
 		throw err;

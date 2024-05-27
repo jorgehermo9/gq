@@ -63,7 +63,7 @@ const Editor = ({
 			try {
 				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
-				onChangeContent(result);
+				onChangeContent(result.content);
 			} catch (e) {
 				setEditorErrorMessage(e.message);
 			}

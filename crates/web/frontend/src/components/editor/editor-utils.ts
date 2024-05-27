@@ -31,7 +31,7 @@ export const formatCode = async (
 	indent: number,
 	formatWorker: PromiseWorker,
 	silent = false,
-): Promise<string> => {
+): Promise<Data> => {
 	const toastId = silent ? undefined : toast.loading("Formatting code...");
 	try {
 		const response = await formatWorker.postMessage({

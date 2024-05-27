@@ -1,6 +1,6 @@
-import type { Data } from "@/model/data";
+import { dataToDTO, dataToModel, type Data } from "@/model/data";
 import type FileType from "@/model/file-type";
-import { getDataType } from "@/model/file-type";
+import { fileTypeToDTO } from "@/model/file-type";
 import init, { convert_data_to } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
 
@@ -10,12 +10,12 @@ interface Message {
 	indent: number;
 }
 
-registerWebworker(async ({ data, outputType, indent }: Message) => {
+registerWebworker(async ({ data, outputType, indent }: Message): Promise<Data> => {
 	await init();
-	return convert_data_to(
-		data.content,
-		getDataType(data.type),
-		getDataType(outputType),
-		indent,
+	const result = convert_data_to(
+		dataToDTO(data),
+		fileTypeToDTO(outputType),
+		indent
 	);
+	return dataToModel(result);
 });

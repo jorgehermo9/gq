@@ -31,6 +31,7 @@ import {
 	SheetTrigger,
 } from "../ui/sheet";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
+import type { Data } from "@/model/data";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -49,7 +50,7 @@ interface ExampleSectionProps {
 }
 
 interface Props {
-	onClickExample: (json: string, query: string) => void;
+	onClickExample: (json: Data, query: Data) => void;
 	className?: string;
 }
 
@@ -150,9 +151,9 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedExample, setSelectedExample] = useState<
 		| {
-				json: string;
-				query: string;
-		  }
+			json: string;
+			query: string;
+		}
 		| undefined
 	>();
 	const {
