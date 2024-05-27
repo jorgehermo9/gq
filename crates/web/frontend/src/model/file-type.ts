@@ -37,6 +37,6 @@ export const fileTypeToModel = (dto: JsDataType) => {
 		default:
 			throw new Error("Invalid dto file type");
 	}
-}
+};
 
 export default FileType;

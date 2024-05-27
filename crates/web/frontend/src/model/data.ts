@@ -29,9 +29,9 @@ export const empty = (fileType: FileType): Data => {
 export const dataToModel = (dto: JsData): Data => {
 	return {
 		content: dto.payload,
-		type: fileTypeToModel(dto.data_type)
-	}
-}
+		type: fileTypeToModel(dto.data_type),
+	};
+};
 
 export const dataToDTO = (data: Data): JsData => {
 	switch (data.type) {
@@ -42,4 +42,4 @@ export const dataToDTO = (data: Data): JsData => {
 		default:
 			throw new Error("Invalid file type");
 	}
-}
+};

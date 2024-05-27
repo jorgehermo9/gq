@@ -1,4 +1,4 @@
-import { dataToDTO, dataToModel, type Data } from "@/model/data";
+import { type Data, dataToDTO, dataToModel } from "@/model/data";
 import FileType, { fileTypeToDTO } from "@/model/file-type";
 import init, { format_data, format_query } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
@@ -20,7 +20,7 @@ registerWebworker(async ({ data, indent }: Message): Promise<Data> => {
 			const result = format_query(data.content, indent);
 			return {
 				content: result,
-				type: FileType.GQ
+				type: FileType.GQ,
 			};
 		}
 		default:

@@ -1,6 +1,7 @@
 "use client";
 
 import { gqTheme } from "@/lib/theme";
+import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
@@ -31,7 +32,6 @@ import {
 	SheetTrigger,
 } from "../ui/sheet";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
-import type { Data } from "@/model/data";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -151,9 +151,9 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedExample, setSelectedExample] = useState<
 		| {
-			json: string;
-			query: string;
-		}
+				json: string;
+				query: string;
+		  }
 		| undefined
 	>();
 	const {

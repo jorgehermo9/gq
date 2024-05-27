@@ -1,19 +1,19 @@
 "use client";
 
+import ActionButton from "@/components/action-button/action-button";
 import ApplyButton from "@/components/apply-button/apply-button";
 import Editor from "@/components/editor/editor";
 import Header from "@/components/header/header";
 import useDebounce from "@/hooks/useDebounce";
+import { cn } from "@/lib/utils";
 import { type Data, empty } from "@/model/data";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
+import { Link2, Link2Off } from "lucide-react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { applyGq, convertCode } from "./page-utils";
-import ActionButton from "@/components/action-button/action-button";
-import { Link2, Link2Off } from "lucide-react";
-import { cn } from "@/lib/utils";
 import styles from "./page.module.css";
 
 const Home = () => {
@@ -140,9 +140,7 @@ const Home = () => {
 		toast.info(`${linked ? "Unlinked" : "Linked"} editors!`);
 		if (linked) return;
 		handleChangeOutputDataFileType(inputData.type);
-	},
-		[linked, inputData, handleChangeOutputDataFileType],
-	);
+	}, [linked, inputData, handleChangeOutputDataFileType]);
 
 	useDebounce(
 		() => autoApply && updateOutputData(inputData, inputQuery),
@@ -180,11 +178,19 @@ const Home = () => {
 				<div className="h-full flex justify-center items-center px-8 relative">
 					<div className="absolute top-40 flex w-full items-center">
 						{/* TODO: Research about transition in gradient colors */}
-						<div className={styles.linkLeftBorder} data-editor-focused={inputEditorFocused} data-linked={linked} />
+						<div
+							className={styles.linkLeftBorder}
+							data-editor-focused={inputEditorFocused}
+							data-linked={linked}
+						/>
 						<ActionButton
-							className={cn("p-2 min-w-max border-2", linked ? "border-accent" : "border-accent-background")}
-							description={`${linked ? "Link" : "Unlink"
-								} input and output editor file types`}
+							className={cn(
+								"p-2 min-w-max border-2",
+								linked ? "border-accent" : "border-accent-background",
+							)}
+							description={`${
+								linked ? "Link" : "Unlink"
+							} input and output editor file types`}
 							onClick={handleChangeLinked}
 						>
 							{linked ? (
@@ -193,7 +199,11 @@ const Home = () => {
 								<Link2Off className="w-3 h-3" />
 							)}
 						</ActionButton>
-						<div className={styles.linkRightBorder} data-editor-focused={outputEditorFocused} data-linked={linked} />
+						<div
+							className={styles.linkRightBorder}
+							data-editor-focused={outputEditorFocused}
+							data-linked={linked}
+						/>
 					</div>
 					<ApplyButton
 						autoApply={autoApply}
@@ -216,7 +226,7 @@ const Home = () => {
 					/>
 				</aside>
 			</section>
-		</main >
+		</main>
 	);
 };
 

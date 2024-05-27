@@ -5,6 +5,7 @@ import {
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
+import React from "react";
 import {
 	Tooltip,
 	TooltipContent,
@@ -20,38 +21,44 @@ interface Props extends ButtonProps {
 	className?: string;
 }
 
-const ActionButton = ({
-	description,
-	side = "bottom",
-	disabled = false,
-	children,
-	className,
-	hidden,
-	variant = "outline",
-	...props
-}: Props) => {
-	return (
-		!hidden && (
-			<TooltipProvider>
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							className={cn("w-fit h-fit", className)}
-							variant={variant}
-							size="icon"
-							disabled={disabled}
-							{...props}
-						>
-							{children}
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent side={side} className="max-w-96 w-fit text-sm p-2">
-						{description}
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
-		)
-	);
-};
+const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
+	(
+		{
+			description,
+			side = "bottom",
+			disabled = false,
+			children,
+			className,
+			hidden,
+			variant = "outline",
+			...props
+		},
+		ref,
+	) => {
+		return (
+			!hidden && (
+				<TooltipProvider>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								className={cn("w-fit h-fit", className)}
+								variant={variant}
+								size="icon"
+								disabled={disabled}
+								{...props}
+								ref={ref}
+							>
+								{children}
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side={side} className="max-w-96 w-fit text-sm p-2">
+							{description}
+						</TooltipContent>
+					</Tooltip>
+				</TooltipProvider>
+			)
+		);
+	},
+);
 
 export default ActionButton;

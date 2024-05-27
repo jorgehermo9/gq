@@ -1,4 +1,4 @@
-import { dataToDTO, dataToModel, type Data } from "@/model/data";
+import { type Data, dataToDTO, dataToModel } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { fileTypeToDTO } from "@/model/file-type";
 import init, { type JsData, gq } from "gq-web";
@@ -11,13 +11,15 @@ interface Message {
 	indent: number;
 }
 
-registerWebworker(async ({ query, data, outputType, indent }: Message): Promise<Data> => {
-	await init();
-	const result: JsData = gq(
-		query.content,
-		dataToDTO(data),
-		fileTypeToDTO(outputType),
-		indent,
-	);
-	return dataToModel(result);
-});
+registerWebworker(
+	async ({ query, data, outputType, indent }: Message): Promise<Data> => {
+		await init();
+		const result: JsData = gq(
+			query.content,
+			dataToDTO(data),
+			fileTypeToDTO(outputType),
+			indent,
+		);
+		return dataToModel(result);
+	},
+);

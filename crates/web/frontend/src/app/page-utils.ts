@@ -28,8 +28,12 @@ export const applyGq = async (
 		return result;
 	} catch (err) {
 		!silent &&
-			toast.error(`Error while applying query to ${inputData.type.toUpperCase()}: ${err.message}`,
-				{ id: toastId, duration: 5000 });
+			toast.error(
+				`Error while applying query to ${inputData.type.toUpperCase()}: ${
+					err.message
+				}`,
+				{ id: toastId, duration: 5000 },
+			);
 		throw err;
 	}
 };

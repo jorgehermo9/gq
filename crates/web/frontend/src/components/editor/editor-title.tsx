@@ -1,7 +1,7 @@
 import type FileType from "@/model/file-type";
 import { useCallback } from "react";
-import styles from "./editor.module.css";
 import ActionButton from "../action-button/action-button";
+import styles from "./editor.module.css";
 
 interface Props {
 	title: string;
