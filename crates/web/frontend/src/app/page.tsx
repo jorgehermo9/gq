@@ -24,6 +24,7 @@ const Home = () => {
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(
 		undefined,
 	);
+	const [warningMessages, setWarningMessages] = useState<string[]>([]);
 	const [inputEditorFocused, setInputEditorFocused] = useState(false);
 	const [queryEditorFocused, setQueryEditorFocused] = useState(false);
 	const [outputEditorFocused, setOutputEditorFocused] = useState(false);
@@ -48,6 +49,7 @@ const Home = () => {
 					silent || (autoApply && debounceTime < 500),
 				);
 				setErrorMessage(undefined);
+				setWarningMessages(["This is a warning message!"])
 				setOutputData(result);
 			} catch (err) {
 				setErrorMessage(err.message);
@@ -177,7 +179,6 @@ const Home = () => {
 				</aside>
 				<div className="h-full flex justify-center items-center px-8 relative">
 					<div className="absolute top-40 flex w-full items-center">
-						{/* TODO: Research about transition in gradient colors */}
 						<div
 							className={styles.linkLeftBorder}
 							data-editor-focused={inputEditorFocused}
@@ -188,9 +189,8 @@ const Home = () => {
 								"p-2 min-w-max border-2",
 								linked ? "border-accent" : "border-accent-background",
 							)}
-							description={`${
-								linked ? "Link" : "Unlink"
-							} input and output editor file types`}
+							description={`${linked ? "Link" : "Unlink"
+								} input and output editor file types`}
 							onClick={handleChangeLinked}
 						>
 							{linked ? (
@@ -223,6 +223,7 @@ const Home = () => {
 						defaultFileName="output"
 						fileTypes={[FileType.JSON, FileType.YAML]}
 						errorMessage={errorMessage}
+						warningMessages={warningMessages}
 					/>
 				</aside>
 			</section>

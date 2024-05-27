@@ -5,7 +5,7 @@ import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import CodeMirror from "@uiw/react-codemirror";
-import { Eraser } from "lucide-react";
+import { Eraser, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
@@ -17,6 +17,9 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
+import { EditorTooLarge } from "./editor-too-large";
+import { EditorConsole } from "./editor-console";
+import { Button } from "../ui/button";
 
 interface Props {
 	data: Data;
@@ -29,6 +32,7 @@ interface Props {
 	onChangeFileType?: (fileType: FileType) => void;
 	className?: string;
 	errorMessage?: string;
+	warningMessages?: string[];
 	editable?: boolean;
 }
 
@@ -43,6 +47,7 @@ const Editor = ({
 	onChangeFileType,
 	className,
 	errorMessage,
+	warningMessages,
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
@@ -53,6 +58,7 @@ const Editor = ({
 			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },
 		},
 	} = useSettings();
+	const [showWarnings, setShowWarnings] = useState(false);
 	const { formatWorker, lspWorker } = useWorker();
 	const indentSize = data.type === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = data.content.length < 100000000;
@@ -119,18 +125,29 @@ const Editor = ({
 				data-focus={focused}
 				onFocus={() => onChangeFocused(true)}
 				onBlur={() => onChangeFocused(false)}
-				className={`${styles.editor} relative h-full rounded-lg overflow-hidden`}
+				className={`${styles.editor} relative block h-full rounded-lg overflow-hidden`}
 			>
 				<div
 					data-visible={!editable && (!!errorMessage || !!editorErrorMessage)}
-					className={styles["error-overlay"]}
+					className={styles.errorOverlay}
 				/>
 				<span
 					data-visible={!!errorMessage || !!editorErrorMessage}
-					className={styles["error-content"]}
+					className={styles.errorContent}
 				>
 					{errorMessage || editorErrorMessage}
 				</span>
+				<ActionButton
+					description="Show warnings"
+					variant="ghost"
+					onClick={() => setShowWarnings(true)}
+					data-visible={!!warningMessages && warningMessages.length > 0 && !showWarnings}
+					className={styles.warningIcon}>
+					<TriangleAlert className="w-4 h-4 text-warning" />
+				</ActionButton>
+				{showWarnings && (
+					<EditorConsole lines={warningMessages || []} onClose={() => setShowWarnings(false)} />)
+				}
 				{available ? (
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"
@@ -147,27 +164,11 @@ const Editor = ({
 						}}
 					/>
 				) : (
-					<div className="h-full rounded-lg flex flex-col gap-8 items-center justify-center bg-background border border-accent-background">
-						<h3 className="text-md font-bold">
-							The input is too large to be displayed here!
-						</h3>
-						<p className="text-sm -mt-4">
-							You can still use the playground exporting the results or copying
-							the output to your clipboard.
-						</p>
-						{editable && (
-							<ActionButton
-								className="py-2 px-4"
-								onClick={() => onChangeContent(empty(data.type).content)}
-								description="Clear the input by deleting all the content"
-							>
-								<div className="flex gap-2">
-									<Eraser className="w-4 h-4" />
-									<span>Clear input</span>
-								</div>
-							</ActionButton>
-						)}
-					</div>
+					<EditorTooLarge
+						editable={editable}
+						type={data.type}
+						onClearContent={(content) => onChangeContent(content)}
+					/>
 				)}
 			</div>
 		</div>

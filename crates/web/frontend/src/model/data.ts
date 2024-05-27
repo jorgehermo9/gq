@@ -20,7 +20,7 @@ export const empty = (fileType: FileType): Data => {
 			};
 		case FileType.YAML:
 			return {
-				content: "",
+				content: "{}",
 				type: fileType,
 			};
 	}

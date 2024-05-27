@@ -14,7 +14,7 @@
 	@apply shadow-md;
 }
 
-.error-overlay {
+.errorOverlay {
 	position: absolute;
 	z-index: 5;
 	top: 0;
@@ -23,9 +23,19 @@
 	width: 100%;
 	background-color: rgba(0, 0, 0, 0.13);
 	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+
+	&[data-visible="true"] {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	&[data-visible="false"] {
+		opacity: 0;
+		visibility: hidden;
+	}
 }
 
-.error-content {
+.errorContent {
 	position: absolute;
 	z-index: 10;
 	left: 0;
@@ -37,26 +47,37 @@
 	align-items: center;
 	font-size: 0.875rem;
 	transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
+
+	&[data-visible="true"] {
+		bottom: 0;
+		opacity: 1;
+	}
+
+	&[data-visible="false"] {
+		bottom: -3rem;
+		opacity: 0;
+	}
 }
 
-.error-content[data-visible="true"] {
-	bottom: 0;
-	opacity: 1;
-}
+.warningIcon {
+	position: absolute;
+	z-index: 10;
+	bottom: 1.5rem;
+	right: 1.5rem;
+	cursor: pointer;
+	transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
 
-.error-content[data-visible="false"] {
-	bottom: -3rem;
-	opacity: 0;
-}
+	&[data-visible="true"] {
+		opacity: 1;
+		visibility: visible;
+		transform: scale(1);
+	}
 
-.error-overlay[data-visible="true"] {
-	opacity: 1;
-	visibility: visible;
-}
-
-.error-overlay[data-visible="false"] {
-	opacity: 0;
-	visibility: hidden;
+	&[data-visible="false"] {
+		opacity: 0;
+		visibility: hidden;
+		transform: scale(0.6);
+	}
 }
 
 .languageToggle {
@@ -73,5 +94,20 @@
 		&[data-active="false"] {
 			color: var(--accent-background);
 		}
+	}
+}
+
+.editorConsole {
+	@apply w-full h-1/4 flex flex-col absolute bottom-0 z-10 border-t-2 border-accent-background;
+	animation: slide-up 0.2s ease-in-out;
+}
+
+@keyframes slide-up {
+	from {
+		bottom: -25%;
+	}
+
+	to {
+		bottom: 0;
 	}
 }

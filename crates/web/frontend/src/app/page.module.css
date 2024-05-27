@@ -1,5 +1,5 @@
 .linkLeftBorder {
-	@apply h-0.5 w-full bg-accent-background;
+	@apply h-0.5 w-full bg-muted-transparent;
 	/* transition: all 0.2s ease-out; */
 	/* background: linear-gradient(to right, var(--accent-background), var(--accent-background) 25%, var(--accent) 50%, var(--accent) 75%, var(--accent-background) 100%); */
 	/* background-size: 400% 100%; */
@@ -22,7 +22,7 @@
 }
 
 .linkRightBorder {
-	@apply h-0.5 w-full bg-accent-background;
+	@apply h-0.5 w-full bg-muted-transparent;
 	/* transition: all 0.2s ease-out;
 	background: linear-gradient(to right, var(--accent), var(--accent) 25%, var(--accent-background) 50%, var(--accent-background) 75%, var(--accent) 100%);
 	background-size: 400% 100%; */

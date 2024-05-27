@@ -30,6 +30,7 @@ const config = {
 					transparent: "var(--muted-transparent)",
 				},
 				error: "var(--error)",
+				warning: "var(--warning)",
 				success: "var(--success)",
 			},
 			borderRadius: {
