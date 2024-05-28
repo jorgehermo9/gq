@@ -19,14 +19,14 @@ export const getAutocompleteGqFn = (
 			position: trigger?.from,
 			trigger: trigger?.text,
 		});
-		// console.log(trigger);
-		return {
-			from: word ? word.from : context.pos,
-			options: completionItems.map((item) => ({
-				type: "text",
-				apply: item.completion,
-				label: item.label,
-			})),
-		};
+		return null;
+		// return {
+		// 	from: word ? word.from : context.pos,
+		// 	options: completionItems.map((item) => ({
+		// 		type: "text",
+		// 		apply: item.completion,
+		// 		label: item.label,
+		// 	})),
+		// };
 	};
 };

@@ -49,7 +49,6 @@ const Home = () => {
 					silent || (autoApply && debounceTime < 500),
 				);
 				setErrorMessage(undefined);
-				setWarningMessages(["This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!"])
 				setOutputData(result);
 			} catch (err) {
 				setErrorMessage(err.message);
@@ -190,8 +189,9 @@ const Home = () => {
 								"p-2 min-w-max border-2",
 								linked ? "border-accent" : "border-accent-background",
 							)}
-							description={`${linked ? "Link" : "Unlink"
-								} input and output editor file types`}
+							description={`${
+								linked ? "Link" : "Unlink"
+							} input and output editor file types`}
 							onClick={handleChangeLinked}
 						>
 							{linked ? (
