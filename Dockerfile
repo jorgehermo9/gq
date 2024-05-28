@@ -16,7 +16,7 @@ WORKDIR /app/crates/web
 RUN wasm-pack build --out-dir ./pkg --target web
 
 
-FROM node:22.2.0-alpine
+FROM node:22.2-bookworm
 WORKDIR /app
 RUN npm install --global pm2@5.4.0
 COPY --from=builder /app/crates/web/pkg ./pkg
