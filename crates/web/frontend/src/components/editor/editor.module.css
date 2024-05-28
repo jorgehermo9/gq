@@ -4,13 +4,11 @@
 
 .editor[data-focus="true"] {
 	border: 2px solid var(--accent);
-	scrollbar-color: var(--accent-background) var(--muted-transparent);
 	@apply shadow-lg;
 }
 
 .editor[data-focus="false"] {
 	border: 2px solid var(--accent-background);
-	scrollbar-color: var(--accent-background) var(--muted-transparent);
 	@apply shadow-md;
 }
 

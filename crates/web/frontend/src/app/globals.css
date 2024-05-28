@@ -46,6 +46,7 @@
   * {
     @apply border-accent-background;
     transition: scrollbar-color 0.04s;
+    scrollbar-color: var(--accent-background) var(--muted-transparent);
     scrollbar-width: thin;
   }
 
