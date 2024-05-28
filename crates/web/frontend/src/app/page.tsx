@@ -49,10 +49,11 @@ const Home = () => {
 					silent || (autoApply && debounceTime < 500),
 				);
 				setErrorMessage(undefined);
-				setWarningMessages(["This is a warning message!"])
+				setWarningMessages(["This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!", "This is a warning message!"])
 				setOutputData(result);
 			} catch (err) {
 				setErrorMessage(err.message);
+				setWarningMessages([]);
 			}
 		},
 		[gqWorker, dataTabSize, autoApply, debounceTime, outputData.type],

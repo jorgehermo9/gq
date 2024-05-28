@@ -143,11 +143,9 @@ const Editor = ({
 					onClick={() => setShowWarnings(true)}
 					data-visible={!!warningMessages && warningMessages.length > 0 && !showWarnings}
 					className={styles.warningIcon}>
-					<TriangleAlert className="w-4 h-4 text-warning" />
+					<TriangleAlert className="w-5 h-5 text-warning" />
 				</ActionButton>
-				{showWarnings && (
-					<EditorConsole lines={warningMessages || []} onClose={() => setShowWarnings(false)} />)
-				}
+				<EditorConsole lines={warningMessages || []} visible={showWarnings} onClose={() => setShowWarnings(false)} />
 				{available ? (
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"

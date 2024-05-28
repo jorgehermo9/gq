@@ -1,21 +1,50 @@
-import { Dot } from "lucide-react";
+import { ArrowDownFromLine, ChevronDown, ChevronsDown } from "lucide-react";
+import { Button } from "../ui/button";
 import styles from "./editor.module.css";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 interface Props {
 	lines: string[];
+	visible: boolean;
 	onClose: () => void;
 }
 
-export const EditorConsole = ({ lines, onClose }: Props) => {
+export const EditorConsole = ({ lines, visible, onClose }: Props) => {
 	return (
-		<div className={styles.editorConsole}>
-			{lines.map((line, index) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-				<div key={index} className="flex items-center gap-2 py-2 px-1 border-b border-muted-transparent">
-					< Dot className="w-8 h-8 text-warning" />
-					<span className="text-sm">{line}</span>
-				</div >
-			))}
-		</div >
+		<PanelGroup
+			className={styles.consoleOverlay}
+			data-visible={visible}
+			direction="vertical"
+		>
+			<Panel
+				className="bg-[#00000021]"
+				minSize={4}
+				order={0}
+				onClick={onClose}
+			/>
+			<PanelResizeHandle className="h-0.5 bg-accent-background relative">
+				<Button
+					variant="ghost"
+					onClick={onClose}
+					className="absolute px-0 py-0 z-30 h-min right-1/2 -top-6 transform -translate-y-1/2 translate-x-1/2 cursor-pointer text-[#404040]"
+				>
+					<ChevronsDown className="w-7 h-7" />
+				</Button>
+			</PanelResizeHandle>
+			<Panel className="bg-background !overflow-y-auto" minSize={25} order={1}>
+				<div className="py-">
+					{lines.map((line, index) => (
+						<div
+							// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+							key={index}
+							className="flex items-center gap-4 py-2.5 px-4 border-b border-muted-transparent text-[0.8rem] font-mono"
+						>
+							<span className="text-warning font-semibold">WARN</span>
+							<span className="">{line}</span>
+						</div>
+					))}
+				</div>
+			</Panel>
+		</PanelGroup>
 	);
-}
+};

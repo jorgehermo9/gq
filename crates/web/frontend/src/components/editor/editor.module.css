@@ -21,7 +21,7 @@
 	left: 0;
 	height: 100%;
 	width: 100%;
-	background-color: rgba(0, 0, 0, 0.13);
+	background-color: #00000021;
 	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
 
 	&[data-visible="true"] {
@@ -36,6 +36,7 @@
 }
 
 .errorContent {
+	@apply text-[0.8rem] font-mono;
 	position: absolute;
 	z-index: 10;
 	left: 0;
@@ -45,7 +46,6 @@
 	background-color: var(--error);
 	display: flex;
 	align-items: center;
-	font-size: 0.875rem;
 	transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
 
 	&[data-visible="true"] {
@@ -97,17 +97,20 @@
 	}
 }
 
-.editorConsole {
-	@apply w-full h-1/4 flex flex-col absolute bottom-0 z-10 border-t-2 border-accent-background;
-	animation: slide-up 0.2s ease-in-out;
-}
+.consoleOverlay {
+	position: absolute;
+	z-index: 20;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
 
-@keyframes slide-up {
-	from {
-		bottom: -25%;
+	&[data-visible="true"] {
+		opacity: 1;
+		visibility: visible;
 	}
 
-	to {
-		bottom: 0;
+	&[data-visible="false"] {
+		opacity: 0;
+		visibility: hidden;
 	}
 }
