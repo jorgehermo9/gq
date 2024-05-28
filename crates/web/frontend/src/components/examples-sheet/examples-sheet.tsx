@@ -1,6 +1,7 @@
 "use client";
 
 import { gqTheme } from "@/lib/theme";
+import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
@@ -9,16 +10,8 @@ import CodeMirror from "@uiw/react-codemirror";
 import { CircleHelp } from "lucide-react";
 import { useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
-import { Separator } from "../ui/separator";
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from "../ui/sheet";
-import { type Example, type ExampleSection, queryExamples } from "./examples";
+import { formatCode } from "../editor/editor-utils";
+import SimpleEditor from "../editor/simple-editor";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -29,7 +22,16 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "../ui/alert-dialog";
-import SimpleEditor from "../editor/simple-editor";
+import { Separator } from "../ui/separator";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "../ui/sheet";
+import { type Example, type ExampleSection, queryExamples } from "./examples";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -48,7 +50,7 @@ interface ExampleSectionProps {
 }
 
 interface Props {
-	onClickExample: (json: string, query: string) => void;
+	onClickExample: (json: Data, query: Data) => void;
 	className?: string;
 }
 
@@ -76,6 +78,7 @@ const ExampleItem = ({ example, onClick }: ExampleItemProps) => {
 		<div
 			className="p-4 border rounded-lg hover:border-accent transition-colors cursor-pointer"
 			onClick={() => onClick(example.query)}
+			onKeyDown={(event) => event.key === "Enter" && onClick(example.query)}
 		>
 			<h3 className="font-semibold text-sm mb-1">{example.title}</h3>
 			<ExampleItemDescription
@@ -98,7 +101,7 @@ const ExamplesSection = ({
 }: ExampleSectionProps) => {
 	const {
 		settings: {
-			formattingSettings: { jsonTabSize },
+			formattingSettings: { dataTabSize: jsonTabSize },
 		},
 	} = useSettings();
 
@@ -155,21 +158,10 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 	>();
 	const {
 		settings: {
-			formattingSettings: { jsonTabSize, queryTabSize },
+			formattingSettings: { dataTabSize, queryTabSize },
 		},
 	} = useSettings();
 	const { formatWorker } = useWorker();
-
-	const formatCode = useCallback(
-		(value: string, indentSize: number, fileType: FileType) => {
-			return formatWorker?.postMessage({
-				data: value,
-				indent: indentSize,
-				type: fileType,
-			});
-		},
-		[formatWorker],
-	);
 
 	const handleClick = useCallback((json: string, query: string) => {
 		setSelectedExample({ json, query });
@@ -178,20 +170,29 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 
 	const handleSubmit = useCallback(async () => {
 		if (!selectedExample) return;
+		if (!formatWorker) return;
 		const formattedJson = await formatCode(
-			selectedExample.json,
-			jsonTabSize,
-			FileType.JSON,
+			{ content: selectedExample.json, type: FileType.JSON },
+			dataTabSize,
+			formatWorker,
+			true,
 		);
 		const formattedQuery = await formatCode(
-			selectedExample.query,
+			{ content: selectedExample.query, type: FileType.GQ },
 			queryTabSize,
-			FileType.GQ,
+			formatWorker,
+			true,
 		);
 		setSheetOpen(false);
 		setDialogOpen(false);
 		onClickExample(formattedJson, formattedQuery);
-	}, [jsonTabSize, queryTabSize, formatCode, onClickExample, selectedExample]);
+	}, [
+		dataTabSize,
+		queryTabSize,
+		onClickExample,
+		selectedExample,
+		formatWorker,
+	]);
 
 	return (
 		<>

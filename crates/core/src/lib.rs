@@ -1,9 +1,11 @@
-use query::Query;
-use serde_json::Value;
+use lsp::completion_item::{CompletionItem, CompletionItemBuilder};
+use rowan::{TextRange, TextSize};
 use thiserror::Error;
 
+pub mod data;
 pub mod format;
 pub mod lexer;
+pub mod lsp;
 pub mod parser;
 pub mod query;
 
@@ -17,12 +19,28 @@ pub enum Error {
     ApplyQuery(#[from] query::apply::Error),
 }
 
-// TODO: be more generic over the input. Maybe someone wants to call this with an already
-// constructed Value, (for example, a web server) and we should not force them to
-// serialize it to a string and then parse it again.
-pub fn entrypoint(query: &str, json: &str) -> Result<Value, Error> {
-    let query = Query::try_from(query)?;
-    let json: Value = serde_json::from_str(json)?;
-    let query_result = query.apply(json)?;
-    Ok(query_result)
+pub fn completions(query: &str, position: u32, trigger: char) -> Vec<CompletionItem> {
+    let item = CompletionItemBuilder::default()
+        .source_range(TextRange::new(
+            TextSize::new(position),
+            TextSize::new(position),
+        ))
+        .completion("Test".to_string())
+        .label("another_item".to_string())
+        .detail("Hello World".to_string())
+        .documentation("Hello World".to_string())
+        .build()
+        .unwrap();
+    let another_item = CompletionItemBuilder::default()
+        .source_range(TextRange::new(
+            TextSize::new(position),
+            TextSize::new(position),
+        ))
+        .completion("Test".to_string())
+        .label("item".to_string())
+        .detail("Hello World".to_string())
+        .documentation("Hello World".to_string())
+        .build()
+        .unwrap();
+    vec![item, another_item]
 }

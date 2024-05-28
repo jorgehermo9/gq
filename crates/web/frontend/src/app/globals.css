@@ -15,6 +15,7 @@
     --code-tertiary: #B46141;
 
     --success: #8BAE82;
+    --warning: #d1c481;
     --error: #f8d7da;
 
     --muted-transparent: #9b99920f;
@@ -34,6 +35,7 @@
     --code-tertiary: #B46141;
 
     --success: #8BAE82;
+    --warning: #d1c481;
     --error: #983636;
 
     --muted-transparent: #9b99920f;
@@ -43,7 +45,8 @@
 @layer base {
   * {
     @apply border-accent-background;
-    scrollbar-color: var(--code-primary) var(--muted-transparent);
+    transition: scrollbar-color 0.04s;
+    scrollbar-color: var(--accent-background) var(--muted-transparent);
     scrollbar-width: thin;
   }
 

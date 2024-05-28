@@ -12,18 +12,29 @@
 	@apply shadow-md;
 }
 
-.error-overlay {
+.errorOverlay {
 	position: absolute;
 	z-index: 5;
 	top: 0;
 	left: 0;
 	height: 100%;
 	width: 100%;
-	background-color: rgba(0, 0, 0, 0.13);
+	background-color: #00000021;
 	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+
+	&[data-visible="true"] {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	&[data-visible="false"] {
+		opacity: 0;
+		visibility: hidden;
+	}
 }
 
-.error-content {
+.errorContent {
+	@apply text-[0.8rem] font-mono;
 	position: absolute;
 	z-index: 10;
 	left: 0;
@@ -33,26 +44,71 @@
 	background-color: var(--error);
 	display: flex;
 	align-items: center;
-	font-size: 0.875rem;
 	transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
+
+	&[data-visible="true"] {
+		bottom: 0;
+		opacity: 1;
+	}
+
+	&[data-visible="false"] {
+		bottom: -3rem;
+		opacity: 0;
+	}
 }
 
-.error-content[data-visible="true"] {
-	bottom: 0;
-	opacity: 1;
+.warningIcon {
+	position: absolute;
+	z-index: 10;
+	bottom: 1.5rem;
+	right: 1.5rem;
+	cursor: pointer;
+	transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
+
+	&[data-visible="true"] {
+		opacity: 1;
+		visibility: visible;
+		transform: scale(1);
+	}
+
+	&[data-visible="false"] {
+		opacity: 0;
+		visibility: hidden;
+		transform: scale(0.6);
+	}
 }
 
-.error-content[data-visible="false"] {
-	bottom: -3rem;
-	opacity: 0;
+.languageToggle {
+	@apply p-0 pr-2 rounded-lg flex items-center justify-center gap-2 select-none cursor-pointer relative;
+
+	& span {
+		@apply text-lg font-bold;
+		transition: color 0.1s;
+
+		&[data-active="true"] {
+			color: var(--accent);
+		}
+
+		&[data-active="false"] {
+			color: var(--accent-background);
+		}
+	}
 }
 
-.error-overlay[data-visible="true"] {
-	opacity: 1;
-	visibility: visible;
-}
-
-.error-overlay[data-visible="false"] {
+.consoleOverlay {
+	position: absolute;
+	z-index: 20;
 	opacity: 0;
 	visibility: hidden;
+	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+
+	&[data-visible="true"] {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	&[data-visible="false"] {
+		opacity: 0;
+		visibility: hidden;
+	}
 }

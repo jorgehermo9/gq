@@ -46,7 +46,7 @@ const propertyAccessing: ExampleSection = {
 				"You can simply use the dot operator in order to access nested properties in objects inside an array",
 		},
 		{
-			query: "{\n\tcategory\n\tlanguages {\n\t\tname\n\t\tyearCreated\n\t}\n}",
+			query: "{\n\tcategory\n\tlanguages {\n\t\tname\n\t\tyear\n\t}\n}",
 			title: "Multiple properties",
 			description:
 				"Use curly braces to select multiple properties in the same query either over an object or an array",

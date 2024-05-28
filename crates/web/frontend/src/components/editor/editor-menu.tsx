@@ -11,30 +11,24 @@ import {
 	DropdownMenuShortcut,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
+import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
-import {
-	Clipboard,
-	DownloadCloud,
-	EllipsisVertical,
-	FileUp,
-	Sparkles,
-} from "lucide-react";
+import { Clipboard, Sparkles } from "lucide-react";
 import ImportButton from "../import-button/import-button";
 
 interface Props {
 	fileType: FileType;
-	defaultFileName: string;
+	defaultFilename: string;
 	editable: boolean;
 	onCopyToClipboard: () => void;
 	onFormatCode: () => void;
-	onImportFile: (content: string) => void;
-	onExportFile: (fileName: string) => void;
+	onImportFile: (data: Data) => void;
+	onExportFile: (filename: string) => void;
 }
 
 const EditorMenu = ({
 	fileType,
-	defaultFileName,
+	defaultFilename,
 	editable,
 	onCopyToClipboard,
 	onFormatCode,
@@ -60,12 +54,12 @@ const EditorMenu = ({
 					<Sparkles className="w-3.5 h-3.5" />
 				</ActionButton>
 				<ImportButton
-					fileType={fileType}
+					importableType={fileType}
 					onImportFile={onImportFile}
 					hidden={!editable}
 				/>
 				<ExportButton
-					defaultFileName={defaultFileName}
+					defaultFilename={defaultFilename}
 					fileType={fileType}
 					onExportFile={onExportFile}
 				/>

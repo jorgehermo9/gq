@@ -1,5 +1,6 @@
 import ActionButton from "@/components/action-button/action-button";
 import type FileType from "@/model/file-type";
+import { getFileExtensions } from "@/model/file-type";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { DownloadCloud } from "lucide-react";
 import { useState } from "react";
@@ -16,13 +17,13 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
 interface Props {
-	defaultFileName: string;
+	defaultFilename: string;
 	fileType: FileType;
 	onExportFile: (fileName: string) => void;
 }
 
-const ExportButton = ({ defaultFileName, fileType, onExportFile }: Props) => {
-	const [fileName, setFileName] = useState(defaultFileName);
+const ExportButton = ({ defaultFilename, fileType, onExportFile }: Props) => {
+	const [fileName, setFileName] = useState(defaultFilename);
 	const [open, setOpen] = useState(false);
 
 	return (
@@ -61,7 +62,7 @@ const ExportButton = ({ defaultFileName, fileType, onExportFile }: Props) => {
 							onChange={(e) => setFileName(e.target.value)}
 						/>
 						<span className="absolute right-[1px] border border-accent-background py-2 px-4 h-9.5 rounded-r-md text-sm bg-accent-background">
-							.{fileType.toString()}
+							.{getFileExtensions(fileType)[0]}
 						</span>
 					</div>
 

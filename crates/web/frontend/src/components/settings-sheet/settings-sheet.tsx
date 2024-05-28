@@ -22,9 +22,9 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import {
 	setAutoApply,
+	setDataTabSize,
 	setDebounceTime,
 	setFormatOnImport,
-	setJsonTabSize,
 	setQueryTabSize,
 } from "@/model/settings";
 import { useSettings } from "@/providers/settings-provider";
@@ -97,11 +97,11 @@ const SettingsSheet = ({ className }: Props) => {
 
 					<div className="flex gap-8 ml-4">
 						<div className="flex flex-col gap-2">
-							<Label htmlFor="json-tab-size">JSON indent</Label>
+							<Label htmlFor="json-tab-size">Data indent</Label>
 							<Select
-								value={formattingSettings.jsonTabSize.toString()}
+								value={formattingSettings.dataTabSize.toString()}
 								onValueChange={(value) =>
-									setSettings((prev) => setJsonTabSize(prev, Number(value)))
+									setSettings((prev) => setDataTabSize(prev, Number(value)))
 								}
 							>
 								<SelectTrigger className="w-24">
