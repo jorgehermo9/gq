@@ -1,3 +1,7 @@
 **/target/
 **/node_modules/
 crates/web/frontend/pkg
+Dockerfile
+docker-compose.yml
+LICENSE
+README.md
