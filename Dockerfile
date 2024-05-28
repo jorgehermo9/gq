@@ -11,7 +11,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder 
 COPY --from=planner /app/recipe.json recipe.json
 # Build dependencies - this is the caching Docker layer!
-RUN cargo chef cook --release --recipe-path recipe.json --target wasm32-unknown-unknown
+RUN cargo chef cook --package gq-web --release --recipe-path recipe.json --target wasm32-unknown-unknown
 COPY . .
 WORKDIR /app/crates/web
 RUN wasm-pack build --out-dir ./pkg --target web
