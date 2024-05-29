@@ -5,7 +5,7 @@ import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import CodeMirror from "@uiw/react-codemirror";
-import { Eraser, TriangleAlert } from "lucide-react";
+import { Eraser, TriangleAlert, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
@@ -19,7 +19,8 @@ import {
 import styles from "./editor.module.css";
 import { EditorTooLarge } from "./editor-too-large";
 import { EditorConsole } from "./editor-console";
-import { Button } from "../ui/button";
+import { EditorErrorOverlay } from "./editor-error-overlay";
+import { EditorLoadingOverlay } from "./editor-loading-overlay";
 
 interface Props {
 	data: Data;
@@ -32,7 +33,10 @@ interface Props {
 	onChangeFileType?: (fileType: FileType) => void;
 	className?: string;
 	errorMessage?: string;
+	onDismissError?: () => void;
 	warningMessages?: string[];
+	loading: boolean;
+	loadingMessage: string;
 	editable?: boolean;
 }
 
@@ -47,7 +51,10 @@ const Editor = ({
 	onChangeFileType,
 	className,
 	errorMessage,
+	onDismissError,
 	warningMessages,
+	loading,
+	loadingMessage,
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
@@ -96,6 +103,11 @@ const Editor = ({
 		[focused, handleFormatCode, data],
 	);
 
+	const handleDismissError = useCallback(() => {
+		setEditorErrorMessage(undefined);
+		onDismissError?.();
+	}, [onDismissError]);
+
 	useEffect(() => {
 		document.addEventListener("keydown", handleKeyDown);
 		return () => document.removeEventListener("keydown", handleKeyDown);
@@ -127,25 +139,34 @@ const Editor = ({
 				onBlur={() => onChangeFocused(false)}
 				className={`${styles.editor} relative block h-full rounded-lg overflow-hidden`}
 			>
-				<div
-					data-visible={!editable && (!!errorMessage || !!editorErrorMessage)}
-					className={styles.errorOverlay}
+				<EditorLoadingOverlay
+					loading={loading}
+					loadingMessage={loadingMessage}
 				/>
-				<span
-					data-visible={!!errorMessage || !!editorErrorMessage}
-					className={styles.errorContent}
-				>
-					{errorMessage || editorErrorMessage}
-				</span>
+				<EditorErrorOverlay
+					visibleBackdrop={
+						!editable && (!!errorMessage || !!editorErrorMessage)
+					}
+					visibleMessage={!!errorMessage || !!editorErrorMessage}
+					errorMessage={errorMessage || editorErrorMessage}
+					onClose={handleDismissError}
+				/>
 				<ActionButton
 					description="Show warnings"
 					variant="ghost"
 					onClick={() => setShowWarnings(true)}
-					data-visible={!!warningMessages && warningMessages.length > 0 && !showWarnings}
-					className={styles.warningIcon}>
+					data-visible={
+						!!warningMessages && warningMessages.length > 0 && !showWarnings
+					}
+					className={styles.warningIcon}
+				>
 					<TriangleAlert className="w-5 h-5 text-warning" />
 				</ActionButton>
-				<EditorConsole lines={warningMessages || []} visible={showWarnings} onClose={() => setShowWarnings(false)} />
+				<EditorConsole
+					lines={warningMessages || []}
+					visible={showWarnings}
+					onClose={() => setShowWarnings(false)}
+				/>
 				{available ? (
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"

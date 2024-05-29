@@ -15,6 +15,12 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { applyGq, convertCode } from "./page-utils";
 import styles from "./page.module.css";
+import { Loader } from "@/components/ui/sonner";
+
+interface LoadingState {
+	loading: boolean;
+	message: string | undefined;
+}
 
 const Home = () => {
 	const [inputData, setInputData] = useState<Data>(empty(FileType.JSON));
@@ -28,6 +34,18 @@ const Home = () => {
 	const [inputEditorFocused, setInputEditorFocused] = useState(false);
 	const [queryEditorFocused, setQueryEditorFocused] = useState(false);
 	const [outputEditorFocused, setOutputEditorFocused] = useState(false);
+	const [loadingInput, setLoadingInput] = useState<LoadingState>({
+		loading: false,
+		message: undefined,
+	});
+	const [loadingOutput, setLoadingOutput] = useState<LoadingState>({
+		loading: false,
+		message: undefined,
+	});
+	const [loadingQuery, setLoadingQuery] = useState<LoadingState>({
+		loading: false,
+		message: undefined,
+	});
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
@@ -84,27 +102,28 @@ const Home = () => {
 	const handleChangeInputDataFileType = useCallback(
 		async (fileType: FileType) => {
 			if (!convertWorker || fileType === inputData.type) return;
-			try {
-				const convertedData = await convertCode(
-					inputData,
-					fileType,
-					dataTabSize,
-					convertWorker,
+			setLoadingInput({
+				loading: true,
+				message: `Converting code to ${fileType.toUpperCase()}`,
+			});
+			convertCode(inputData, fileType, dataTabSize, convertWorker)
+				.then((data) => {
+					setInputData(data);
+					setErrorMessage(undefined);
+				})
+				.catch((e) => setErrorMessage(e.message))
+				.finally(() => setLoadingInput({ loading: false, message: undefined }));
+			if (!linked) return;
+			setLoadingOutput({
+				loading: true,
+				message: `Converting code to ${fileType.toUpperCase()}`,
+			});
+			convertCode(outputData, fileType, dataTabSize, convertWorker)
+				.then((data) => setOutputData(data))
+				.catch((e) => setErrorMessage(e.message))
+				.finally(() =>
+					setLoadingOutput({ loading: false, message: undefined }),
 				);
-				setErrorMessage(undefined);
-				setInputData(convertedData);
-				if (!linked) return;
-				const outputConvertedData = await convertCode(
-					outputData,
-					fileType,
-					dataTabSize,
-					convertWorker,
-					true,
-				);
-				setOutputData(outputConvertedData);
-			} catch (e) {
-				setErrorMessage(e.message);
-			}
 		},
 		[inputData, dataTabSize, convertWorker, outputData, linked],
 	);
@@ -112,27 +131,28 @@ const Home = () => {
 	const handleChangeOutputDataFileType = useCallback(
 		async (fileType: FileType) => {
 			if (!convertWorker || fileType === outputData.type) return;
-			try {
-				const convertedData = await convertCode(
-					outputData,
-					fileType,
-					dataTabSize,
-					convertWorker,
+			setLoadingOutput({
+				loading: true,
+				message: `Converting code to ${fileType.toUpperCase()}`,
+			});
+			convertCode(outputData, fileType, dataTabSize, convertWorker)
+				.then((data) => {
+					setOutputData(data);
+					setErrorMessage(undefined);
+				})
+				.catch((e) => setErrorMessage(e.message))
+				.finally(() =>
+					setLoadingOutput({ loading: false, message: undefined }),
 				);
-				setErrorMessage(undefined);
-				setOutputData(convertedData);
-				if (!linked) return;
-				const inputConvertedData = await convertCode(
-					inputData,
-					fileType,
-					dataTabSize,
-					convertWorker,
-					true,
-				);
-				setInputData(inputConvertedData);
-			} catch (e) {
-				setErrorMessage(e.message);
-			}
+			if (!linked) return;
+			setLoadingInput({
+				loading: true,
+				message: `Converting code to ${fileType.toUpperCase()}`,
+			});
+			convertCode(inputData, fileType, dataTabSize, convertWorker)
+				.then((data) => setInputData(data))
+				.catch((e) => setErrorMessage(e.message))
+				.finally(() => setLoadingInput({ loading: false, message: undefined }));
 		},
 		[outputData, dataTabSize, convertWorker, inputData, linked],
 	);
@@ -165,7 +185,10 @@ const Home = () => {
 						title="Input"
 						defaultFileName="input"
 						fileTypes={[FileType.JSON, FileType.YAML]}
+						loading={loadingInput.loading}
+						loadingMessage={loadingInput.message || ""}
 					/>
+
 					<Editor
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
 						data={inputQuery}
@@ -175,6 +198,8 @@ const Home = () => {
 						title="Input"
 						defaultFileName="query"
 						fileTypes={[FileType.GQ]}
+						loading={loadingQuery.loading}
+						loadingMessage={loadingQuery.message || ""}
 					/>
 				</aside>
 				<div className="h-full flex justify-center items-center px-8 relative">
@@ -224,7 +249,10 @@ const Home = () => {
 						defaultFileName="output"
 						fileTypes={[FileType.JSON, FileType.YAML]}
 						errorMessage={errorMessage}
+						onDismissError={() => setErrorMessage(undefined)}
 						warningMessages={warningMessages}
+						loading={loadingOutput.loading}
+						loadingMessage={loadingOutput.message || ""}
 					/>
 				</aside>
 			</section>

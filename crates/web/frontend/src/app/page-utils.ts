@@ -29,8 +29,7 @@ export const applyGq = async (
 	} catch (err) {
 		!silent &&
 			toast.error(
-				`Error while applying query to ${inputData.type.toUpperCase()}: ${
-					err.message
+				`Error while applying query to ${inputData.type.toUpperCase()}: ${err.message
 				}`,
 				{ id: toastId, duration: 5000 },
 			);
@@ -43,7 +42,7 @@ export const convertCode = async (
 	outputType: FileType,
 	indent: number,
 	convertWorker: PromiseWorker,
-	silent = false,
+	silent = true,
 ): Promise<Data> => {
 	const toastId = silent ? undefined : toast.loading("Converting code...");
 	try {
