@@ -23,6 +23,7 @@ pub enum Error {
 pub enum Indentation {
     Spaces(NonZeroUsize),
     Tabs(NonZeroUsize),
+    // TODO: rename into Indentation::Compact? Indentation::None?
     Inline,
 }
 
