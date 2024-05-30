@@ -1,4 +1,4 @@
-use std::io::{self, BufReader, Read};
+use std::io::{BufReader, Read};
 
 use clio::Input;
 
@@ -14,11 +14,13 @@ pub struct InputQueryArgs {
     query_file: Option<Input>,
 }
 
-impl InputQueryArgs {
-    pub fn input_query(self) -> Result<String, io::Error> {
-        // panic if both are provided or none
-        match (self.query_file, self.query) {
+impl TryFrom<InputQueryArgs> for String {
+    type Error = clio::Error;
+
+    fn try_from(args: InputQueryArgs) -> Result<Self, Self::Error> {
+        match (args.query_file, args.query) {
             (None, None) => panic!("No query provided"),
+            (Some(_), Some(_)) => panic!("Both inline query and query file provided"),
             (None, Some(inline_query)) => Ok(inline_query),
             (Some(query_file), _) => {
                 let mut buffer = BufReader::new(query_file);

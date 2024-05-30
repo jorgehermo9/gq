@@ -5,10 +5,13 @@ use std::{
 };
 use thiserror::Error;
 
+use crate::data::DataType;
+
 mod value;
 pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Error, Debug)]
 pub enum Error {
+    // TODO: Do not use box and use a custom error type
     #[error("Unexpected error while formatting: {0}")]
     Unexpected(Box<dyn std::error::Error + Send + Sync>),
     #[error("Unexpected IO error while formatting: {0}")]
@@ -69,19 +72,27 @@ impl Display for Indentation {
 
 // TODO: have an alias for the format result`type Result<T> = std::result::Result<T, Error>;`
 pub trait PrettyFormat {
-    fn pretty_format(&self, indentation: Indentation) -> Result<String>;
+    // TODO: return String or Data?
+    fn pretty_format(&self, indentation: Indentation, output_type: DataType) -> Result<String>;
     fn pretty_format_to_writer<W: io::Write>(
         &self,
         writer: &mut W,
+        // TODO: inver the order of indentation and output_type params
         indentation: Indentation,
+        output_type: DataType,
     ) -> Result<()>;
 }
 
 pub trait PrettyFormatColored {
-    fn pretty_format_colored(&self, indentation: Indentation) -> Result<String>;
+    fn pretty_format_colored(
+        &self,
+        indentation: Indentation,
+        output_type: DataType,
+    ) -> Result<String>;
     fn pretty_format_colored_to_writer<W: io::Write>(
         &self,
         writer: &mut W,
         indentation: Indentation,
+        output_type: DataType,
     ) -> Result<()>;
 }

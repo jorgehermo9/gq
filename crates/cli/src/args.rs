@@ -4,14 +4,13 @@ use clap::builder::{
 };
 use clap::{command, Parser};
 use clap_verbosity_flag::Verbosity;
-use clio::{Input, Output};
 
 pub use self::input_query::InputQueryArgs;
-pub use self::output_format::IndentationArgs;
-use self::output_format::OutputFormatArgs;
+use self::{input_data::InputDataArgs, output_args::OutputArgs};
 
+pub mod input_data;
 pub mod input_query;
-pub mod output_format;
+pub mod output_args;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -21,19 +20,14 @@ pub mod output_format;
     .literal(AnsiColor::Green.on_default()))]
 #[clap(name = "gq")]
 pub struct Args {
-    /// JSON Input file, use '-' for stdin
-    #[clap(long, short, value_parser, default_value = "-")]
-    pub input: Input,
-
-    /// JSON Output file,use  '-' for stdout
-    #[clap(long, short, value_parser, default_value = "-")]
-    pub output: Output,
+    #[clap(flatten)]
+    pub input_data: InputDataArgs,
 
     #[clap(flatten)]
     pub input_query: InputQueryArgs,
 
     #[clap(flatten)]
-    pub output_format: OutputFormatArgs,
+    pub output_args: OutputArgs,
 
     /// Verbosity level
     #[command(flatten)]

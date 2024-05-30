@@ -145,12 +145,12 @@ impl Display for Query<'_> {
     }
 }
 
-// TODO: move this into the format module
-impl PrettyFormat for Query<'_> {
+// TODO: we do not implement the PrettyFormat trait here, since it will differ from Value's pretty format interface...
+impl Query<'_> {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
     // TODO: implemente the formatter pattern for here, with a visitor and etc as serde does
-    fn pretty_format(&self, indentation: Indentation) -> format::Result<String> {
+    pub fn pretty_format(&self, indentation: Indentation) -> format::Result<String> {
         let mut result = String::new();
 
         let arguments = self.arguments();
@@ -180,7 +180,7 @@ impl PrettyFormat for Query<'_> {
 
     // TODO: refactor this, so the main logic in written into a writer
     // such as we do in the pretty_format of the serde_json::Value
-    fn pretty_format_to_writer<W: io::Write>(
+    pub fn pretty_format_to_writer<W: io::Write>(
         &self,
         writer: &mut W,
         indentation: Indentation,

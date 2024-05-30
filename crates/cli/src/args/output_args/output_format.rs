@@ -8,7 +8,7 @@ pub struct OutputFormatArgs {
     #[clap(long, conflicts_with_all = &["indent", "tab"])]
     pub compact: bool,
 
-    // Colorize output JSON
+    // Colorize output
     #[clap(long, default_value_t = Color::Auto)]
     #[arg(value_enum)]
     pub color: Color,
