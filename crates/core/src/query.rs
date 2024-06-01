@@ -145,11 +145,9 @@ impl Display for Query<'_> {
     }
 }
 
-// TODO: we do not implement the PrettyFormat trait here, since it will differ from Value's pretty format interface...
 impl Query<'_> {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
-    // TODO: implemente the formatter pattern for here, with a visitor and etc as serde does
     pub fn pretty_format(&self, indentation: Indentation) -> format::Result<String> {
         let mut result = String::new();
 

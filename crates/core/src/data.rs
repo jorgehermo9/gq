@@ -1,13 +1,15 @@
 use std::borrow::Cow;
 
-use crate::format::{self, Indentation, PrettyFormat};
+use crate::format::Indentation;
 use derive_getters::Getters;
 use serde_json::Value;
 use thiserror::Error;
 
+pub mod format;
+
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("json parsing error: {0}")]
+    #[error("yson parsing error: {0}")]
     Json(#[from] serde_json::Error),
     #[error("yaml parsing error: {0}")]
     Yaml(#[from] serde_yaml::Error),
@@ -47,7 +49,7 @@ impl<'a> Data<'a> {
         data_type: DataType,
         indentation: Indentation,
     ) -> Result<Self, Error> {
-        let payload = value.pretty_format(indentation, data_type)?;
+        let payload = data_type.pretty_format(value, indentation)?;
         Ok(Self {
             payload: Cow::Owned(payload),
             data_type,
@@ -59,7 +61,7 @@ impl<'a> Data<'a> {
         indentation: Indentation,
     ) -> Result<Data, Error> {
         let value = Value::try_from(self)?;
-        let payload = value.pretty_format(indentation, target_type)?;
+        let payload = target_type.pretty_format(&value, indentation)?;
         let data = Self {
             payload: Cow::Owned(payload),
             data_type: target_type,
@@ -69,7 +71,7 @@ impl<'a> Data<'a> {
 
     pub fn pretty_format(&'a self, indentation: Indentation) -> Result<Self, Error> {
         let value = Value::try_from(self)?;
-        let payload = value.pretty_format(indentation, self.data_type)?;
+        let payload = self.data_type.pretty_format(&value, indentation)?;
         Ok(Self {
             payload: Cow::Owned(payload),
             data_type: self.data_type,
@@ -86,15 +88,6 @@ impl DataType {
         let result = match self {
             DataType::Json => serde_json::from_str(data)?,
             DataType::Yaml => serde_yaml::from_str(data)?,
-        };
-        Ok(result)
-    }
-
-    // TODO: maybe this method is not necessary
-    pub fn value_to_string(&self, value: &Value) -> Result<String, Error> {
-        let result = match self {
-            DataType::Json => serde_json::to_string(value)?,
-            DataType::Yaml => serde_yaml::to_string(value)?,
         };
         Ok(result)
     }

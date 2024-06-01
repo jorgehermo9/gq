@@ -1,6 +1,6 @@
 use data::JsDataType;
 use gq_core::data::Data;
-use gq_core::format::{Indentation, PrettyFormat};
+use gq_core::format::Indentation;
 use gq_core::query::Query;
 use lsp::JsCompletionItem;
 use serde_json::Value;

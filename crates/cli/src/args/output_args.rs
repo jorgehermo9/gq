@@ -2,10 +2,7 @@ use std::io::{BufWriter, Write};
 
 use clap::Args;
 use clio::Output;
-use gq_core::{
-    data::DataType,
-    format::{self, PrettyFormat, PrettyFormatColored},
-};
+use gq_core::data::{format, DataType};
 use serde_json::Value;
 
 use self::output_format::{Color, OutputFormatArgs};
@@ -53,20 +50,20 @@ impl OutputArgs {
             Color::Auto => {
                 if is_tty {
                     // TODO: pretty format methods should receive the data type
-                    value.pretty_format_colored_to_writer(
+                    output_type.pretty_format_colored_to_writer(
                         &mut buf_writer,
+                        value,
                         indentation,
-                        output_type,
                     )?
                 } else {
-                    value.pretty_format_to_writer(&mut buf_writer, indentation, output_type)?
+                    output_type.pretty_format_to_writer(&mut buf_writer, value, indentation)?
                 }
             }
             Color::Always => {
-                value.pretty_format_colored_to_writer(&mut buf_writer, indentation, output_type)?
+                output_type.pretty_format_colored_to_writer(&mut buf_writer, value, indentation)?
             }
             Color::Never => {
-                value.pretty_format_to_writer(&mut buf_writer, indentation, output_type)?
+                output_type.pretty_format_to_writer(&mut buf_writer, value, indentation)?
             }
         };
 

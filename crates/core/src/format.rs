@@ -7,7 +7,6 @@ use thiserror::Error;
 
 use crate::data::DataType;
 
-mod value;
 pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Error, Debug)]
 pub enum Error {
