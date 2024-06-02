@@ -1,4 +1,7 @@
-use std::io;
+use std::{
+    fmt::{self, Display, Formatter},
+    io,
+};
 
 use thiserror::Error;
 
@@ -77,5 +80,12 @@ impl ChildQuery<'_> {
         } else {
             result.push(sep);
         }
+    }
+}
+
+impl Display for Query<'_> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let formatted = self.pretty_format(Default::default());
+        formatted.fmt(f)
     }
 }

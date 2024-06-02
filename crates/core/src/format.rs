@@ -1,10 +1,7 @@
 use std::{
     fmt::{self, Display, Formatter},
-    io,
     num::NonZeroUsize,
 };
-use thiserror::Error;
-
 #[derive(Debug, Clone, Copy)]
 pub enum Indentation {
     Spaces(NonZeroUsize),

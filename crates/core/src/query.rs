@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::fmt::{self, Display, Formatter};
 
 use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
@@ -10,8 +9,6 @@ mod context;
 pub mod format;
 pub mod query_arguments;
 mod query_key;
-
-use crate::format::Indentation;
 
 pub use self::context::OwnedJsonPath;
 use self::query_arguments::QueryArguments;
@@ -130,12 +127,5 @@ impl<'a> ChildQuery<'a> {
         self.alias()
             .as_ref()
             .unwrap_or_else(|| self.key().last_key().key())
-    }
-}
-
-impl Display for Query<'_> {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let formatted = self.pretty_format(Default::default());
-        formatted.fmt(f)
     }
 }
