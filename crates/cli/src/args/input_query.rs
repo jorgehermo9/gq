@@ -1,28 +1,27 @@
 use std::io::{BufReader, Read};
 
+use clap::Args;
 use clio::Input;
 
-#[derive(Debug, clap::Args)]
+#[derive(Debug, Args)]
 #[group(required = false, multiple = false)]
-pub struct InputQueryArgs {
+pub struct InputQuery {
     /// Inline query
     #[clap(value_parser, default_value = "{}")]
-    query: Option<String>,
+    query: String,
 
     /// Load query from file
     #[clap(long = "file", short = 'f', value_parser)]
     query_file: Option<Input>,
 }
 
-impl TryFrom<InputQueryArgs> for String {
+impl TryFrom<InputQuery> for String {
     type Error = clio::Error;
 
-    fn try_from(args: InputQueryArgs) -> Result<Self, Self::Error> {
-        match (args.query_file, args.query) {
-            (None, None) => panic!("No query provided"),
-            (Some(_), Some(_)) => panic!("Both inline query and query file provided"),
-            (None, Some(inline_query)) => Ok(inline_query),
-            (Some(query_file), _) => {
+    fn try_from(input_query: InputQuery) -> Result<Self, Self::Error> {
+        match input_query.query_file {
+            None => Ok(input_query.query),
+            Some(query_file) => {
                 let mut buffer = BufReader::new(query_file);
                 let mut query = String::new();
                 buffer.read_to_string(&mut query)?;

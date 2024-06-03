@@ -1,43 +1,43 @@
 use std::io::{BufWriter, Write};
 
-use clap::Args;
-use clio::Output;
+use clap::{Args, ColorChoice, ValueEnum};
 use gq_core::data::{format, DataType};
 use serde_json::Value;
 
-use self::output_format::{Color, OutputFormatArgs};
+use self::output_format::OutputFormat;
 
 pub mod output_format;
 
-#[derive(Debug, Clone, clap::ValueEnum)]
-pub enum OutputTypeArg {
+#[derive(Debug, Clone, ValueEnum)]
+pub enum OutputType {
     Match,
     Json,
     Yaml,
 }
 
-impl OutputTypeArg {
+impl OutputType {
     pub fn into_data_type(self, original_data_type: DataType) -> DataType {
         match self {
-            OutputTypeArg::Match => original_data_type,
-            OutputTypeArg::Json => DataType::Json,
-            OutputTypeArg::Yaml => DataType::Yaml,
+            OutputType::Match => original_data_type,
+            OutputType::Json => DataType::Json,
+            OutputType::Yaml => DataType::Yaml,
         }
     }
 }
+
 #[derive(Debug, Args)]
-pub struct OutputArgs {
+pub struct Output {
     /// JSON Output file,use  '-' for stdout
     #[clap(long, short, value_parser, default_value = "-")]
-    pub output: Output,
-    #[clap(long, default_value_t = OutputTypeArg::Match)]
+    pub output: clio::Output,
+    #[clap(long, default_value_t = OutputType::Match)]
     #[arg(value_enum)]
-    pub output_type: OutputTypeArg,
+    pub output_type: OutputType,
     #[clap(flatten)]
-    pub output_format: OutputFormatArgs,
+    pub output_format: OutputFormat,
 }
 
-impl OutputArgs {
+impl Output {
     pub fn write_value(self, value: &Value, original_type: DataType) -> format::Result<()> {
         let color = &self.output_format.color;
         let indentation = self.output_format.indentation();
@@ -46,7 +46,7 @@ impl OutputArgs {
         let mut buf_writer = BufWriter::new(self.output);
 
         match color {
-            Color::Auto => {
+            ColorChoice::Auto => {
                 if is_tty {
                     output_type.pretty_format_colored_to_writer(
                         &mut buf_writer,
@@ -57,10 +57,10 @@ impl OutputArgs {
                     output_type.pretty_format_to_writer(&mut buf_writer, value, indentation)?
                 }
             }
-            Color::Always => {
+            ColorChoice::Always => {
                 output_type.pretty_format_colored_to_writer(&mut buf_writer, value, indentation)?
             }
-            Color::Never => {
+            ColorChoice::Never => {
                 output_type.pretty_format_to_writer(&mut buf_writer, value, indentation)?
             }
         };

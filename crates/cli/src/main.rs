@@ -19,8 +19,7 @@ fn main() -> Result<()> {
     let value = Value::try_from(&input_data)?;
     let result = query.apply(value)?;
 
-    args.output_args
-        .write_value(&result, *input_data.data_type())?;
+    args.output.write_value(&result, *input_data.data_type())?;
 
     Ok(())
 }

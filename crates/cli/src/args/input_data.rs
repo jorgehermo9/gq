@@ -1,33 +1,40 @@
 use std::io::{BufReader, Read};
 
-use clap::Args;
+use clap::{Args, ValueEnum};
 use clio::Input;
 use gq_core::data::Data;
 
-#[derive(Debug, Args)]
-pub struct InputDataArgs {
-    /// Input datga file, use '-' for stdin
-    #[clap(long, short, value_parser, default_value = "-")]
-    pub input: Input,
-    // TODO: boolean flag or an enum with Json and Yaml variants?
-    #[clap(long)]
-    pub yaml: bool,
+#[derive(Debug, Clone, ValueEnum)]
+pub enum InputType {
+    Json,
+    Yaml,
 }
 
-impl TryFrom<InputDataArgs> for Data<'_> {
+#[derive(Debug, Args)]
+pub struct InputData {
+    /// Input data file, use '-' for stdin
+    #[clap(long, short, value_parser, default_value = "-")]
+    pub input: Input,
+
+    /// Input data type
+    #[clap(long, short, default_value_t = InputType::Json)]
+    #[arg(value_enum)]
+    pub r#type: InputType,
+}
+
+impl TryFrom<InputData> for Data<'_> {
     type Error = clio::Error;
 
-    fn try_from(args: InputDataArgs) -> Result<Self, Self::Error> {
-        let mut buf_reader = BufReader::new(args.input);
+    fn try_from(input_data: InputData) -> Result<Self, Self::Error> {
+        let mut buf_reader = BufReader::new(input_data.input);
         let mut buffer = String::new();
         buf_reader.read_to_string(&mut buffer)?;
 
-        let data = if args.yaml {
-            Data::yaml(buffer.into())
-        } else {
-            Data::json(buffer.into())
+        let result = match input_data.r#type {
+            InputType::Json => Data::json(buffer.into()),
+            InputType::Yaml => Data::yaml(buffer.into()),
         };
 
-        Ok(data)
+        Ok(result)
     }
 }
