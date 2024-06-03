@@ -38,7 +38,6 @@ pub struct OutputArgs {
 }
 
 impl OutputArgs {
-    // TODO: output yml
     pub fn write_value(self, value: &Value, original_type: DataType) -> format::Result<()> {
         let color = &self.output_format.color;
         let indentation = self.output_format.indentation();
@@ -49,7 +48,6 @@ impl OutputArgs {
         match color {
             Color::Auto => {
                 if is_tty {
-                    // TODO: pretty format methods should receive the data type
                     output_type.pretty_format_colored_to_writer(
                         &mut buf_writer,
                         value,

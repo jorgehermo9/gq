@@ -41,14 +41,12 @@ impl DataType {
     ) -> Result<()> {
         match self {
             DataType::Json => serialize_json(writer, value, indentation),
-            // TODO: implement this
+            // TODO: pretty yaml is not supported
             DataType::Yaml => Ok(serde_yaml::to_writer(writer, value)?),
         }
     }
 }
 
-// TODO: the PrettyFormatColored should reuse the PrettyFormat trait.
-// reduce code duplication, maybe we can factor out the ColoredFormatter thing
 impl DataType {
     pub fn pretty_format_colored(&self, value: &Value, indentation: Indentation) -> Result<String> {
         let mut buf = Vec::new();
@@ -64,7 +62,7 @@ impl DataType {
     ) -> Result<()> {
         match self {
             DataType::Json => serialize_colored_json(value, writer, indentation),
-            // TODO: implement this
+            // TODO: colored yaml is not supported
             DataType::Yaml => Ok(serde_yaml::to_writer(writer, value)?),
         }
     }
@@ -106,6 +104,7 @@ fn serialize_colored_json<W: io::Write>(
         }
     }
 }
+
 fn serialize_json_with_formatter<W: io::Write, F: Formatter>(
     value: &Value,
     writer: &mut W,
