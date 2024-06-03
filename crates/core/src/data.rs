@@ -1,9 +1,11 @@
 use std::borrow::Cow;
 
-use crate::format::{self, Indentation, PrettyFormat};
+use crate::format::Indentation;
 use derive_getters::Getters;
 use serde_json::Value;
 use thiserror::Error;
+
+pub mod format;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -42,14 +44,6 @@ impl<'a> Data<'a> {
         }
     }
 
-    pub fn from_value(value: &Value, data_type: DataType) -> Result<Self, Error> {
-        let payload = data_type.value_to_string(value)?;
-        Ok(Self {
-            payload: Cow::Owned(payload),
-            data_type,
-        })
-    }
-
     pub fn pretty_from_value(
         value: &Value,
         data_type: DataType,
@@ -61,17 +55,6 @@ impl<'a> Data<'a> {
             data_type,
         })
     }
-
-    pub fn convert_to(&self, target_type: DataType) -> Result<Data, Error> {
-        let value = Value::try_from(self)?;
-        let payload = target_type.value_to_string(&value)?;
-        let data = Self {
-            payload: Cow::Owned(payload),
-            data_type: target_type,
-        };
-        Ok(data)
-    }
-
     pub fn pretty_convert_to(
         &self,
         target_type: DataType,
@@ -87,7 +70,12 @@ impl<'a> Data<'a> {
     }
 
     pub fn pretty_format(&'a self, indentation: Indentation) -> Result<Self, Error> {
-        self.pretty_convert_to(self.data_type, indentation)
+        let value = Value::try_from(self)?;
+        let payload = self.data_type.pretty_format(&value, indentation)?;
+        Ok(Self {
+            payload: Cow::Owned(payload),
+            data_type: self.data_type,
+        })
     }
 
     pub fn into_inner(self) -> Cow<'a, str> {
@@ -103,28 +91,11 @@ impl DataType {
         };
         Ok(result)
     }
-
-    pub fn value_to_string(&self, value: &Value) -> Result<String, Error> {
-        let result = match self {
-            DataType::Json => serde_json::to_string(value)?,
-            DataType::Yaml => serde_yaml::to_string(value)?,
-        };
-        Ok(result)
-    }
-
-    pub fn pretty_format(&self, value: &Value, indentation: Indentation) -> Result<String, Error> {
-        let result = match self {
-            DataType::Json => value.pretty_format(indentation)?,
-            // TODO: implement pretty format for yaml
-            DataType::Yaml => serde_yaml::to_string(value)?,
-        };
-        Ok(result)
-    }
 }
 
 impl TryFrom<&Data<'_>> for Value {
     type Error = Error;
-    
+
     fn try_from(data: &Data) -> Result<Self, Self::Error> {
         data.data_type.value_from_str(&data.payload)
     }

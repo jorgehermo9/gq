@@ -1,6 +1,8 @@
 use gq_core::data::{Data, DataType};
 use wasm_bindgen::prelude::wasm_bindgen;
 
+// TODO: rename all the `JsData*` types into just `Data*`.
+// and refer to core data as `core::Data`
 #[wasm_bindgen]
 #[derive(Debug, Clone, Copy)]
 pub enum JsDataType {

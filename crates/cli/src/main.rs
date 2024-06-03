@@ -1,9 +1,8 @@
 use anyhow::Result;
 use clap::Parser;
-use gq_cli::{args::Args, output::WriteValue};
-use gq_core::query::Query;
-use std::io::BufReader;
-/// Simple program to greet a person
+use gq_cli::args::Args;
+use gq_core::{data::Data, query::Query};
+use serde_json::Value;
 
 fn main() -> Result<()> {
     let args = Args::parse();
@@ -12,17 +11,15 @@ fn main() -> Result<()> {
         .filter_level(args.verbose.log_level_filter())
         .init();
 
-    let buf_input = BufReader::new(args.input);
+    let input_data = Data::try_from(args.input_data)?;
+    let input_query = String::try_from(args.input_query)?;
 
-    let input_json = serde_json::from_reader(buf_input)?;
-    let input_query = args.input_query.input_query()?;
-
-    // TODO: modify the try_from to Into<&str> so this can be just `&query`
     let query = Query::try_from(input_query.as_str())?;
 
-    let result = query.apply(input_json)?;
+    let value = Value::try_from(&input_data)?;
+    let result = query.apply(value)?;
 
-    args.output.write_value(&result, &args.output_format)?;
+    args.output.write_value(&result, *input_data.data_type())?;
 
     Ok(())
 }

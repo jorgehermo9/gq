@@ -1,6 +1,6 @@
 use data::JsDataType;
 use gq_core::data::Data;
-use gq_core::format::{Indentation, PrettyFormat};
+use gq_core::format::Indentation;
 use gq_core::query::Query;
 use lsp::JsCompletionItem;
 use serde_json::Value;
@@ -42,7 +42,7 @@ pub fn format_data(data: JsData, indent: usize) -> Result<JsData, JsError> {
 pub fn format_query(query: &str, indent: usize) -> Result<String, JsError> {
     let query = Query::try_from(query)?;
     let indentation = Indentation::with_spaces(indent);
-    Ok(query.pretty_format(indentation)?)
+    Ok(query.pretty_format(indentation))
 }
 
 #[wasm_bindgen]

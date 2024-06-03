@@ -1,6 +1,4 @@
 use std::collections::HashSet;
-use std::fmt::{self, Display, Formatter};
-use std::io;
 
 use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
@@ -8,10 +6,9 @@ use thiserror::Error;
 
 pub mod apply;
 mod context;
+pub mod format;
 pub mod query_arguments;
 mod query_key;
-
-use crate::format::{self, Indentation, PrettyFormat};
 
 pub use self::context::OwnedJsonPath;
 use self::query_arguments::QueryArguments;
@@ -130,85 +127,5 @@ impl<'a> ChildQuery<'a> {
         self.alias()
             .as_ref()
             .unwrap_or_else(|| self.key().last_key().key())
-    }
-}
-
-impl Display for Query<'_> {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        // TODO: implement default for indentation, so it is not hardcoded Spaces(2)
-        let default_indentation: Indentation = Indentation::with_spaces(2);
-        let formatted = match self.pretty_format(default_indentation) {
-            Ok(formatted) => formatted,
-            Err(error) => panic!("Error formatting query: {error}"),
-        };
-        formatted.fmt(f)
-    }
-}
-
-// TODO: move this into the format module
-impl PrettyFormat for Query<'_> {
-    // TODO: do a test for this function, so parsing a formatted query, outputs the
-    // same original query...
-    // TODO: implemente the formatter pattern for here, with a visitor and etc as serde does
-    fn pretty_format(&self, indentation: Indentation) -> format::Result<String> {
-        let mut result = String::new();
-
-        let arguments = self.arguments();
-        if !arguments.0.is_empty() {
-            result.push_str(&format!("({arguments})"));
-        }
-        let key = self.key();
-        if !key.keys().is_empty() {
-            if self.children().is_empty() {
-                result.push_str(&key.to_string());
-                return Ok(result);
-            }
-            result.push_str(&format!("{key} "));
-        } else if self.children().is_empty() {
-            result.push_str("{ }");
-            return Ok(result);
-        }
-
-        result.push_str(&format!("{{{}", indentation.level_separator()));
-        for child in self.children() {
-            child.do_pretty_format(&mut result, indentation, 1);
-        }
-        result.push('}');
-
-        Ok(result)
-    }
-
-    // TODO: refactor this, so the main logic in written into a writer
-    // such as we do in the pretty_format of the serde_json::Value
-    fn pretty_format_to_writer<W: io::Write>(
-        &self,
-        writer: &mut W,
-        indentation: Indentation,
-    ) -> format::Result<()> {
-        let formatted = self.pretty_format(indentation)?;
-        Ok(writer.write_all(formatted.as_bytes())?)
-    }
-}
-impl ChildQuery<'_> {
-    fn do_pretty_format(&self, result: &mut String, indentation: Indentation, level: usize) {
-        let indent_string = indentation.at_level(level);
-        let sep = indentation.level_separator();
-
-        let query_key = self.key();
-
-        result.push_str(&format!("{indent_string}{query_key}"));
-        if let Some(alias) = self.alias() {
-            result.push_str(&format!(": {alias}"));
-        }
-
-        if !self.children().is_empty() {
-            result.push_str(&format!(" {{{sep}"));
-            for child in self.children() {
-                child.do_pretty_format(result, indentation, level + 1);
-            }
-            result.push_str(&format!("{indent_string}}}{sep}"));
-        } else {
-            result.push(sep);
-        }
     }
 }
