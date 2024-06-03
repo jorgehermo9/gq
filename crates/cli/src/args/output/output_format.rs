@@ -18,7 +18,7 @@ pub struct OutputFormat {
 impl OutputFormat {
     pub fn indentation(&self) -> gq_core::format::Indentation {
         if self.compact {
-            gq_core::format::Indentation::Inline
+            gq_core::format::Indentation::None
         } else {
             self.indentation.indentation()
         }

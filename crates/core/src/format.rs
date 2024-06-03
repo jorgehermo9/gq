@@ -6,8 +6,7 @@ use std::{
 pub enum Indentation {
     Spaces(NonZeroUsize),
     Tabs(NonZeroUsize),
-    // TODO: rename into Indentation::Compact? Indentation::None?
-    Inline,
+    None,
 }
 
 impl Indentation {
@@ -15,14 +14,14 @@ impl Indentation {
         match self {
             Self::Spaces(_) => " ",
             Self::Tabs(_) => "\t",
-            Self::Inline => "",
+            Self::None => "",
         }
     }
 
     pub fn level_separator(&self) -> char {
         match self {
             Self::Spaces(_) | Self::Tabs(_) => '\n',
-            Self::Inline => ' ',
+            Self::None => ' ',
         }
     }
 
@@ -32,14 +31,14 @@ impl Indentation {
 
     pub fn with_spaces(n: usize) -> Self {
         match n {
-            0 => Self::Inline,
+            0 => Self::None,
             n => Self::Spaces(NonZeroUsize::new(n).unwrap()),
         }
     }
 
     pub fn with_tabs(n: usize) -> Self {
         match n {
-            0 => Self::Inline,
+            0 => Self::None,
             n => Self::Tabs(NonZeroUsize::new(n).unwrap()),
         }
     }
@@ -49,7 +48,7 @@ impl Display for Indentation {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
             Indentation::Spaces(n) | Indentation::Tabs(n) => self.symbol().repeat(n.get()).fmt(f),
-            Indentation::Inline => Ok(()),
+            Indentation::None => Ok(()),
         }
     }
 }

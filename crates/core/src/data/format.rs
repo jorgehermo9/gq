@@ -74,7 +74,7 @@ fn serialize_json<W: io::Write>(
     indentation: Indentation,
 ) -> Result<()> {
     match indentation {
-        Indentation::Inline => {
+        Indentation::None => {
             let formatter = CompactFormatter {};
             serialize_json_with_formatter(value, writer, formatter)
         }
@@ -93,7 +93,7 @@ fn serialize_colored_json<W: io::Write>(
 ) -> Result<()> {
     let indentation_fmt = indentation.to_string();
     match indentation {
-        Indentation::Inline => {
+        Indentation::None => {
             let formatter = ColoredFormatter::new(CompactFormatter {});
             serialize_json_with_formatter(value, writer, formatter)
         }
