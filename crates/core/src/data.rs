@@ -9,7 +9,7 @@ pub mod format;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("yson parsing error: {0}")]
+    #[error("json parsing error: {0}")]
     Json(#[from] serde_json::Error),
     #[error("yaml parsing error: {0}")]
     Yaml(#[from] serde_yaml::Error),
