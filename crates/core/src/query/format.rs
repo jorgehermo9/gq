@@ -48,8 +48,6 @@ impl Query<'_> {
         result
     }
 
-    // TODO: refactor this, so the main logic in written into a writer
-    // such as we do in the pretty_format of the serde_json::Value
     pub fn pretty_format_to_writer<W: io::Write>(
         &self,
         writer: &mut W,
@@ -59,6 +57,7 @@ impl Query<'_> {
         Ok(writer.write_all(formatted.as_bytes())?)
     }
 }
+
 impl ChildQuery<'_> {
     fn do_pretty_format(&self, result: &mut String, indentation: Indentation, level: usize) {
         let indent_string = indentation.at_level(level);
