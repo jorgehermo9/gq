@@ -67,8 +67,8 @@ const Editor = ({
 		},
 	} = useSettings();
 	const [showWarnings, setShowWarnings] = useState(false);
-	const [isLoading, setLoading] = useState({
-		loading: false,
+	const [loading, setLoading] = useState({
+		isLoading: false,
 		message: "",
 	});
 	const { formatWorker, lspWorker, convertWorker } = useWorker();
@@ -77,8 +77,8 @@ const Editor = ({
 
 	const handleFormatCode = useCallback(
 		async (data: Data) => {
-			if (!formatWorker) return;
-			setLoading({ loading: true, message: "Formatting code..." });
+			if (!formatWorker || loading.isLoading) return;
+			setLoading({ isLoading: true, message: "Formatting code..." });
 			try {
 				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
@@ -86,10 +86,10 @@ const Editor = ({
 			} catch (e) {
 				setEditorErrorMessage(e.message);
 			} finally {
-				setLoading({ loading: false, message: "" });
+				setLoading({ isLoading: false, message: "" });
 			}
 		},
-		[indentSize, onChangeData, formatWorker],
+		[indentSize, onChangeData, formatWorker, loading],
 	);
 
 	const handleImportFile = useCallback(
@@ -113,9 +113,9 @@ const Editor = ({
 
 	const handleChangeFileType = useCallback(
 		(fileType: FileType) => {
-			if (!convertWorker || fileType === data.type || isLoading.loading) return;
+			if (!convertWorker || fileType === data.type || loading.isLoading) return;
 			setLoading({
-				loading: true,
+				isLoading: true,
 				message: `Converting code to ${fileType.toUpperCase()}...`,
 			});
 			convertCode(data, fileType, dataTabSize, convertWorker)
@@ -125,16 +125,9 @@ const Editor = ({
 					onChangeFileType?.(fileType);
 				})
 				.catch((e) => setEditorErrorMessage(e.message))
-				.finally(() => setLoading({ loading: false, message: "" }));
+				.finally(() => setLoading({ isLoading: false, message: "" }));
 		},
-		[
-			data,
-			dataTabSize,
-			convertWorker,
-			onChangeData,
-			onChangeFileType,
-			isLoading,
-		],
+		[data, dataTabSize, convertWorker, onChangeData, onChangeFileType, loading],
 	);
 
 	const handleDismissError = useCallback(() => {
@@ -180,8 +173,8 @@ const Editor = ({
 				className={`${styles.editor} relative block h-full rounded-lg overflow-hidden`}
 			>
 				<EditorLoadingOverlay
-					loading={isLoading.loading}
-					loadingMessage={isLoading.message}
+					loading={loading.isLoading}
+					loadingMessage={loading.message}
 				/>
 				<EditorErrorOverlay
 					visibleBackdrop={

@@ -40,6 +40,7 @@ const Home = () => {
 
 	const updateOutputData = useCallback(
 		async (inputData: Data, inputQuery: Data, silent = false) => {
+			// TODO: Create a isApplying loading state
 			if (!gqWorker) return;
 			try {
 				const result = await applyGq(
@@ -86,6 +87,7 @@ const Home = () => {
 	);
 
 	const handleChangeLinked = useCallback(() => {
+		// Save in local storage to keep the state in settings
 		setLinked(!linked);
 		toast.info(`${linked ? "Unlinked" : "Linked"} editors!`);
 		if (linked) return;
