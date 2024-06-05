@@ -66,8 +66,9 @@
 }
 
 .loadingOverlay {
-	@apply absolute z-40 inset-0 w-full h-full flex items-center justify-center flex-col gap-4 bg-[#0000005f];
-	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+	@apply absolute z-40 inset-0 w-full h-full flex items-center justify-center flex-col gap-2 bg-background;
+	transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+	/* backdrop-filter: blur(15px); */
 
 	&[data-visible="true"] {
 		@apply opacity-100 visible;

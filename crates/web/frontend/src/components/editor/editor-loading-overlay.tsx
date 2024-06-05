@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader } from "../ui/sonner";
 import styles from "./editor.module.css";
 

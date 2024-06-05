@@ -9,7 +9,7 @@ export const applyGq = async (
 	outputType: FileType,
 	indent: number,
 	gqWorker: PromiseWorker,
-	silent = false,
+	silent = true,
 ): Promise<Data> => {
 	const toastId = silent
 		? undefined

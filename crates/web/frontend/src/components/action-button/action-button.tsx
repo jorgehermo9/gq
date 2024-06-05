@@ -1,9 +1,4 @@
 import { Button, type ButtonProps } from "@/components/ui/button";
-import {
-	HoverCard,
-	HoverCardContent,
-	HoverCardTrigger,
-} from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import React from "react";
 import {

@@ -1,11 +1,11 @@
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { type Data, empty } from "@/model/data";
+import { type Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import CodeMirror from "@uiw/react-codemirror";
-import { Eraser, TriangleAlert, X } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";

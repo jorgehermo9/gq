@@ -15,7 +15,6 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { applyGq, convertCode } from "./page-utils";
 import styles from "./page.module.css";
-import { Loader } from "@/components/ui/sonner";
 
 interface LoadingState {
 	loading: boolean;

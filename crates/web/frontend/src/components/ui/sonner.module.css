@@ -19,7 +19,7 @@
 
 .sonnerLoadingBar {
 	animation: sonner-spin 1.2s linear infinite;
-	background: var(--foreground);
+	background: var(--accent);
 	border-radius: 6px;
 	height: 8%;
 	left: -10%;
