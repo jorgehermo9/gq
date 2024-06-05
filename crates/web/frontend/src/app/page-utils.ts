@@ -36,25 +36,3 @@ export const applyGq = async (
 		throw err;
 	}
 };
-
-export const convertCode = async (
-	data: Data,
-	outputType: FileType,
-	indent: number,
-	convertWorker: PromiseWorker,
-	silent = true,
-): Promise<Data> => {
-	const toastId = silent ? undefined : toast.loading("Converting code...");
-	try {
-		const result: Data = await convertWorker.postMessage({
-			data: data,
-			outputType: outputType,
-			indent: indent,
-		});
-		!silent && toast.success("Code converted!", { id: toastId });
-		return result;
-	} catch (err) {
-		!silent && toast.error(err.message, { id: toastId, duration: 5000 });
-		throw err;
-	}
-};

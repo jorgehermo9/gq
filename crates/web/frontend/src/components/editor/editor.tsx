@@ -6,11 +6,12 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import CodeMirror from "@uiw/react-codemirror";
 import { TriangleAlert } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { MutableRefObject, Ref, useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
 import {
+	convertCode,
 	copyToClipboard,
 	exportFile,
 	formatCode,
@@ -27,7 +28,7 @@ interface Props {
 	title: string;
 	defaultFileName: string;
 	fileTypes: FileType[];
-	onChangeContent: (content: string) => void;
+	onChangeData: (data: Data) => void;
 	focused: boolean;
 	onChangeFocused: (focused: boolean) => void;
 	onChangeFileType?: (fileType: FileType) => void;
@@ -35,9 +36,10 @@ interface Props {
 	errorMessage?: string;
 	onDismissError?: () => void;
 	warningMessages?: string[];
-	loading: boolean;
-	loadingMessage: string;
 	editable?: boolean;
+	convertCodeCallback?: MutableRefObject<
+		((fileType: FileType) => void) | undefined
+	>;
 }
 
 const Editor = ({
@@ -45,7 +47,7 @@ const Editor = ({
 	title,
 	defaultFileName,
 	fileTypes,
-	onChangeContent,
+	onChangeData,
 	focused,
 	onChangeFocused,
 	onChangeFileType,
@@ -53,8 +55,7 @@ const Editor = ({
 	errorMessage,
 	onDismissError,
 	warningMessages,
-	loading,
-	loadingMessage,
+	convertCodeCallback,
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
@@ -66,30 +67,37 @@ const Editor = ({
 		},
 	} = useSettings();
 	const [showWarnings, setShowWarnings] = useState(false);
-	const { formatWorker, lspWorker } = useWorker();
+	const [isLoading, setLoading] = useState({
+		loading: false,
+		message: "",
+	});
+	const { formatWorker, lspWorker, convertWorker } = useWorker();
 	const indentSize = data.type === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = data.content.length < 100000000;
 
 	const handleFormatCode = useCallback(
 		async (data: Data) => {
 			if (!formatWorker) return;
+			setLoading({ loading: true, message: "Formatting code..." });
 			try {
 				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
-				onChangeContent(result.content);
+				onChangeData(result);
 			} catch (e) {
 				setEditorErrorMessage(e.message);
+			} finally {
+				setLoading({ loading: false, message: "" });
 			}
 		},
-		[indentSize, onChangeContent, formatWorker],
+		[indentSize, onChangeData, formatWorker],
 	);
 
 	const handleImportFile = useCallback(
 		async (data: Data) => {
-			onChangeContent(data.content);
+			onChangeData(data);
 			formatOnImport && handleFormatCode(data);
 		},
-		[formatOnImport, handleFormatCode, onChangeContent],
+		[formatOnImport, handleFormatCode, onChangeData],
 	);
 
 	const handleKeyDown = useCallback(
@@ -103,6 +111,25 @@ const Editor = ({
 		[focused, handleFormatCode, data],
 	);
 
+	const handleChangeFileType = useCallback(
+		(fileType: FileType) => {
+			if (!convertWorker || fileType === data.type) return;
+			setLoading({
+				loading: true,
+				message: `Converting code to ${fileType.toUpperCase()}...`,
+			});
+			convertCode(data, fileType, dataTabSize, convertWorker)
+				.then((data) => {
+					onChangeData(data);
+					setEditorErrorMessage(undefined);
+					onChangeFileType?.(fileType);
+				})
+				.catch((e) => setEditorErrorMessage(e.message))
+				.finally(() => setLoading({ loading: false, message: "" }));
+		},
+		[data, dataTabSize, convertWorker, onChangeData, onChangeFileType],
+	);
+
 	const handleDismissError = useCallback(() => {
 		setEditorErrorMessage(undefined);
 		onDismissError?.();
@@ -113,6 +140,12 @@ const Editor = ({
 		return () => document.removeEventListener("keydown", handleKeyDown);
 	}, [handleKeyDown]);
 
+	useEffect(() => {
+		if (convertCodeCallback) {
+			convertCodeCallback.current = handleChangeFileType;
+		}
+	}, [handleChangeFileType, convertCodeCallback]);
+
 	return (
 		<div className={cn("flex flex-col gap-2", className)}>
 			<div className="flex gap-4 items-center">
@@ -120,7 +153,7 @@ const Editor = ({
 					title={title}
 					fileTypes={fileTypes}
 					currentFileType={data.type}
-					setFileType={onChangeFileType}
+					onChangeFileType={handleChangeFileType}
 				/>
 				<EditorMenu
 					fileType={data.type}
@@ -140,8 +173,8 @@ const Editor = ({
 				className={`${styles.editor} relative block h-full rounded-lg overflow-hidden`}
 			>
 				<EditorLoadingOverlay
-					loading={loading}
-					loadingMessage={loadingMessage}
+					loading={isLoading.loading}
+					loadingMessage={isLoading.message}
 				/>
 				<EditorErrorOverlay
 					visibleBackdrop={
@@ -171,7 +204,7 @@ const Editor = ({
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"
 						value={data.content}
-						onChange={onChangeContent}
+						onChange={(content) => onChangeData({ ...data, content })}
 						height="100%"
 						theme={gqTheme}
 						extensions={getCodemirrorExtensionsByFileType(data.type, lspWorker)}
@@ -186,7 +219,7 @@ const Editor = ({
 					<EditorTooLarge
 						editable={editable}
 						type={data.type}
-						onClearContent={(content) => onChangeContent(content)}
+						onClearData={onChangeData}
 					/>
 				)}
 			</div>

@@ -11,15 +11,10 @@ import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { Link2, Link2Off } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-import { applyGq, convertCode } from "./page-utils";
+import { applyGq } from "./page-utils";
 import styles from "./page.module.css";
-
-interface LoadingState {
-	loading: boolean;
-	message: string | undefined;
-}
 
 const Home = () => {
 	const [inputData, setInputData] = useState<Data>(empty(FileType.JSON));
@@ -33,25 +28,15 @@ const Home = () => {
 	const [inputEditorFocused, setInputEditorFocused] = useState(false);
 	const [queryEditorFocused, setQueryEditorFocused] = useState(false);
 	const [outputEditorFocused, setOutputEditorFocused] = useState(false);
-	const [loadingInput, setLoadingInput] = useState<LoadingState>({
-		loading: false,
-		message: undefined,
-	});
-	const [loadingOutput, setLoadingOutput] = useState<LoadingState>({
-		loading: false,
-		message: undefined,
-	});
-	const [loadingQuery, setLoadingQuery] = useState<LoadingState>({
-		loading: false,
-		message: undefined,
-	});
+	const convertInputEditorCallback = useRef<(fileType: FileType) => void>();
+	const convertOutputEditorCallback = useRef<(fileType: FileType) => void>();
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
 			formattingSettings: { dataTabSize },
 		},
 	} = useSettings();
-	const { gqWorker, convertWorker } = useWorker();
+	const { gqWorker } = useWorker();
 
 	const updateOutputData = useCallback(
 		async (inputData: Data, inputQuery: Data, silent = false) => {
@@ -85,75 +70,18 @@ const Home = () => {
 		[autoApply, updateOutputData],
 	);
 
-	const handleChangeInputDataContent = useCallback(
-		(content: string) => setInputData({ ...inputData, content }),
-		[inputData],
-	);
-	const handleChangeInputQueryContent = useCallback(
-		(content: string) => setInputQuery({ ...inputQuery, content }),
-		[inputQuery],
-	);
-	const handleChangeOutputDataContent = useCallback(
-		(content: string) => setOutputData({ ...outputData, content }),
-		[outputData],
-	);
-
 	const handleChangeInputDataFileType = useCallback(
-		async (fileType: FileType) => {
-			if (!convertWorker || fileType === inputData.type) return;
-			setLoadingInput({
-				loading: true,
-				message: `Converting code to ${fileType.toUpperCase()}`,
-			});
-			convertCode(inputData, fileType, dataTabSize, convertWorker)
-				.then((data) => {
-					setInputData(data);
-					setErrorMessage(undefined);
-				})
-				.catch((e) => setErrorMessage(e.message))
-				.finally(() => setLoadingInput({ loading: false, message: undefined }));
-			if (!linked) return;
-			setLoadingOutput({
-				loading: true,
-				message: `Converting code to ${fileType.toUpperCase()}`,
-			});
-			convertCode(outputData, fileType, dataTabSize, convertWorker)
-				.then((data) => setOutputData(data))
-				.catch((e) => setErrorMessage(e.message))
-				.finally(() =>
-					setLoadingOutput({ loading: false, message: undefined }),
-				);
+		(fileType: FileType) => {
+			linked && convertOutputEditorCallback.current?.(fileType);
 		},
-		[inputData, dataTabSize, convertWorker, outputData, linked],
+		[linked],
 	);
 
 	const handleChangeOutputDataFileType = useCallback(
-		async (fileType: FileType) => {
-			if (!convertWorker || fileType === outputData.type) return;
-			setLoadingOutput({
-				loading: true,
-				message: `Converting code to ${fileType.toUpperCase()}`,
-			});
-			convertCode(outputData, fileType, dataTabSize, convertWorker)
-				.then((data) => {
-					setOutputData(data);
-					setErrorMessage(undefined);
-				})
-				.catch((e) => setErrorMessage(e.message))
-				.finally(() =>
-					setLoadingOutput({ loading: false, message: undefined }),
-				);
-			if (!linked) return;
-			setLoadingInput({
-				loading: true,
-				message: `Converting code to ${fileType.toUpperCase()}`,
-			});
-			convertCode(inputData, fileType, dataTabSize, convertWorker)
-				.then((data) => setInputData(data))
-				.catch((e) => setErrorMessage(e.message))
-				.finally(() => setLoadingInput({ loading: false, message: undefined }));
+		(fileType: FileType) => {
+			linked && convertInputEditorCallback.current?.(fileType);
 		},
-		[outputData, dataTabSize, convertWorker, inputData, linked],
+		[linked],
 	);
 
 	const handleChangeLinked = useCallback(() => {
@@ -177,28 +105,25 @@ const Home = () => {
 					<Editor
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
 						data={inputData}
-						onChangeContent={handleChangeInputDataContent}
+						onChangeData={setInputData}
 						focused={inputEditorFocused}
 						onChangeFocused={setInputEditorFocused}
 						onChangeFileType={handleChangeInputDataFileType}
 						title="Input"
 						defaultFileName="input"
 						fileTypes={[FileType.JSON, FileType.YAML]}
-						loading={loadingInput.loading}
-						loadingMessage={loadingInput.message || ""}
+						convertCodeCallback={convertInputEditorCallback}
 					/>
 
 					<Editor
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
 						data={inputQuery}
-						onChangeContent={handleChangeInputQueryContent}
+						onChangeData={setInputQuery}
 						focused={queryEditorFocused}
 						onChangeFocused={setQueryEditorFocused}
 						title="Input"
 						defaultFileName="query"
 						fileTypes={[FileType.GQ]}
-						loading={loadingQuery.loading}
-						loadingMessage={loadingQuery.message || ""}
 					/>
 				</aside>
 				<div className="h-full flex justify-center items-center px-8 relative">
@@ -239,7 +164,7 @@ const Home = () => {
 					<Editor
 						className="w-[44vw] h-[80vh]"
 						data={outputData}
-						onChangeContent={handleChangeOutputDataContent}
+						onChangeData={setOutputData}
 						focused={outputEditorFocused}
 						onChangeFocused={setOutputEditorFocused}
 						onChangeFileType={handleChangeOutputDataFileType}
@@ -250,8 +175,7 @@ const Home = () => {
 						errorMessage={errorMessage}
 						onDismissError={() => setErrorMessage(undefined)}
 						warningMessages={warningMessages}
-						loading={loadingOutput.loading}
-						loadingMessage={loadingOutput.message || ""}
+						convertCodeCallback={convertOutputEditorCallback}
 					/>
 				</aside>
 			</section>
