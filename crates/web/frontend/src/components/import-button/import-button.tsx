@@ -22,12 +22,17 @@ import { importFile, importUrl } from "./import-utils";
 interface Props {
 	importableType: FileType;
 	onImportFile: (data: Data) => void;
+	onChangeLoading: ({
+		isLoading,
+		message,
+	}: { isLoading: boolean; message: string }) => void;
 	hidden?: boolean;
 }
 
 const ImportButton = ({
 	importableType,
 	onImportFile,
+	onChangeLoading,
 	hidden = false,
 }: Props) => {
 	const [open, setOpen] = useState(false);
@@ -36,20 +41,44 @@ const ImportButton = ({
 
 	const handleImportFile = async () => {
 		if (!file) return;
-		importFile(file, (fileContent) =>
-			onImportFile({ content: fileContent, type: importableType }),
-		);
+		onChangeLoading({
+			isLoading: true,
+			message: `Importing ${file.name}...`,
+		});
 		setOpen(false);
 		setFile(undefined);
+		try {
+			const fileContent = await importFile(file);
+			onImportFile({ content: fileContent, type: importableType });
+			onChangeLoading({
+				isLoading: false,
+				message: "",
+			});
+			// TODO: Pass this error to the editor
+		} catch (error) {}
+		onChangeLoading({
+			isLoading: false,
+			message: "",
+		});
 	};
 
-	const handleImportUrl = () => {
+	const handleImportUrl = async () => {
 		if (!url) return;
-		importUrl(url, (fileContent) =>
-			onImportFile({ content: fileContent, type: importableType }),
-		);
+		onChangeLoading({
+			isLoading: true,
+			message: "Importing file from url...",
+		});
 		setOpen(false);
 		setUrl("");
+		try {
+			const fileContent = await importUrl(url);
+			onImportFile({ content: fileContent, type: importableType });
+			// TODO: Pass this error to the editor
+		} catch (error) {}
+		onChangeLoading({
+			isLoading: false,
+			message: "",
+		});
 	};
 
 	const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {

@@ -163,6 +163,7 @@ const Editor = ({
 					onFormatCode={() => handleFormatCode(data)}
 					onImportFile={(data) => handleImportFile(data)}
 					onExportFile={(filename) => exportFile(data, filename)}
+					onChangeLoading={setLoading}
 				/>
 			</div>
 

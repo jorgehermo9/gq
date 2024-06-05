@@ -24,6 +24,10 @@ interface Props {
 	onFormatCode: () => void;
 	onImportFile: (data: Data) => void;
 	onExportFile: (filename: string) => void;
+	onChangeLoading: ({
+		isLoading,
+		message,
+	}: { isLoading: boolean; message: string }) => void;
 }
 
 const EditorMenu = ({
@@ -34,6 +38,7 @@ const EditorMenu = ({
 	onFormatCode,
 	onImportFile,
 	onExportFile,
+	onChangeLoading,
 }: Props) => {
 	return (
 		<>
@@ -55,6 +60,7 @@ const EditorMenu = ({
 				</ActionButton>
 				<ImportButton
 					importableType={fileType}
+					onChangeLoading={onChangeLoading}
 					onImportFile={onImportFile}
 					hidden={!editable}
 				/>
