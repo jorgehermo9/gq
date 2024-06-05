@@ -48,6 +48,7 @@ const Home = () => {
 					outputData.type,
 					dataTabSize,
 					gqWorker,
+					// TODO: Replace this notifications with in-editor overlay
 					silent || (autoApply && debounceTime < 500),
 				);
 				setErrorMessage(undefined);
@@ -88,8 +89,8 @@ const Home = () => {
 		setLinked(!linked);
 		toast.info(`${linked ? "Unlinked" : "Linked"} editors!`);
 		if (linked) return;
-		handleChangeOutputDataFileType(inputData.type);
-	}, [linked, inputData, handleChangeOutputDataFileType]);
+		convertOutputEditorCallback.current?.(inputData.type);
+	}, [linked, inputData]);
 
 	useDebounce(
 		() => autoApply && updateOutputData(inputData, inputQuery),

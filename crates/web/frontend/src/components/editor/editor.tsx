@@ -95,7 +95,7 @@ const Editor = ({
 	const handleImportFile = useCallback(
 		async (data: Data) => {
 			onChangeData(data);
-			formatOnImport && handleFormatCode(data);
+			formatOnImport && (await handleFormatCode(data));
 		},
 		[formatOnImport, handleFormatCode, onChangeData],
 	);
@@ -113,7 +113,7 @@ const Editor = ({
 
 	const handleChangeFileType = useCallback(
 		(fileType: FileType) => {
-			if (!convertWorker || fileType === data.type) return;
+			if (!convertWorker || fileType === data.type || isLoading.loading) return;
 			setLoading({
 				loading: true,
 				message: `Converting code to ${fileType.toUpperCase()}...`,
@@ -127,7 +127,14 @@ const Editor = ({
 				.catch((e) => setEditorErrorMessage(e.message))
 				.finally(() => setLoading({ loading: false, message: "" }));
 		},
-		[data, dataTabSize, convertWorker, onChangeData, onChangeFileType],
+		[
+			data,
+			dataTabSize,
+			convertWorker,
+			onChangeData,
+			onChangeFileType,
+			isLoading,
+		],
 	);
 
 	const handleDismissError = useCallback(() => {
