@@ -1,7 +1,7 @@
 // TODO: remove this file
 
 fn main() {
-    let query = "query{que pasa key{hola.} hermano god{deivid}}";
+    let query = "query(name=5){que pasa key(morcilla='queso'){hola.} hermano god{deivid}}";
     let trigger_char = '.';
     let position = query.find(trigger_char).unwrap() + 1;
     // aplanar el arbol de query en un sola query key (como si fuese la root)
