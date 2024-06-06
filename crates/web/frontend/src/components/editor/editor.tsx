@@ -17,8 +17,6 @@ import {
 } from "react";
 import ActionButton from "../action-button/action-button";
 import { EditorConsole } from "./editor-console";
-import { EditorErrorOverlay } from "./editor-error-overlay";
-import { EditorLoadingOverlay } from "./editor-loading-overlay";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
 import { EditorTooLarge } from "./editor-too-large";
@@ -30,6 +28,8 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
+import { EditorLoadingOverlay } from "../editor-overlay/editor-loading-overlay";
+import { EditorErrorOverlay } from "../editor-overlay/editor-error-overlay";
 
 interface Props {
 	data: Data;

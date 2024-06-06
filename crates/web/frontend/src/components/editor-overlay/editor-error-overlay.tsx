@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { Button } from "../ui/button";
-import styles from "./editor.module.css";
+import styles from "./editor-overlay.module.css";
 
 interface Props {
 	visibleBackdrop: boolean;
