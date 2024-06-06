@@ -1,7 +1,7 @@
-import { Data, empty } from "@/model/data";
-import ActionButton from "../action-button/action-button";
+import { type Data, empty } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { Eraser } from "lucide-react";
+import ActionButton from "../action-button/action-button";
 
 interface Props {
 	editable: boolean;

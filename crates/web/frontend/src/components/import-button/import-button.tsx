@@ -3,6 +3,7 @@ import { formatBytes } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
+import { initLoadingState } from "@/model/loading-state";
 import { File, FileUp, Trash } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
@@ -22,10 +23,8 @@ import { importFile, importUrl } from "./import-utils";
 interface Props {
 	importableType: FileType;
 	onImportFile: (data: Data) => void;
-	onChangeLoading: ({
-		isLoading,
-		message,
-	}: { isLoading: boolean; message: string }) => void;
+	onChangeLoading: (loading: LoadingState) => void;
+	onError: (error: Error) => void;
 	hidden?: boolean;
 }
 
@@ -33,6 +32,7 @@ const ImportButton = ({
 	importableType,
 	onImportFile,
 	onChangeLoading,
+	onError,
 	hidden = false,
 }: Props) => {
 	const [open, setOpen] = useState(false);
@@ -50,16 +50,10 @@ const ImportButton = ({
 		try {
 			const fileContent = await importFile(file);
 			onImportFile({ content: fileContent, type: importableType });
-			onChangeLoading({
-				isLoading: false,
-				message: "",
-			});
-			// TODO: Pass this error to the editor
-		} catch (error) {}
-		onChangeLoading({
-			isLoading: false,
-			message: "",
-		});
+		} catch (err) {
+			onError(err);
+		}
+		onChangeLoading(initLoadingState);
 	};
 
 	const handleImportUrl = async () => {
@@ -73,12 +67,10 @@ const ImportButton = ({
 		try {
 			const fileContent = await importUrl(url);
 			onImportFile({ content: fileContent, type: importableType });
-			// TODO: Pass this error to the editor
-		} catch (error) {}
-		onChangeLoading({
-			isLoading: false,
-			message: "",
-		});
+		} catch (err) {
+			onError(err);
+		}
+		onChangeLoading(initLoadingState);
 	};
 
 	const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {

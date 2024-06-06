@@ -8,19 +8,20 @@ import useDebounce from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
 import { type Data, empty } from "@/model/data";
 import FileType from "@/model/file-type";
+import { initLoadingState } from "@/model/loading-state";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { Link2, Link2Off } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-import { applyGq } from "./page-utils";
+import { type LoadingState, applyGq } from "./page-utils";
 import styles from "./page.module.css";
+import { setLinkEditors } from "@/model/settings";
 
 const Home = () => {
 	const [inputData, setInputData] = useState<Data>(empty(FileType.JSON));
 	const [inputQuery, setInputQuery] = useState<Data>(empty(FileType.GQ));
 	const [outputData, setOutputData] = useState<Data>(empty(FileType.JSON));
-	const [linked, setLinked] = useState(true);
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(
 		undefined,
 	);
@@ -30,18 +31,26 @@ const Home = () => {
 	const [outputEditorFocused, setOutputEditorFocused] = useState(false);
 	const convertInputEditorCallback = useRef<(fileType: FileType) => void>();
 	const convertOutputEditorCallback = useRef<(fileType: FileType) => void>();
+	const outputEditorLoadingCallback = useRef<(loading: LoadingState) => void>();
+	const [isApplying, setIsApplying] = useState(false);
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
 			formattingSettings: { dataTabSize },
+			workspaceSettings: { linkEditors },
 		},
+		setSettings,
 	} = useSettings();
 	const { gqWorker } = useWorker();
 
 	const updateOutputData = useCallback(
 		async (inputData: Data, inputQuery: Data, silent = false) => {
-			// TODO: Create a isApplying loading state
-			if (!gqWorker) return;
+			if (!gqWorker || isApplying) return;
+			setIsApplying(true);
+			outputEditorLoadingCallback.current?.({
+				isLoading: true,
+				message: `Applying query to ${inputData.type.toUpperCase()}...`,
+			});
 			try {
 				const result = await applyGq(
 					inputData,
@@ -49,7 +58,6 @@ const Home = () => {
 					outputData.type,
 					dataTabSize,
 					gqWorker,
-					// TODO: Replace this notifications with in-editor overlay
 					silent || (autoApply && debounceTime < 500),
 				);
 				setErrorMessage(undefined);
@@ -58,8 +66,17 @@ const Home = () => {
 				setErrorMessage(err.message);
 				setWarningMessages([]);
 			}
+			setIsApplying(false);
+			outputEditorLoadingCallback.current?.(initLoadingState);
 		},
-		[gqWorker, dataTabSize, autoApply, debounceTime, outputData.type],
+		[
+			gqWorker,
+			dataTabSize,
+			outputData.type,
+			isApplying,
+			autoApply,
+			debounceTime,
+		],
 	);
 
 	const handleClickExample = useCallback(
@@ -74,25 +91,24 @@ const Home = () => {
 
 	const handleChangeInputDataFileType = useCallback(
 		(fileType: FileType) => {
-			linked && convertOutputEditorCallback.current?.(fileType);
+			linkEditors && convertOutputEditorCallback.current?.(fileType);
 		},
-		[linked],
+		[linkEditors],
 	);
 
 	const handleChangeOutputDataFileType = useCallback(
 		(fileType: FileType) => {
-			linked && convertInputEditorCallback.current?.(fileType);
+			linkEditors && convertInputEditorCallback.current?.(fileType);
 		},
-		[linked],
+		[linkEditors],
 	);
 
 	const handleChangeLinked = useCallback(() => {
-		// Save in local storage to keep the state in settings
-		setLinked(!linked);
-		toast.info(`${linked ? "Unlinked" : "Linked"} editors!`);
-		if (linked) return;
+		setSettings((prev) => setLinkEditors(prev, !linkEditors));
+		toast.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
+		if (linkEditors) return;
 		convertOutputEditorCallback.current?.(inputData.type);
-	}, [linked, inputData]);
+	}, [linkEditors, inputData, setSettings]);
 
 	useDebounce(
 		() => autoApply && updateOutputData(inputData, inputQuery),
@@ -134,19 +150,19 @@ const Home = () => {
 						<div
 							className={styles.linkLeftBorder}
 							data-editor-focused={inputEditorFocused}
-							data-linked={linked}
+							data-linked={linkEditors}
 						/>
 						<ActionButton
 							className={cn(
 								"p-2 min-w-max border-2",
-								linked ? "border-accent" : "border-accent-background",
+								linkEditors ? "border-accent" : "border-accent-background",
 							)}
 							description={`${
-								linked ? "Link" : "Unlink"
+								linkEditors ? "Link" : "Unlink"
 							} input and output editor file types`}
 							onClick={handleChangeLinked}
 						>
-							{linked ? (
+							{linkEditors ? (
 								<Link2 className="w-3 h-3" />
 							) : (
 								<Link2Off className="w-3 h-3" />
@@ -155,7 +171,7 @@ const Home = () => {
 						<div
 							className={styles.linkRightBorder}
 							data-editor-focused={outputEditorFocused}
-							data-linked={linked}
+							data-linked={linkEditors}
 						/>
 					</div>
 					<ApplyButton
@@ -179,6 +195,7 @@ const Home = () => {
 						onDismissError={() => setErrorMessage(undefined)}
 						warningMessages={warningMessages}
 						convertCodeCallback={convertOutputEditorCallback}
+						loadingCallback={outputEditorLoadingCallback}
 					/>
 				</aside>
 			</section>
