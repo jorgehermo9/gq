@@ -17,15 +17,18 @@ impl CompletionItem {
 //TODO: improve naming
 pub fn get_value_completions(value: &Value) -> Vec<CompletionItem> {
     get_keys(value)
+        .collect::<BTreeSet<_>>()
         .into_iter()
         .map(CompletionItem::new)
         .collect()
 }
 
-fn get_keys(value: &Value) -> BTreeSet<String> {
+// TODO: check if it is too overhead to return a trait object iterator. Maybe we can use
+// Either or something like that.
+fn get_keys(value: &Value) -> Box<dyn Iterator<Item = String> + '_> {
     match value {
-        Value::Object(map) => map.keys().map(ToString::to_string).collect(),
-        Value::Array(array) => array.iter().flat_map(get_keys).collect(),
-        _ => Default::default(),
+        Value::Object(map) => Box::new(map.keys().map(ToString::to_string)),
+        Value::Array(array) => Box::new(array.iter().flat_map(get_keys)),
+        _ => Box::new(std::iter::empty()),
     }
 }

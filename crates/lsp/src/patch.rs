@@ -83,7 +83,7 @@ impl<'a> PatchedQuery<'a> {
             .position(|key| key.key().0.contains(patch_id));
 
         if let Some(position) = patch_identifier_position {
-            let target_keys = query.key().keys().iter().take(position).cloned();
+            let target_keys = query.key.keys.into_iter().take(position);
             let new_query_key = QueryKey::new(target_keys.collect());
             return Some(new_query_key);
         }
