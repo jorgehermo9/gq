@@ -1,4 +1,4 @@
-use gq_lsp::completion_item::CompletionItem;
+use gq_lsp::completions::CompletionItem;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(getter_with_clone)]

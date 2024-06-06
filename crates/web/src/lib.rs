@@ -59,9 +59,15 @@ pub fn convert_data_to(
 }
 
 #[wasm_bindgen]
-pub fn completions(query: &str, position: u32, trigger: char) -> Vec<JsCompletionItem> {
+pub fn completions(
+    query: &str,
+    position: u32,
+    trigger: char,
+    data: JsData,
+) -> Vec<JsCompletionItem> {
     // TODO: handle u32 to usize conversion.
-    gq_lsp::completions(query, position.try_into().unwrap(), trigger)
+    let core_data = Data::from(data);
+    gq_lsp::get_completions(query, position.try_into().unwrap(), trigger, &core_data)
         .into_iter()
         .map(From::from)
         .collect()

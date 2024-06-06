@@ -42,7 +42,7 @@ impl Display for AtomicQueryKey<'_> {
 
 #[derive(Debug, Clone, Constructor, Getters, Default)]
 pub struct QueryKey<'a> {
-    keys: Vec<AtomicQueryKey<'a>>,
+    pub keys: Vec<AtomicQueryKey<'a>>,
 }
 
 impl Display for QueryKey<'_> {

@@ -453,7 +453,9 @@ version = "0.1.0"
 dependencies = [
  "derive-getters 0.4.0",
  "gq-core",
+ "log",
  "once_cell",
+ "serde_json",
  "uuid",
 ]
 
