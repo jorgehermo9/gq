@@ -7,7 +7,7 @@ const useDebounce = (
 ) => {
 	const timer = useRef<NodeJS.Timeout>();
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: We want to avoid that the callback is called when the delay time changes
+	// biome-ignore lint/correctness/useExhaustiveDependencies: We want to avoid triggering the callback when the delay time changes
 	useEffect(() => {
 		timer.current && clearTimeout(timer.current);
 		timer.current = setTimeout(() => callback(), delay);

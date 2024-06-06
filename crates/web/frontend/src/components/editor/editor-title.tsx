@@ -7,19 +7,21 @@ interface Props {
 	title: string;
 	fileTypes: FileType[];
 	currentFileType: FileType;
-	setFileType?: (fileType: FileType) => void;
+	onChangeFileType?: (fileType: FileType) => void;
 }
 
 const EditorTitle = ({
 	title,
 	fileTypes,
 	currentFileType,
-	setFileType,
+	onChangeFileType,
 }: Props) => {
 	const handleClick = useCallback(() => {
-		if (!setFileType) return;
-		setFileType(currentFileType === fileTypes[0] ? fileTypes[1] : fileTypes[0]);
-	}, [currentFileType, fileTypes, setFileType]);
+		if (!onChangeFileType) return;
+		onChangeFileType(
+			currentFileType === fileTypes[0] ? fileTypes[1] : fileTypes[0],
+		);
+	}, [currentFileType, fileTypes, onChangeFileType]);
 
 	return (
 		<h2 className="flex gap-2 justify-center items-center">

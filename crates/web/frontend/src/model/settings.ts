@@ -1,6 +1,7 @@
 export type Settings = {
 	autoApplySettings: AutoApplySettings;
 	formattingSettings: FormattingSettings;
+	workspaceSettings: WorkspaceSettings;
 };
 
 export type AutoApplySettings = {
@@ -14,6 +15,10 @@ export type FormattingSettings = {
 	queryTabSize: number;
 };
 
+export type WorkspaceSettings = {
+	linkEditors: boolean;
+}
+
 const getDefaultSettings = (): Settings => {
 	return {
 		autoApplySettings: {
@@ -25,6 +30,9 @@ const getDefaultSettings = (): Settings => {
 			dataTabSize: 2,
 			queryTabSize: 2,
 		},
+		workspaceSettings: {
+			linkEditors: true
+		}
 	};
 };
 
@@ -87,6 +95,19 @@ const setQueryTabSize = (
 	};
 };
 
+const setLinkEditors = (
+	settings: Settings,
+	linkEditors: boolean,
+): Settings => {
+	return {
+		...settings,
+		workspaceSettings: {
+			...settings.workspaceSettings,
+			linkEditors
+		}
+	}
+}
+
 export {
 	getDefaultSettings,
 	setAutoApply,
@@ -94,4 +115,5 @@ export {
 	setFormatOnImport,
 	setDataTabSize,
 	setQueryTabSize,
+	setLinkEditors
 };

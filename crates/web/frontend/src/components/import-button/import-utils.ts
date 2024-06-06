@@ -1,32 +1,46 @@
+import { statusTextMap } from "@/lib/utils";
 import { toast } from "sonner";
 
-export const importFile = (file: File, callback: (data: string) => void) => {
-	const reader = new FileReader();
-	reader.onload = () => {
-		const content = reader.result as string;
-		toast.success("File imported!");
-		callback(content);
-	};
-	reader.readAsText(file);
+export const importFile = (file: File, silent = true): Promise<string> => {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = () => {
+			const content = reader.result as string;
+			!silent && toast.success("File imported!");
+			resolve(content);
+		};
+		reader.onerror = () => {
+			!silent &&
+				toast.error(`Failed to import file: ${reader.error.message}`, {
+					duration: 5000,
+				});
+			reject(reader.error);
+		};
+		reader.readAsText(file);
+	});
 };
 
 export const importUrl = async (
 	url: string,
-	callback: (content: string) => void,
-) => {
-	const toastId = toast.loading("Importing file...");
+	silent = true,
+): Promise<string> => {
+	const toastId = silent ? undefined : toast.loading("Importing file...");
 	try {
-		const res = await fetch(url);
-		if (res.status !== 200) {
-			throw new Error(`Received ${res.status}`);
+		const response = await fetch(url);
+		if (!response.ok) {
+			throw new Error(
+				`Received ${response.status} (${statusTextMap[response.status]})`,
+			);
 		}
-		const content = await res.text();
-		toast.success("File imported!", { id: toastId });
-		callback(content);
+		const content = await response.text();
+		!silent && toast.success("File imported!", { id: toastId });
+		return content;
 	} catch (err) {
-		toast.error(`Failed to import file: ${err.message}`, {
-			id: toastId,
-			duration: 5000,
-		});
+		!silent &&
+			toast.error(`Failed to import file: ${err.message}`, {
+				id: toastId,
+				duration: 5000,
+			});
+		throw err;
 	}
 };

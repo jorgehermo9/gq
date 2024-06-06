@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
+import type { LoadingState } from "@/model/loading-state";
 import { Clipboard, Sparkles } from "lucide-react";
 import ImportButton from "../import-button/import-button";
 
@@ -24,6 +25,8 @@ interface Props {
 	onFormatCode: () => void;
 	onImportFile: (data: Data) => void;
 	onExportFile: (filename: string) => void;
+	onChangeLoading: (loading: LoadingState) => void;
+	onError: (error: Error) => void;
 }
 
 const EditorMenu = ({
@@ -34,6 +37,8 @@ const EditorMenu = ({
 	onFormatCode,
 	onImportFile,
 	onExportFile,
+	onChangeLoading,
+	onError,
 }: Props) => {
 	return (
 		<>
@@ -55,8 +60,10 @@ const EditorMenu = ({
 				</ActionButton>
 				<ImportButton
 					importableType={fileType}
+					onChangeLoading={onChangeLoading}
 					onImportFile={onImportFile}
 					hidden={!editable}
+					onError={onError}
 				/>
 				<ExportButton
 					defaultFilename={defaultFilename}

@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { Toaster as Sonner } from "sonner";
+import styles from "./sonner.module.css";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
@@ -25,6 +26,24 @@ const Toaster = ({ ...props }: ToasterProps) => {
 			}}
 			{...props}
 		/>
+	);
+};
+
+const bars = Array(12).fill(0);
+
+export const Loader = ({ visible }: { visible: boolean }) => {
+	return (
+		<div className={styles.sonnerLoadingWrapper} data-visible={visible}>
+			<div className={styles.sonnerSpinner}>
+				{bars.map((_, i) => (
+					<div
+						className={styles.sonnerLoadingBar}
+						// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+						key={`spinner-bar-${i}`}
+					/>
+				))}
+			</div>
+		</div>
 	);
 };
 
