@@ -3,20 +3,25 @@ use gq_core::{
     query::{AtomicQueryKey, ChildQuery, Query, QueryBuilder, QueryKey, RawKey},
 };
 use once_cell::sync::Lazy;
-use uuid;
+use uuid::{self, Uuid};
 
 pub struct PatchedRawQuery {
     query: String,
+    // TODO: add the position here, so we can use it to remove the trigger char
+    // if the query cannot be parsed at first...?
     patch_id: String,
 }
 
 impl PatchedRawQuery {
     pub fn new(query: &str, position: usize) -> Self {
-        let id: String = uuid::Uuid::new_v4().to_string();
-        let patch_id = format!("GQ_COMPLETION_PATCH_{id}");
+        let uuid = Uuid::new_v4();
+        let patch_id = format!("GQ_COMPLETION_PATCH_{uuid}");
         let mut query = query.to_string();
 
-        query.insert_str(position, patch_id.as_str());
+        // TODO: maybe its better to insert the patch in the position+1,
+        // so the position is the position of the trigger char and not the
+        // position of the char after the trigger char
+        query.insert_str(position, &patch_id);
 
         PatchedRawQuery { query, patch_id }
     }
