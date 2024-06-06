@@ -8,7 +8,7 @@ use uuid::{self, Uuid};
 pub struct PatchedRawQuery {
     query: String,
     // TODO: add the position here, so we can use it to remove the trigger char
-    // if the query cannot be parsed at first...?
+    // if the query cannot be parsed at first...? It will be useful for triggers like { . } (pressing '.' after opening a query)
     patch_id: String,
 }
 
