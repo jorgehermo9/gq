@@ -12,51 +12,6 @@
 	@apply shadow-md;
 }
 
-.errorOverlay {
-	position: absolute;
-	z-index: 5;
-	top: 0;
-	left: 0;
-	height: 100%;
-	width: 100%;
-	background-color: #00000021;
-	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-
-	&[data-visible="true"] {
-		opacity: 1;
-		visibility: visible;
-	}
-
-	&[data-visible="false"] {
-		opacity: 0;
-		visibility: hidden;
-	}
-}
-
-.errorContent {
-	@apply text-[0.8rem] font-mono;
-	position: absolute;
-	z-index: 10;
-	left: 0;
-	height: 3rem;
-	padding-left: 2rem;
-	width: 100%;
-	background-color: var(--error);
-	display: flex;
-	align-items: center;
-	transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
-
-	&[data-visible="true"] {
-		bottom: 0;
-		opacity: 1;
-	}
-
-	&[data-visible="false"] {
-		bottom: -3rem;
-		opacity: 0;
-	}
-}
-
 .warningIcon {
 	position: absolute;
 	z-index: 10;

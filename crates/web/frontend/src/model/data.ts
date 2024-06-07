@@ -1,5 +1,5 @@
 import { JsData } from "gq-web";
-import FileType, { fileTypeToDTO, fileTypeToModel } from "./file-type";
+import FileType, { fileTypeToModel } from "./file-type";
 
 export type Data = {
 	content: string;

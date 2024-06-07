@@ -1,7 +1,7 @@
-import { ArrowDownFromLine, ChevronDown, ChevronsDown } from "lucide-react";
+import { ChevronsDown } from "lucide-react";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Button } from "../ui/button";
 import styles from "./editor.module.css";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 interface Props {
 	lines: string[];
