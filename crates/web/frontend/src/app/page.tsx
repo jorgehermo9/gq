@@ -143,6 +143,7 @@ const Home = () => {
 						title="Input"
 						defaultFileName="query"
 						fileTypes={[FileType.GQ]}
+						inputEditorData={inputData}
 					/>
 				</aside>
 				<div className="h-full flex justify-center items-center px-8 relative">

@@ -51,6 +51,7 @@ interface Props {
 	loadingCallback?: MutableRefObject<
 		((loading: LoadingState) => void) | undefined
 	>;
+	inputEditorData?: Data;
 }
 
 const Editor = ({
@@ -68,6 +69,7 @@ const Editor = ({
 	warningMessages,
 	convertCodeCallback,
 	loadingCallback,
+	inputEditorData,
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
@@ -221,7 +223,7 @@ const Editor = ({
 						onChange={(content) => onChangeData({ ...data, content })}
 						height="100%"
 						theme={gqTheme}
-						extensions={getCodemirrorExtensionsByFileType(data.type, lspWorker)}
+						extensions={getCodemirrorExtensionsByFileType(data.type, lspWorker, inputEditorData)}
 						editable={editable}
 						basicSetup={{
 							autocompletion: true,

@@ -89,7 +89,8 @@ const getCodemirrorLanguageByFileType = (
 
 export const getCodemirrorExtensionsByFileType = (
 	fileType: FileType,
-	lspWorker: PromiseWorker | undefined,
+	lspWorker?: PromiseWorker,
+	inputEditorData?: Data
 ): Extension[] => {
 	const language = getCodemirrorLanguageByFileType(fileType);
 	switch (fileType) {
@@ -98,7 +99,7 @@ export const getCodemirrorExtensionsByFileType = (
 		case FileType.GQ:
 			return [
 				language,
-				autocompletion({ override: [getAutocompleteGqFn(lspWorker)] }),
+				autocompletion({ override: [getAutocompleteGqFn(lspWorker, inputEditorData)] }),
 			];
 		case FileType.YAML:
 			return [language, urlPlugin];
