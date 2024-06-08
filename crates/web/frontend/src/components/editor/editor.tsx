@@ -84,7 +84,7 @@ const Editor = ({
 	} = useSettings();
 	const [showWarnings, setShowWarnings] = useState(false);
 	const [loading, setLoading] = useState<LoadingState>(initLoadingState);
-	const { formatWorker, lspWorker, convertWorker } = useWorker();
+	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = data.type === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = data.content.length < 100000000;
 
