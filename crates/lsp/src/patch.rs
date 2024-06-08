@@ -2,7 +2,6 @@ use gq_core::{
     parser,
     query::{AtomicQueryKey, ChildQuery, Query, QueryBuilder, QueryKey, RawKey},
 };
-use once_cell::sync::Lazy;
 use uuid::{self, Uuid};
 
 pub struct PatchedRawQuery {

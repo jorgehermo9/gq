@@ -14,10 +14,5 @@ fn main() {
     // un Option<QueryKey>, si el hijo no contiene el patch identifier, entonces
     // devolver None, si contiene el patch identifier, entonces devolver el QueryKey
     // y se hace un merge del query key con el padre, para seguir devolvindo
-    dbg!(gq_lsp::get_completions(
-        &query,
-        position,
-        trigger_char,
-        &data
-    ));
+    dbg!(gq_lsp::get_completions(&query, position, data));
 }

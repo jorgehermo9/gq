@@ -6,7 +6,8 @@ edition = "2021"
 [dependencies]
 serde_json.workspace = true
 log.workspace = true
+derive_more.workspace = true
+cached.workspace = true
 derive-getters = "0.4.0"
-once_cell = "1.19.0"
 uuid = { version = "1.8.0", features = ["v4"] }
 gq-core = { path = "../core" }

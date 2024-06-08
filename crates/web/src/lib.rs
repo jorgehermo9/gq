@@ -67,7 +67,8 @@ pub fn completions(
 ) -> Vec<JsCompletionItem> {
     // TODO: handle u32 to usize conversion.
     let core_data = Data::from(data);
-    gq_lsp::get_completions(query, position.try_into().unwrap(), trigger, &core_data)
+    // TODO: use trigger char?
+    gq_lsp::get_completions(query, position.try_into().unwrap(), core_data)
         .into_iter()
         .map(From::from)
         .collect()

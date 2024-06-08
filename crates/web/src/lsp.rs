@@ -14,7 +14,7 @@ impl From<CompletionItem> for JsCompletionItem {
         Self {
             label: completion_item.completion().to_string(),
             completion: completion_item.completion().to_string(),
-            detail: None,
+            detail: completion_item.detail().as_ref().map(ToString::to_string),
             documentation: None,
         }
     }

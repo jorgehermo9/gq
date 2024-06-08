@@ -15,3 +15,4 @@ serde_json.workspace = true
 serde_yaml.workspace = true
 serde.workspace = true
 getrandom = { version = "0.2.15", features = ["js"] }
+cached = { workspace = true, features = ["wasm"] }
