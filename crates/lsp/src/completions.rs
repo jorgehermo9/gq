@@ -17,6 +17,9 @@ impl CompletionItem {
 }
 
 //TODO: improve naming
+// TODO: fix bug,right now, keys with different detail (types) are considered different, so they
+// are not deduplicated. For example, an array of two objects, one with a key "a" of type
+// string and another with a key "a" of type number, will return two completions for "a".
 pub fn get_value_completions(value: &Value) -> Vec<CompletionItem> {
     do_get_value_completions(value)
         .collect::<BTreeSet<_>>()
