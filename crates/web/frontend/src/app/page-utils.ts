@@ -31,7 +31,7 @@ export const applyGq = async (
 	return result;
 };
 
-const triggerBlacklist = new Set(["{"]);
+const triggerBlacklist = new Set(["{", ":"]);
 
 export const getQueryCompletionSource = (
 	lspWorker?: PromiseWorker,
