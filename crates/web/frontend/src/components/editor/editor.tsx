@@ -6,16 +6,20 @@ import FileType from "@/model/file-type";
 import { initLoadingState } from "@/model/loading-state";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
-import CodeMirror from "@uiw/react-codemirror";
+import type { CompletionSource } from "@codemirror/autocomplete";
+import CodeMirror, { type Extension } from "@uiw/react-codemirror";
 import { TriangleAlert } from "lucide-react";
 import {
 	type MutableRefObject,
 	Ref,
 	useCallback,
 	useEffect,
+	useMemo,
 	useState,
 } from "react";
 import ActionButton from "../action-button/action-button";
+import { EditorErrorOverlay } from "../editor-overlay/editor-error-overlay";
+import { EditorLoadingOverlay } from "../editor-overlay/editor-loading-overlay";
 import { EditorConsole } from "./editor-console";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
@@ -28,8 +32,6 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
-import { EditorLoadingOverlay } from "../editor-overlay/editor-loading-overlay";
-import { EditorErrorOverlay } from "../editor-overlay/editor-error-overlay";
 
 interface Props {
 	data: Data;
@@ -51,7 +53,7 @@ interface Props {
 	loadingCallback?: MutableRefObject<
 		((loading: LoadingState) => void) | undefined
 	>;
-	inputEditorData?: Data;
+	completionSource?: CompletionSource;
 }
 
 const Editor = ({
@@ -69,7 +71,7 @@ const Editor = ({
 	warningMessages,
 	convertCodeCallback,
 	loadingCallback,
-	inputEditorData,
+	completionSource,
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
@@ -160,6 +162,11 @@ const Editor = ({
 		}
 	}, [handleChangeFileType, convertCodeCallback, loadingCallback]);
 
+	const extensions: Extension[] = useMemo(
+		() => getCodemirrorExtensionsByFileType(data.type, completionSource),
+		[data.type, completionSource],
+	);
+
 	return (
 		<div className={cn("flex flex-col gap-2", className)}>
 			<div className="flex gap-4 items-center">
@@ -223,7 +230,7 @@ const Editor = ({
 						onChange={(content) => onChangeData({ ...data, content })}
 						height="100%"
 						theme={gqTheme}
-						extensions={getCodemirrorExtensionsByFileType(data.type, lspWorker, inputEditorData)}
+						extensions={extensions}
 						editable={editable}
 						basicSetup={{
 							autocompletion: true,

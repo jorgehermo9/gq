@@ -1,10 +1,18 @@
 import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
-import { autocompletion } from "@codemirror/autocomplete";
+import {
+	CompletionSection,
+	type CompletionSource,
+	acceptCompletion,
+	autocompletion,
+	closeCompletion,
+	completionKeymap,
+	startCompletion,
+} from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
 import type { LanguageSupport } from "@codemirror/language";
-import type { Extension } from "@uiw/react-codemirror";
+import { type Extension, Prec, keymap } from "@uiw/react-codemirror";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 import { getAutocompleteGqFn } from "./editor-completions";
@@ -89,9 +97,9 @@ const getCodemirrorLanguageByFileType = (
 
 export const getCodemirrorExtensionsByFileType = (
 	fileType: FileType,
-	lspWorker?: PromiseWorker,
-	inputEditorData?: Data
+	completionSource?: CompletionSource,
 ): Extension[] => {
+	console.log("Calling");
 	const language = getCodemirrorLanguageByFileType(fileType);
 	switch (fileType) {
 		case FileType.JSON:
@@ -99,7 +107,16 @@ export const getCodemirrorExtensionsByFileType = (
 		case FileType.GQ:
 			return [
 				language,
-				autocompletion({ override: [getAutocompleteGqFn(lspWorker, inputEditorData)] }),
+				autocompletion({
+					override: completionSource && [completionSource],
+					tooltipClass: () =>
+						"rounded-sm overflow-hidden !bg-muted-transparent !text-foreground",
+					// TODO: Fix this
+					optionClass: () => "!aria[selected=true]:bg-accent",
+					closeOnBlur: true,
+					defaultKeymap: true,
+				}),
+				Prec.highest(keymap.of([{ key: "Tab", run: acceptCompletion }])),
 			];
 		case FileType.YAML:
 			return [language, urlPlugin];

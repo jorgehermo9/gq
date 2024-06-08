@@ -9,14 +9,18 @@ import { cn } from "@/lib/utils";
 import { type Data, empty } from "@/model/data";
 import FileType from "@/model/file-type";
 import { initLoadingState } from "@/model/loading-state";
+import { setLinkEditors } from "@/model/settings";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { Link2, Link2Off } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { type LoadingState, applyGq } from "./page-utils";
+import {
+	type LoadingState,
+	applyGq,
+	getQueryCompletionSource,
+} from "./page-utils";
 import styles from "./page.module.css";
-import { setLinkEditors } from "@/model/settings";
 
 const Home = () => {
 	const [inputData, setInputData] = useState<Data>(empty(FileType.JSON));
@@ -41,7 +45,7 @@ const Home = () => {
 		},
 		setSettings,
 	} = useSettings();
-	const { gqWorker } = useWorker();
+	const { gqWorker, lspWorker } = useWorker();
 
 	const updateOutputData = useCallback(
 		async (inputData: Data, inputQuery: Data, silent = false) => {
@@ -116,6 +120,11 @@ const Home = () => {
 		[inputData, inputQuery],
 	);
 
+	const inputQueryCompletionSource = useMemo(
+		() => getQueryCompletionSource(lspWorker, inputData),
+		[lspWorker, inputData],
+	);
+
 	return (
 		<main className="flex flex-col items-center p-8 h-screen">
 			<Header onClickExample={handleClickExample} />
@@ -143,7 +152,7 @@ const Home = () => {
 						title="Input"
 						defaultFileName="query"
 						fileTypes={[FileType.GQ]}
-						inputEditorData={inputData}
+						completionSource={inputQueryCompletionSource}
 					/>
 				</aside>
 				<div className="h-full flex justify-center items-center px-8 relative">

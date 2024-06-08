@@ -11,6 +11,7 @@ export const importFile = (file: File, silent = true): Promise<string> => {
 		};
 		reader.onerror = () => {
 			!silent &&
+				reader.error &&
 				toast.error(`Failed to import file: ${reader.error.message}`, {
 					duration: 5000,
 				});
@@ -29,7 +30,7 @@ export const importUrl = async (
 		const response = await fetch(url);
 		if (!response.ok) {
 			throw new Error(
-				`Received ${response.status} (${statusTextMap[response.status]})`,
+				`Received ${response.status} (${statusTextMap.get(response.status)})`,
 			);
 		}
 		const content = await response.text();

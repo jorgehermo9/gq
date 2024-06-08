@@ -1,5 +1,10 @@
+import type { Completion } from "@/model/completion";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
+import type {
+	CompletionContext,
+	CompletionSource,
+} from "@codemirror/autocomplete";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 
@@ -16,21 +21,41 @@ export const applyGq = async (
 	gqWorker: PromiseWorker,
 	silent = true,
 ): Promise<Data> => {
-	try {
-		const result: Data = await gqWorker.postMessage({
-			query: inputQuery,
+	const result: Data = await gqWorker.postMessage({
+		query: inputQuery,
+		data: inputData,
+		outputType: outputType,
+		indent: indent,
+	});
+	!silent && toast.success(`Query applied to ${inputData.type.toUpperCase()}`);
+	return result;
+};
+
+const triggerBlacklist = new Set(["{"]);
+
+export const getQueryCompletionSource = (
+	lspWorker?: PromiseWorker,
+	inputData?: Data,
+): CompletionSource => {
+	return async (context: CompletionContext) => {
+		if (!lspWorker) return null;
+		const trigger = context.matchBefore(/./);
+		if (!trigger || triggerBlacklist.has(trigger.text)) return null;
+		// TODO: This regex should follow the same rules as the json/yaml keys
+		const word = context.matchBefore(/\w*/);
+		const completionItems: Completion[] = await lspWorker.postMessage({
+			query: context.state.doc.toString(),
+			position: trigger.to,
+			trigger: trigger.text,
 			data: inputData,
-			outputType: outputType,
-			indent: indent,
 		});
-		!silent &&
-			toast.success(`Query applied to ${inputData.type.toUpperCase()}`);
-		return result;
-	} catch (err) {
-		!silent &&
-			toast.error(
-				`Error while applying query to ${inputData.type.toUpperCase()}: ${err.message}`
-			);
-		throw err;
-	}
+		return {
+			from: word ? word.from : context.pos,
+			options: completionItems.map((item) => ({
+				type: "text",
+				label: item.label,
+				detail: "(array)",
+			})),
+		};
+	};
 };
