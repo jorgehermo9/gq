@@ -36,7 +36,7 @@ fn do_get_value_completions(value: &Value) -> Box<dyn Iterator<Item = Completion
 
 impl From<(&String, &Value)> for CompletionItem {
     fn from((key, value): (&String, &Value)) -> Self {
-        let detail = value.value_type();
+        let detail = format!("({})", value.value_type());
         Self::new(key.to_string(), Some(detail))
     }
 }

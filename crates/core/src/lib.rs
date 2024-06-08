@@ -1,5 +1,3 @@
-use thiserror::Error;
-
 pub mod data;
 pub mod format;
 // TODO: split lexer and parser into its own crate? so core is just the logic
