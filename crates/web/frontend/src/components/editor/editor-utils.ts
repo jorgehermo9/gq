@@ -28,8 +28,8 @@ export const exportFile = (data: Data, fileName: string) => {
     toast.success("File exported succesfully!");
 };
 
-export const copyToClipboard = (data: Data) => {
-    navigator.clipboard.writeText(data.content);
+export const copyToClipboard = (content: string) => {
+    navigator.clipboard.writeText(content);
     toast.success("Copied to your clipboard!");
 };
 
@@ -38,15 +38,15 @@ export const formatCode = async (
     indent: number,
     formatWorker: PromiseWorker,
     silent = true,
-): Promise<Data> => {
+): Promise<string> => {
     const toastId = silent ? undefined : toast.loading("Formatting code...");
     try {
-        const response = await formatWorker.postMessage({
+        const response: Data = await formatWorker.postMessage({
             data: data,
             indent: indent,
         });
         !silent && toast.success("Code formatted!", { id: toastId });
-        return response;
+        return response.content;
     } catch (err) {
         !silent && toast.error(err.message, { id: toastId, duration: 5000 });
         throw err;
@@ -98,7 +98,6 @@ export const getCodemirrorExtensionsByFileType = (
     fileType: FileType,
     completionSource?: CompletionSource,
 ): Extension[] => {
-    console.log("Calling");
     const language = getCodemirrorLanguageByFileType(fileType);
     switch (fileType) {
         case FileType.JSON:

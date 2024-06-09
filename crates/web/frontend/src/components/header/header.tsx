@@ -3,6 +3,7 @@ import ThemeButton from "@/components/theme-button/theme-button";
 import { Badge } from "@/components/ui/badge";
 import type { Data } from "@/model/data";
 import ExamplesSheet from "../examples-sheet/examples-sheet";
+import { memo } from "react";
 
 interface Props {
 	onClickExample: (json: Data, query: Data) => void;
@@ -29,4 +30,4 @@ const Header = ({ onClickExample }: Props) => {
 	);
 };
 
-export default Header;
+export default memo(Header);

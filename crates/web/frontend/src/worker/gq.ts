@@ -5,7 +5,7 @@ import init, { type JsData, gq } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
 
 interface Message {
-	query: Data;
+	query: string;
 	data: Data;
 	outputType: FileType;
 	indent: number;
@@ -15,7 +15,7 @@ registerWebworker(
 	async ({ query, data, outputType, indent }: Message): Promise<Data> => {
 		await init();
 		const result: JsData = gq(
-			query.content,
+			query,
 			dataToDTO(data),
 			fileTypeToDTO(outputType),
 			indent,

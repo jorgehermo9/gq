@@ -1,4 +1,4 @@
-import { type Data, empty } from "@/model/data";
+import { type Data, emptyContent } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { Eraser } from "lucide-react";
 import ActionButton from "../action-button/action-button";
@@ -6,10 +6,10 @@ import ActionButton from "../action-button/action-button";
 interface Props {
 	editable: boolean;
 	type: FileType;
-	onClearData: (data: Data) => void;
+	onClearContent: (content: string) => void;
 }
 
-export const EditorTooLarge = ({ editable, type, onClearData }: Props) => {
+export const EditorTooLarge = ({ editable, type, onClearContent }: Props) => {
 	return (
 		<div className="h-full rounded-lg flex flex-col gap-8 items-center justify-center bg-background border border-accent-background">
 			<h3 className="text-md font-bold">
@@ -22,7 +22,7 @@ export const EditorTooLarge = ({ editable, type, onClearData }: Props) => {
 			{editable && (
 				<ActionButton
 					className="py-2 px-4"
-					onClick={() => onClearData(empty(type))}
+					onClick={() => onClearContent(emptyContent(type))}
 					description="Clear the input by deleting all the content"
 				>
 					<div className="flex gap-2">

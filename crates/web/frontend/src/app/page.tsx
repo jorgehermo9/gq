@@ -6,7 +6,7 @@ import Editor from "@/components/editor/editor";
 import Header from "@/components/header/header";
 import useDebounce from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
-import { type Data, empty } from "@/model/data";
+import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { initLoadingState } from "@/model/loading-state";
 import { setLinkEditors } from "@/model/settings";
@@ -23,19 +23,20 @@ import {
 import styles from "./page.module.css";
 
 const Home = () => {
-	const [inputData, setInputData] = useState<Data>(empty(FileType.JSON));
-	const [inputQuery, setInputQuery] = useState<Data>(empty(FileType.GQ));
-	const [outputData, setOutputData] = useState<Data>(empty(FileType.JSON));
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(
 		undefined,
 	);
 	const [warningMessages, setWarningMessages] = useState<string[]>([]);
-	const [inputEditorFocused, setInputEditorFocused] = useState(false);
-	const [queryEditorFocused, setQueryEditorFocused] = useState(false);
-	const [outputEditorFocused, setOutputEditorFocused] = useState(false);
 	const convertInputEditorCallback = useRef<(fileType: FileType) => void>();
 	const convertOutputEditorCallback = useRef<(fileType: FileType) => void>();
 	const outputEditorLoadingCallback = useRef<(loading: LoadingState) => void>();
+	const inputContent = useRef<string>();
+	const queryContent = useRef<string>();
+	const inputType = useRef<FileType>();
+	const outputType = useRef<FileType>();
+	const updateInputEditorCallback = useRef<(data: Data) => void>();
+	const updateQueryEditorCallback = useRef<(data: Data) => void>();
+	const updateOutputEditorCallback = useRef<(data: Data) => void>();
 	const [isApplying, setIsApplying] = useState(false);
 	const {
 		settings: {
@@ -45,27 +46,41 @@ const Home = () => {
 		},
 		setSettings,
 	} = useSettings();
+	const debounce = useDebounce(debounceTime);
 	const { gqWorker, lspWorker } = useWorker();
 
 	const updateOutputData = useCallback(
-		async (inputData: Data, inputQuery: Data, silent = false) => {
-			if (!gqWorker || isApplying) return;
+		async (
+			inputContent?: string,
+			inputType?: FileType,
+			queryContent?: string,
+			silent = true,
+		) => {
+			if (
+				!gqWorker ||
+				!outputType.current ||
+				!inputContent ||
+				!inputType ||
+				!queryContent ||
+				isApplying
+			)
+				return;
 			setIsApplying(true);
 			outputEditorLoadingCallback.current?.({
 				isLoading: true,
-				message: `Applying query to ${inputData.type.toUpperCase()}...`,
+				message: `Applying query to ${inputType.toUpperCase()}...`,
 			});
 			try {
 				const result = await applyGq(
-					inputData,
-					inputQuery,
-					outputData.type,
+					{ content: inputContent, type: inputType },
+					queryContent,
+					outputType.current,
 					dataTabSize,
 					gqWorker,
-					silent || (autoApply && debounceTime < 500),
+					silent,
 				);
 				setErrorMessage(undefined);
-				setOutputData(result);
+				updateOutputEditorCallback.current?.(result);
 			} catch (err) {
 				setErrorMessage(err.message);
 				setWarningMessages([]);
@@ -73,24 +88,17 @@ const Home = () => {
 			setIsApplying(false);
 			outputEditorLoadingCallback.current?.(initLoadingState);
 		},
-		[
-			gqWorker,
-			dataTabSize,
-			outputData.type,
-			isApplying,
-			autoApply,
-			debounceTime,
-		],
+		[gqWorker, dataTabSize, isApplying, autoApply, debounceTime],
 	);
 
 	const handleClickExample = useCallback(
 		(json: Data, query: Data) => {
-			setInputData(json);
-			setInputQuery(query);
-			!autoApply && updateOutputData(json, query, true);
+			updateInputEditorCallback.current?.(json);
+			updateQueryEditorCallback.current?.(query);
+			updateOutputData(json.content, json.type, query.content, true);
 			toast.success("Example loaded!");
 		},
-		[autoApply, updateOutputData],
+		[updateOutputData],
 	);
 
 	const handleChangeInputDataFileType = useCallback(
@@ -110,20 +118,46 @@ const Home = () => {
 	const handleChangeLinked = useCallback(() => {
 		setSettings((prev) => setLinkEditors(prev, !linkEditors));
 		toast.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
-		if (linkEditors) return;
-		convertOutputEditorCallback.current?.(inputData.type);
-	}, [linkEditors, inputData, setSettings]);
+		if (linkEditors || !inputType.current) return;
+		convertOutputEditorCallback.current?.(inputType.current);
+	}, [linkEditors, setSettings]);
 
-	useDebounce(
-		() => autoApply && updateOutputData(inputData, inputQuery),
-		debounceTime,
-		[inputData, inputQuery],
+	const handleChangeInputContent = useCallback(
+		(content: string) =>
+			autoApply &&
+			debounce(() =>
+				updateOutputData(
+					content,
+					inputType.current,
+					queryContent.current,
+					debounceTime < 500,
+				),
+			),
+		[autoApply, debounce, updateOutputData, debounceTime],
 	);
 
-	const inputQueryCompletionSource = useMemo(
-		() => getQueryCompletionSource(lspWorker, inputData),
-		[lspWorker, inputData],
+	const handleChangeQueryContent = useCallback(
+		(content: string) =>
+			autoApply &&
+			debounce(() =>
+				updateOutputData(
+					inputContent.current,
+					inputType.current,
+					content,
+					debounceTime < 500,
+				),
+			),
+		[autoApply, debounce, updateOutputData, debounceTime],
 	);
+
+	// TODO: Improve this
+	const inputQueryCompletionSource = useMemo(() => {
+		if (!inputContent.current || !inputType.current) return;
+		return getQueryCompletionSource(lspWorker, {
+			content: inputContent.current,
+			type: inputType.current,
+		});
+	}, [lspWorker, inputContent.current]);
 
 	return (
 		<main className="flex flex-col items-center p-8 h-screen">
@@ -132,36 +166,30 @@ const Home = () => {
 				<aside className="w-[44vw] h-[80vh] flex flex-col gap-8">
 					<Editor
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
-						data={inputData}
-						onChangeData={setInputData}
-						focused={inputEditorFocused}
-						onChangeFocused={setInputEditorFocused}
 						onChangeFileType={handleChangeInputDataFileType}
+						onChangeContent={handleChangeInputContent}
 						title="Input"
 						defaultFileName="input"
 						fileTypes={[FileType.JSON, FileType.YAML]}
 						convertCodeCallback={convertInputEditorCallback}
+						updateCallback={updateInputEditorCallback}
+						contentRef={inputContent}
+						typeRef={inputType}
 					/>
-
 					<Editor
 						className="w-[44vw] h-[40vh] max-h-[40vh]"
-						data={inputQuery}
-						onChangeData={setInputQuery}
-						focused={queryEditorFocused}
-						onChangeFocused={setQueryEditorFocused}
+						onChangeContent={handleChangeQueryContent}
 						title="Input"
 						defaultFileName="query"
 						fileTypes={[FileType.GQ]}
 						completionSource={inputQueryCompletionSource}
+						updateCallback={updateQueryEditorCallback}
+						contentRef={queryContent}
 					/>
 				</aside>
 				<div className="h-full flex justify-center items-center px-8 relative">
 					<div className="absolute top-40 flex w-full items-center">
-						<div
-							className={styles.linkLeftBorder}
-							data-editor-focused={inputEditorFocused}
-							data-linked={linkEditors}
-						/>
+						<div className={styles.linkLeftBorder} data-linked={linkEditors} />
 						<ActionButton
 							className={cn(
 								"p-2 min-w-max border-2",
@@ -178,24 +206,23 @@ const Home = () => {
 								<Link2Off className="w-3 h-3" />
 							)}
 						</ActionButton>
-						<div
-							className={styles.linkRightBorder}
-							data-editor-focused={outputEditorFocused}
-							data-linked={linkEditors}
-						/>
+						<div className={styles.linkRightBorder} data-linked={linkEditors} />
 					</div>
 					<ApplyButton
 						autoApply={autoApply}
-						onClick={() => updateOutputData(inputData, inputQuery)}
+						onClick={() =>
+							updateOutputData(
+								inputContent.current,
+								inputType.current,
+								queryContent.current,
+								false,
+							)
+						}
 					/>
 				</div>
 				<aside className="w-[44vw] h-[80vh] flex flex-col">
 					<Editor
 						className="w-[44vw] h-[80vh]"
-						data={outputData}
-						onChangeData={setOutputData}
-						focused={outputEditorFocused}
-						onChangeFocused={setOutputEditorFocused}
 						onChangeFileType={handleChangeOutputDataFileType}
 						title="Output"
 						editable={false}
@@ -206,6 +233,8 @@ const Home = () => {
 						warningMessages={warningMessages}
 						convertCodeCallback={convertOutputEditorCallback}
 						loadingCallback={outputEditorLoadingCallback}
+						updateCallback={updateOutputEditorCallback}
+						typeRef={outputType}
 					/>
 				</aside>
 			</section>
