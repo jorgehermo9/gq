@@ -18,7 +18,7 @@ pub fn gq(
     output_type: JsDataType,
     indent: usize,
 ) -> Result<JsData, JsError> {
-    let query = Query::try_from(query)?;
+    let query = query.parse::<Query>()?;
     let core_data = Data::from(data);
     let value = Value::try_from(&core_data)?;
     let indentation = Indentation::with_spaces(indent);
@@ -40,7 +40,7 @@ pub fn format_data(data: JsData, indent: usize) -> Result<JsData, JsError> {
 
 #[wasm_bindgen]
 pub fn format_query(query: &str, indent: usize) -> Result<String, JsError> {
-    let query = Query::try_from(query)?;
+    let query = query.parse::<Query>()?;
     let indentation = Indentation::with_spaces(indent);
     Ok(query.pretty_format(indentation))
 }
