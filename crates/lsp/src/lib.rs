@@ -41,6 +41,10 @@ fn do_get_completions(
 
     Ok(completions::get_value_completions(&result))
 }
+
+//TODO: fix bug when accepting completions that could contain keys that
+// would need to be scaped between quotes and with \. Check the lexer regex
+// and maybe apply some regex to the completion. Maybe use the crate enquoted::enquote?
 pub fn get_completions(query: &str, position: usize, data: Data) -> Vec<CompletionItem> {
     do_get_completions(query, position, data)
         .map_err(|e| log::debug!("Error while computing completions: {e}"))
