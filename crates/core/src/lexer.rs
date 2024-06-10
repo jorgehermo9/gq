@@ -59,7 +59,7 @@ pub enum Token {
     Number(f64),
     // Ssee https://github.com/maciejhirsz/logos/issues/133
     // This supports both single and double quoted strings
-    #[regex(r#"(?:"(?:[^"\\]|\\[^tun"]|\\t|\\u|\\n|\\")*")|(?:'([^'\\]|\\[^tun"]|\\t|\\u|\\n|\\')*')"#, |lex| {
+    #[regex(r#"(?:"(?:[^"\\]|\\[^tun"]|\\t|\\u|\\n|\\")*")|(?:'([^'\\]|\\[^tun']|\\t|\\u|\\n|\\')*')"#, |lex| {
         unescape::unescape(&lex.slice()[1..lex.slice().len() - 1]).unwrap()
     }
     )]
