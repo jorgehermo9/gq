@@ -34,8 +34,8 @@ fn do_get_completions(
 
     let compacted_query = patched_query.compact();
     // TODO: this if this method is faster with the cached value...
-    let value = get_value_cached(data.into())?;
-    // let value = Value::try_from(&data)?;
+    // let value = get_value_cached(data.into())?;
+    let value = Value::try_from(&data)?;
 
     let result = compacted_query.apply(value)?;
 
