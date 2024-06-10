@@ -17,7 +17,7 @@ export type FormattingSettings = {
 
 export type WorkspaceSettings = {
 	linkEditors: boolean;
-}
+};
 
 const getDefaultSettings = (): Settings => {
 	return {
@@ -31,8 +31,8 @@ const getDefaultSettings = (): Settings => {
 			queryTabSize: 2,
 		},
 		workspaceSettings: {
-			linkEditors: true
-		}
+			linkEditors: true,
+		},
 	};
 };
 
@@ -95,18 +95,15 @@ const setQueryTabSize = (
 	};
 };
 
-const setLinkEditors = (
-	settings: Settings,
-	linkEditors: boolean,
-): Settings => {
+const setLinkEditors = (settings: Settings, linkEditors: boolean): Settings => {
 	return {
 		...settings,
 		workspaceSettings: {
 			...settings.workspaceSettings,
-			linkEditors
-		}
-	}
-}
+			linkEditors,
+		},
+	};
+};
 
 export {
 	getDefaultSettings,
@@ -115,5 +112,5 @@ export {
 	setFormatOnImport,
 	setDataTabSize,
 	setQueryTabSize,
-	setLinkEditors
+	setLinkEditors,
 };

@@ -185,7 +185,10 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 		);
 		setSheetOpen(false);
 		setDialogOpen(false);
-		onClickExample(formattedJson, formattedQuery);
+		onClickExample(
+			{ content: formattedJson, type: FileType.JSON },
+			{ content: formattedQuery, type: FileType.GQ },
+		);
 	}, [
 		dataTabSize,
 		queryTabSize,

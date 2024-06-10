@@ -1,6 +1,6 @@
 FROM rust:1.78.0 AS chef
-RUN cargo install cargo-chef --version 0.1.67
-RUN cargo install wasm-pack --version 0.12.1
+RUN cargo install cargo-chef --version 0.1.67 --locked
+RUN cargo install wasm-pack --version 0.12.1 --locked
 RUN rustup target add wasm32-unknown-unknown
 WORKDIR /app
 

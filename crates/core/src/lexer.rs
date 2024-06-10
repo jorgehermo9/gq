@@ -46,7 +46,8 @@ pub enum Token<'src> {
     #[token("!~")]
     NotTilde,
     // TODO: allow for more chars
-    #[regex(r"[a-zA-Z_]\w*")]
+    // This regex does not support keys starting with '-' or numbers
+    #[regex(r"[a-zA-Z_][\w-]*")]
     Key(&'src str),
     // Values
     #[token("false", |_| false)]

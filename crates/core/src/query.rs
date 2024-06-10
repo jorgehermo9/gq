@@ -43,11 +43,11 @@ pub enum RootQueryBuilderError {
 )]
 pub struct Query<'a> {
     #[builder(default)]
-    arguments: QueryArguments<'a>,
+    pub arguments: QueryArguments<'a>,
     #[builder(default)]
-    key: QueryKey<'a>,
+    pub key: QueryKey<'a>,
     #[builder(default)]
-    children: Vec<ChildQuery<'a>>,
+    pub children: Vec<ChildQuery<'a>>,
 }
 
 impl QueryBuilder<'_> {
@@ -94,9 +94,9 @@ pub enum ChildQueryBuilderError {
 pub struct ChildQuery<'a> {
     #[builder(default)]
     alias: Option<RawKey<'a>>,
-    key: QueryKey<'a>,
+    pub key: QueryKey<'a>,
     #[builder(default)]
-    children: Vec<ChildQuery<'a>>,
+    pub children: Vec<ChildQuery<'a>>,
 }
 
 impl ChildQueryBuilder<'_> {

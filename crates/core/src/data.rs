@@ -1,8 +1,8 @@
-use std::borrow::Cow;
-
 use crate::format::Indentation;
 use derive_getters::Getters;
+use derive_more::Display;
 use serde_json::Value;
+use std::borrow::Cow;
 use thiserror::Error;
 
 pub mod format;
@@ -17,13 +17,14 @@ pub enum Error {
     Format(#[from] format::Error),
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Display)]
 pub enum DataType {
     Json,
     Yaml,
 }
 
-#[derive(Debug, Getters)]
+// TODO: implement Hash, partialEq and Eq with an id field, so string comparition is cheap
+#[derive(Debug, Getters, Clone, Hash, PartialEq, Eq)]
 pub struct Data<'a> {
     payload: Cow<'a, str>,
     data_type: DataType,
@@ -80,6 +81,13 @@ impl<'a> Data<'a> {
 
     pub fn into_inner(self) -> Cow<'a, str> {
         self.payload
+    }
+
+    pub fn into_owned(self) -> Data<'static> {
+        Data {
+            payload: Cow::Owned(self.payload.into_owned()),
+            data_type: self.data_type,
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 use std::{
     borrow::Cow,
     fmt::{self, Display, Formatter},
+    ops::Add,
 };
 
 use derive_getters::Getters;
@@ -41,7 +42,7 @@ impl Display for AtomicQueryKey<'_> {
 
 #[derive(Debug, Clone, Constructor, Getters, Default)]
 pub struct QueryKey<'a> {
-    keys: Vec<AtomicQueryKey<'a>>,
+    pub keys: Vec<AtomicQueryKey<'a>>,
 }
 
 impl Display for QueryKey<'_> {
@@ -56,6 +57,14 @@ impl Display for QueryKey<'_> {
     }
 }
 
+impl<'a> Add<QueryKey<'a>> for QueryKey<'a> {
+    type Output = QueryKey<'a>;
+
+    fn add(mut self, mut rhs: QueryKey<'a>) -> Self::Output {
+        self.keys.append(&mut rhs.keys);
+        self
+    }
+}
 impl<'a> QueryKey<'a> {
     pub fn last_key(&self) -> &AtomicQueryKey<'a> {
         self.keys().last().expect("query key cannot be empty")

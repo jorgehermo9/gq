@@ -6,23 +6,14 @@ export type Data = {
 	type: FileType;
 };
 
-export const empty = (fileType: FileType): Data => {
+export const emptyContent = (fileType: FileType): string => {
 	switch (fileType) {
 		case FileType.JSON:
-			return {
-				content: "{}",
-				type: fileType,
-			};
+			return "{}"
 		case FileType.GQ:
-			return {
-				content: "",
-				type: fileType,
-			};
+			return ""
 		case FileType.YAML:
-			return {
-				content: "{}",
-				type: fileType,
-			};
+			return "{}"
 	}
 };
 

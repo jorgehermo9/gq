@@ -3,9 +3,9 @@ import { formatBytes } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
-import { initLoadingState } from "@/model/loading-state";
+import { type LoadingState, initLoadingState } from "@/model/loading-state";
 import { File, FileUp, Trash } from "lucide-react";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -76,18 +76,12 @@ const ImportButton = ({
 	const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
 		e.preventDefault();
 		const file = e.dataTransfer.files[0];
-		if (file) {
-			setFile(file);
-		}
+		file && setFile(file);
 	};
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (file) {
-			handleImportFile();
-		} else if (url) {
-			handleImportUrl();
-		}
+		file ? handleImportFile() : url && handleImportUrl();
 	};
 
 	return (
@@ -206,4 +200,4 @@ const ImportButton = ({
 	);
 };
 
-export default ImportButton;
+export default memo(ImportButton);

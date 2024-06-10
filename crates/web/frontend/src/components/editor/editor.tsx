@@ -1,21 +1,24 @@
 import type { LoadingState } from "@/app/page-utils";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import type { Data } from "@/model/data";
+import { emptyContent, type Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { initLoadingState } from "@/model/loading-state";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
-import CodeMirror from "@uiw/react-codemirror";
+import type { CompletionSource } from "@codemirror/autocomplete";
+import CodeMirror, { type Extension } from "@uiw/react-codemirror";
 import { TriangleAlert } from "lucide-react";
 import {
 	type MutableRefObject,
-	Ref,
 	useCallback,
 	useEffect,
+	useMemo,
 	useState,
 } from "react";
 import ActionButton from "../action-button/action-button";
+import { EditorErrorOverlay } from "../editor-overlay/editor-error-overlay";
+import { EditorLoadingOverlay } from "../editor-overlay/editor-loading-overlay";
 import { EditorConsole } from "./editor-console";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
@@ -28,18 +31,13 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
-import { EditorLoadingOverlay } from "../editor-overlay/editor-loading-overlay";
-import { EditorErrorOverlay } from "../editor-overlay/editor-error-overlay";
 
 interface Props {
-	data: Data;
 	title: string;
 	defaultFileName: string;
 	fileTypes: FileType[];
-	onChangeData: (data: Data) => void;
-	focused: boolean;
-	onChangeFocused: (focused: boolean) => void;
 	onChangeFileType?: (fileType: FileType) => void;
+	onChangeContent?: (content: string) => void;
 	className?: string;
 	errorMessage?: string;
 	onDismissError?: () => void;
@@ -51,28 +49,37 @@ interface Props {
 	loadingCallback?: MutableRefObject<
 		((loading: LoadingState) => void) | undefined
 	>;
+	updateCallback?: MutableRefObject<((data: Data) => void) | undefined>;
+	completionSource?: CompletionSource;
+	contentRef?: MutableRefObject<string | undefined>;
+	typeRef?: MutableRefObject<FileType | undefined>;
 }
 
 const Editor = ({
-	data,
 	title,
 	defaultFileName,
 	fileTypes,
-	onChangeData,
-	focused,
-	onChangeFocused,
 	onChangeFileType,
+	onChangeContent,
 	className,
 	errorMessage,
 	onDismissError,
 	warningMessages,
 	convertCodeCallback,
 	loadingCallback,
+	updateCallback,
+	completionSource,
+	contentRef,
+	typeRef,
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
 		string | undefined
 	>();
+	const [currentContent, setContent] = useState<string>(
+		emptyContent(fileTypes[0]),
+	);
+	const [currentType, setType] = useState<FileType>(fileTypes[0]);
 	const {
 		settings: {
 			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },
@@ -80,33 +87,36 @@ const Editor = ({
 	} = useSettings();
 	const [showWarnings, setShowWarnings] = useState(false);
 	const [loading, setLoading] = useState<LoadingState>(initLoadingState);
-	const { formatWorker, lspWorker, convertWorker } = useWorker();
-	const indentSize = data.type === FileType.GQ ? queryTabSize : dataTabSize;
-	const available = data.content.length < 100000000;
+	const [focused, onChangeFocused] = useState(false);
+	const { formatWorker, convertWorker } = useWorker();
+	const indentSize = currentType === FileType.GQ ? queryTabSize : dataTabSize;
+	const available = currentContent.length < 100000000;
 
 	const handleFormatCode = useCallback(
-		async (data: Data) => {
+		async (content: string) => {
 			if (!formatWorker || loading.isLoading) return;
 			setLoading({ isLoading: true, message: "Formatting code..." });
 			try {
+				const data = { content, type: currentType };
 				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
-				onChangeData(result);
+				setContent(result);
 			} catch (err) {
 				setEditorErrorMessage(err.message);
 			} finally {
 				setLoading(initLoadingState);
 			}
 		},
-		[indentSize, onChangeData, formatWorker, loading],
+		[indentSize, formatWorker, loading, currentType],
 	);
 
 	const handleImportFile = useCallback(
 		async (data: Data) => {
-			onChangeData(data);
-			formatOnImport && (await handleFormatCode(data));
+			setContent(data.content);
+			setType(data.type);
+			formatOnImport && (await handleFormatCode(data.content));
 		},
-		[formatOnImport, handleFormatCode, onChangeData],
+		[formatOnImport, handleFormatCode],
 	);
 
 	const handleKeyDown = useCallback(
@@ -114,29 +124,47 @@ const Editor = ({
 			if (!focused) return;
 			if (event.ctrlKey && event.key === "s") {
 				event.preventDefault();
-				handleFormatCode(data);
+				handleFormatCode(currentContent);
 			}
 		},
-		[focused, handleFormatCode, data],
+		[focused, handleFormatCode, currentContent],
+	);
+
+	const handleChangeContent = useCallback(
+		(value: string) => {
+			setContent(value);
+			onChangeContent?.(value);
+		},
+		[onChangeContent],
 	);
 
 	const handleChangeFileType = useCallback(
-		(fileType: FileType) => {
-			if (!convertWorker || fileType === data.type || loading.isLoading) return;
+		(newFileType: FileType) => {
+			if (!convertWorker || newFileType === currentType || loading.isLoading)
+				return;
 			setLoading({
 				isLoading: true,
-				message: `Converting code to ${fileType.toUpperCase()}...`,
+				message: `Converting code to ${currentType.toUpperCase()}...`,
 			});
-			convertCode(data, fileType, dataTabSize, convertWorker)
+			const data = { content: currentContent, type: currentType };
+			convertCode(data, newFileType, dataTabSize, convertWorker)
 				.then((data) => {
-					onChangeData(data);
+					setContent(data.content);
+					setType(data.type);
 					setEditorErrorMessage(undefined);
-					onChangeFileType?.(fileType);
+					onChangeFileType?.(data.type);
 				})
 				.catch((e) => setEditorErrorMessage(e.message))
 				.finally(() => setLoading({ isLoading: false, message: "" }));
 		},
-		[data, dataTabSize, convertWorker, onChangeData, onChangeFileType, loading],
+		[
+			currentContent,
+			currentType,
+			dataTabSize,
+			convertWorker,
+			onChangeFileType,
+			loading,
+		],
 	);
 
 	const handleDismissError = useCallback(() => {
@@ -156,7 +184,32 @@ const Editor = ({
 		if (loadingCallback) {
 			loadingCallback.current = setLoading;
 		}
-	}, [handleChangeFileType, convertCodeCallback, loadingCallback]);
+		if (updateCallback) {
+			updateCallback.current = (data: Data) => {
+				setContent(data.content);
+				setType(data.type);
+			};
+		}
+	}, [
+		handleChangeFileType,
+		convertCodeCallback,
+		loadingCallback,
+		updateCallback,
+	]);
+
+	useEffect(() => {
+		if (contentRef) {
+			contentRef.current = currentContent;
+		}
+		if (typeRef) {
+			typeRef.current = currentType;
+		}
+	}, [currentContent, currentType, contentRef, typeRef]);
+
+	const extensions: Extension[] = useMemo(
+		() => getCodemirrorExtensionsByFileType(currentType, completionSource),
+		[currentType, completionSource],
+	);
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)}>
@@ -164,17 +217,19 @@ const Editor = ({
 				<EditorTitle
 					title={title}
 					fileTypes={fileTypes}
-					currentFileType={data.type}
+					currentFileType={currentType}
 					onChangeFileType={handleChangeFileType}
 				/>
 				<EditorMenu
-					fileType={data.type}
+					fileType={currentType}
 					defaultFilename={defaultFileName}
 					editable={editable}
-					onCopyToClipboard={() => copyToClipboard(data)}
-					onFormatCode={() => handleFormatCode(data)}
+					onCopyToClipboard={() => copyToClipboard(currentContent)}
+					onFormatCode={() => handleFormatCode(currentContent)}
 					onImportFile={(data) => handleImportFile(data)}
-					onExportFile={(filename) => exportFile(data, filename)}
+					onExportFile={(filename) =>
+						exportFile({ content: currentContent, type: currentType }, filename)
+					}
 					onChangeLoading={setLoading}
 					onError={(err) => setEditorErrorMessage(err.message)}
 				/>
@@ -217,11 +272,11 @@ const Editor = ({
 				{available ? (
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"
-						value={data.content}
-						onChange={(content) => onChangeData({ ...data, content })}
+						value={currentContent}
+						onChange={handleChangeContent}
 						height="100%"
 						theme={gqTheme}
-						extensions={getCodemirrorExtensionsByFileType(data.type, lspWorker)}
+						extensions={extensions}
 						editable={editable}
 						basicSetup={{
 							autocompletion: true,
@@ -232,8 +287,8 @@ const Editor = ({
 				) : (
 					<EditorTooLarge
 						editable={editable}
-						type={data.type}
-						onClearData={onChangeData}
+						type={currentType}
+						onClearContent={setContent}
 					/>
 				)}
 			</div>

@@ -1,17 +1,14 @@
 import { useEffect, useRef } from "react";
 
-const useDebounce = (
-	callback: () => void,
-	delay: number,
-	dependencies: unknown[],
-) => {
+const useDebounce = (delay: number) => {
 	const timer = useRef<NodeJS.Timeout>();
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: We want to avoid triggering the callback when the delay time changes
-	useEffect(() => {
+	const debounce = (callback: () => void) => {
 		timer.current && clearTimeout(timer.current);
 		timer.current = setTimeout(() => callback(), delay);
-	}, [...dependencies]);
+	};
+
+	return debounce;
 };
 
 export default useDebounce;
