@@ -113,7 +113,7 @@ impl<'a> Context<'a> {
     }
 
     // TODO: see if &'a is necessary
-    pub fn push_raw_key(&self, raw_key: &'a String) -> Context<'a> {
+    pub fn push_raw_key(&self, raw_key: &'a str) -> Context<'a> {
         let entry = JsonPathEntry::Key(raw_key);
         self.push_entry(entry)
     }
