@@ -11,3 +11,4 @@ cached.workspace = true
 derive-getters = "0.4.0"
 uuid = { version = "1.8.0", features = ["v4"] }
 gq-core = { path = "../core" }
+itertools = "0.13.0"
