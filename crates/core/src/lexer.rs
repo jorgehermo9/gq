@@ -14,7 +14,7 @@ pub enum Error {
 #[derive(Clone, Debug, Logos, PartialEq)]
 #[logos(skip r"[ \t\r\n\f]+")]
 #[logos(error = Error)]
-pub enum Token<'src> {
+pub enum Token {
     #[token("{")]
     LBrace,
     #[token("}")]
@@ -47,8 +47,8 @@ pub enum Token<'src> {
     NotTilde,
     // TODO: allow for more chars
     // This regex does not support keys starting with '-' or numbers
-    #[regex(r"[a-zA-Z_][\w-]*")]
-    Key(&'src str),
+    #[regex(r"[a-zA-Z_][\w-]*", |lex| lex.slice().to_string())]
+    Key(String),
     // Values
     #[token("false", |_| false)]
     #[token("true", |_| true)]
@@ -59,90 +59,40 @@ pub enum Token<'src> {
     Number(f64),
     // Ssee https://github.com/maciejhirsz/logos/issues/133
     // This supports both single and double quoted strings
-    #[regex(r#"(?:"(?:[^"]|\\")*"|'(?:[^']|\\')*')"#, |lex| &lex.slice()[1..lex.slice().len() - 1])]
-    String(&'src str),
+    #[regex(r#"(?:"(?:[^"]|\|\\")*"|'(?:[^']|\|\\')*')"#, |lex| {
+        unescape::unescape(&lex.slice()[1..lex.slice().len() - 1]).unwrap()
+    }
+    )]
+    String(String),
     #[token("null")]
     Null,
     EOF,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum OwnedToken {
-    LBrace,
-    RBrace,
-    LParen,
-    RParen,
-    Dot,
-    Colon,
-    Comma,
-    Equal,
-    NotEqual,
-    Greater,
-    GreaterEqual,
-    Less,
-    LessEqual,
-    Tilde,
-    NotTilde,
-    Key(String),
-    Bool(bool),
-    Number(f64),
-    String(String),
-    Null,
-    EOF,
-}
-
-impl Display for OwnedToken {
+impl Display for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            OwnedToken::LBrace => write!(f, "{{"),
-            OwnedToken::RBrace => write!(f, "}}"),
-            OwnedToken::LParen => write!(f, "("),
-            OwnedToken::RParen => write!(f, ")"),
-            OwnedToken::Dot => write!(f, "."),
-            OwnedToken::Colon => write!(f, ":"),
-            OwnedToken::Comma => write!(f, ","),
-            OwnedToken::Equal => write!(f, "="),
-            OwnedToken::NotEqual => write!(f, "!="),
-            OwnedToken::Greater => write!(f, ">"),
-            OwnedToken::GreaterEqual => write!(f, ">="),
-            OwnedToken::Less => write!(f, "<"),
-            OwnedToken::LessEqual => write!(f, "<="),
-            OwnedToken::Tilde => write!(f, "~"),
-            OwnedToken::NotTilde => write!(f, "!~"),
-            OwnedToken::Key(key) => write!(f, "{key}"),
-            OwnedToken::Bool(b) => write!(f, "{b}"),
-            OwnedToken::Number(n) => write!(f, "{n}"),
-            OwnedToken::String(s) => write!(f, "{s}"),
-            OwnedToken::Null => write!(f, "null"),
-            OwnedToken::EOF => write!(f, "EOF"),
-        }
-    }
-}
-
-impl From<Token<'_>> for OwnedToken {
-    fn from(token: Token) -> Self {
-        match token {
-            Token::LBrace => OwnedToken::LBrace,
-            Token::RBrace => OwnedToken::RBrace,
-            Token::LParen => OwnedToken::LParen,
-            Token::RParen => OwnedToken::RParen,
-            Token::Dot => OwnedToken::Dot,
-            Token::Colon => OwnedToken::Colon,
-            Token::Comma => OwnedToken::Comma,
-            Token::Equal => OwnedToken::Equal,
-            Token::NotEqual => OwnedToken::NotEqual,
-            Token::Greater => OwnedToken::Greater,
-            Token::GreaterEqual => OwnedToken::GreaterEqual,
-            Token::Less => OwnedToken::Less,
-            Token::LessEqual => OwnedToken::LessEqual,
-            Token::Tilde => OwnedToken::Tilde,
-            Token::NotTilde => OwnedToken::NotTilde,
-            Token::Key(key) => OwnedToken::Key(key.to_string()),
-            Token::Bool(b) => OwnedToken::Bool(b),
-            Token::Number(n) => OwnedToken::Number(n),
-            Token::String(s) => OwnedToken::String(s.to_string()),
-            Token::Null => OwnedToken::Null,
-            Token::EOF => OwnedToken::EOF,
+            Token::LBrace => write!(f, "{{"),
+            Token::RBrace => write!(f, "}}"),
+            Token::LParen => write!(f, "("),
+            Token::RParen => write!(f, ")"),
+            Token::Dot => write!(f, "."),
+            Token::Colon => write!(f, ":"),
+            Token::Comma => write!(f, ","),
+            Token::Equal => write!(f, "="),
+            Token::NotEqual => write!(f, "!="),
+            Token::Greater => write!(f, ">"),
+            Token::GreaterEqual => write!(f, ">="),
+            Token::Less => write!(f, "<"),
+            Token::LessEqual => write!(f, "<="),
+            Token::Tilde => write!(f, "~"),
+            Token::NotTilde => write!(f, "!~"),
+            Token::Key(key) => write!(f, "{key}"),
+            Token::Bool(b) => write!(f, "{b}"),
+            Token::Number(n) => write!(f, "{n}"),
+            Token::String(s) => write!(f, "{s}"),
+            Token::Null => write!(f, "null"),
+            Token::EOF => write!(f, "EOF"),
         }
     }
 }

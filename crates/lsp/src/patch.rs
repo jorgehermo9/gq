@@ -1,6 +1,6 @@
 use gq_core::{
     parser,
-    query::{AtomicQueryKey, ChildQuery, Query, QueryBuilder, QueryKey, RawKey},
+    query::{AtomicQueryKey, ChildQuery, Query, QueryBuilder, QueryKey},
 };
 use uuid::{self, Uuid};
 
@@ -26,24 +26,24 @@ impl PatchedRawQuery {
     }
 }
 
-pub struct PatchedQuery<'a> {
-    query: Query<'a>,
-    patch_id: &'a str,
+pub struct PatchedQuery {
+    query: Query,
+    patch_id: String,
 }
 
-impl<'a> TryFrom<&'a PatchedRawQuery> for PatchedQuery<'a> {
+impl TryFrom<&PatchedRawQuery> for PatchedQuery {
     type Error = parser::Error;
 
-    fn try_from(raw_query: &'a PatchedRawQuery) -> Result<Self, Self::Error> {
-        Query::try_from(raw_query.query.as_str()).map(|query| PatchedQuery {
+    fn try_from(raw_query: &PatchedRawQuery) -> Result<Self, Self::Error> {
+        raw_query.query.parse().map(|query| PatchedQuery {
             query,
-            patch_id: &raw_query.patch_id,
+            patch_id: raw_query.patch_id.clone(),
         })
     }
 }
 
-impl<'a> PatchedQuery<'a> {
-    pub fn compact(self) -> Query<'a> {
+impl PatchedQuery {
+    pub fn compact(self) -> Query {
         let PatchedQuery { query, patch_id } = self;
 
         let patch_identifier_position = query
@@ -51,8 +51,7 @@ impl<'a> PatchedQuery<'a> {
             .keys()
             .iter()
             .map(AtomicQueryKey::key)
-            .map(|RawKey(key)| key)
-            .position(|key| key.contains(patch_id));
+            .position(|key| key.contains(&patch_id));
 
         if let Some(position) = patch_identifier_position {
             let target_keys = query.key.keys.into_iter().take(position);
@@ -66,7 +65,7 @@ impl<'a> PatchedQuery<'a> {
         let compacted_children_key = query
             .children
             .into_iter()
-            .flat_map(|child| Self::compact_child(child, patch_id))
+            .flat_map(|child| Self::compact_child(child, &patch_id))
             .next()
             .expect("At least one of query's children should contain the patch identifier");
 
@@ -74,12 +73,12 @@ impl<'a> PatchedQuery<'a> {
 
         QueryBuilder::default().key(new_query_key).build().unwrap()
     }
-    fn compact_child(query: ChildQuery<'a>, patch_id: &'a str) -> Option<QueryKey<'a>> {
+    fn compact_child(query: ChildQuery, patch_id: &str) -> Option<QueryKey> {
         let patch_identifier_position = query
             .key()
             .keys()
             .iter()
-            .position(|key| key.key().0.contains(patch_id));
+            .position(|key| key.key().contains(patch_id));
 
         if let Some(position) = patch_identifier_position {
             let target_keys = query.key.keys.into_iter().take(position);

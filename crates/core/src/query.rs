@@ -12,7 +12,7 @@ mod query_key;
 
 pub use self::context::OwnedJsonPath;
 use self::query_arguments::QueryArguments;
-pub use self::query_key::{AtomicQueryKey, OwnedRawKey, QueryKey, RawKey};
+pub use self::query_key::{AtomicQueryKey, QueryKey};
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -25,7 +25,7 @@ pub enum Error {
 #[derive(Debug, Error)]
 pub enum RootQueryValidationError {
     #[error("root query has children with duplicated output keys: '{0}'")]
-    DuplicatedOutputKeyInRoot(OwnedRawKey),
+    DuplicatedOutputKeyInRoot(String),
 }
 
 #[derive(Debug, Error)]
@@ -41,16 +41,16 @@ pub enum RootQueryBuilderError {
     pattern = "owned",
     build_fn(validate = "Self::validate", error = "RootQueryBuilderError")
 )]
-pub struct Query<'a> {
+pub struct Query {
     #[builder(default)]
-    pub arguments: QueryArguments<'a>,
+    pub arguments: QueryArguments,
     #[builder(default)]
-    pub key: QueryKey<'a>,
+    pub key: QueryKey,
     #[builder(default)]
-    pub children: Vec<ChildQuery<'a>>,
+    pub children: Vec<ChildQuery>,
 }
 
-impl QueryBuilder<'_> {
+impl QueryBuilder {
     fn validate(&self) -> Result<(), RootQueryValidationError> {
         self.validate_children()
     }
@@ -63,7 +63,7 @@ impl QueryBuilder<'_> {
             let child_query_key = child.output_key();
             if !output_keys.insert(child_query_key) {
                 return Err(RootQueryValidationError::DuplicatedOutputKeyInRoot(
-                    child_query_key.clone().into_owned(),
+                    child_query_key.clone(),
                 ));
             }
         }
@@ -75,7 +75,7 @@ impl QueryBuilder<'_> {
 pub enum ChildQueryValidationError {
     #[error("query '{0}' has children with duplicated output keys: '{1}'")]
     // TODO: Maybe we should not use String and use the owned version of the QueryKey
-    DuplicatedOutputKey(String, OwnedRawKey),
+    DuplicatedOutputKey(String, String),
 }
 
 #[derive(Debug, Error)]
@@ -91,15 +91,17 @@ pub enum ChildQueryBuilderError {
     pattern = "owned",
     build_fn(validate = "Self::validate", error = "ChildQueryBuilderError")
 )]
-pub struct ChildQuery<'a> {
+pub struct ChildQuery {
+    // TODO: query alias should be a String?
     #[builder(default)]
-    alias: Option<RawKey<'a>>,
-    pub key: QueryKey<'a>,
+    alias: Option<String>,
+    // TODO: those fields should not be pub, they must be validated
+    pub key: QueryKey,
     #[builder(default)]
-    pub children: Vec<ChildQuery<'a>>,
+    pub children: Vec<ChildQuery>,
 }
 
-impl ChildQueryBuilder<'_> {
+impl ChildQueryBuilder {
     fn validate(&self) -> Result<(), ChildQueryValidationError> {
         self.validate_children()
     }
@@ -114,7 +116,7 @@ impl ChildQueryBuilder<'_> {
                 let child_key = self.key.as_ref().expect("child key must be defined");
                 return Err(ChildQueryValidationError::DuplicatedOutputKey(
                     child_key.to_string(),
-                    child_output_key.clone().into_owned(),
+                    child_output_key.clone(),
                 ));
             }
         }
@@ -122,8 +124,8 @@ impl ChildQueryBuilder<'_> {
     }
 }
 
-impl<'a> ChildQuery<'a> {
-    pub fn output_key(&self) -> &RawKey {
+impl ChildQuery {
+    pub fn output_key(&self) -> &String {
         self.alias()
             .as_ref()
             .unwrap_or_else(|| self.key().last_key().key())

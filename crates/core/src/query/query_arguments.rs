@@ -65,7 +65,7 @@ impl ValueType for Value {
     }
 }
 
-impl ValueType for QueryArgumentValue<'_> {
+impl ValueType for QueryArgumentValue {
     fn value_type(&self) -> String {
         match self {
             QueryArgumentValue::String(_) => "string".to_string(),
@@ -88,7 +88,7 @@ impl ValueType for Regex {
     }
 }
 
-impl ValueType for QueryArgumentOperation<'_> {
+impl ValueType for QueryArgumentOperation {
     fn value_type(&self) -> String {
         match self {
             QueryArgumentOperation::Equal(value) => value.value_type(),
@@ -107,7 +107,7 @@ pub trait OperationType {
     fn operation_type(&self) -> String;
 }
 
-impl OperationType for QueryArgumentOperation<'_> {
+impl OperationType for QueryArgumentOperation {
     fn operation_type(&self) -> String {
         match self {
             QueryArgumentOperation::Equal(_) => "=".to_string(),
@@ -123,14 +123,14 @@ impl OperationType for QueryArgumentOperation<'_> {
 }
 
 #[derive(Debug, Clone)]
-pub enum QueryArgumentValue<'a> {
-    String(&'a str),
+pub enum QueryArgumentValue {
+    String(String),
     Number(f64),
     Bool(bool),
     Null,
 }
 
-impl Display for QueryArgumentValue<'_> {
+impl Display for QueryArgumentValue {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
             QueryArgumentValue::String(value) => write!(f, "\"{value}\""),
@@ -142,9 +142,9 @@ impl Display for QueryArgumentValue<'_> {
 }
 
 #[derive(Debug, Clone)]
-pub enum QueryArgumentOperation<'a> {
-    Equal(QueryArgumentValue<'a>),
-    NotEqual(QueryArgumentValue<'a>),
+pub enum QueryArgumentOperation {
+    Equal(QueryArgumentValue),
+    NotEqual(QueryArgumentValue),
     Greater(f64),
     GreaterEqual(f64),
     Less(f64),
@@ -153,7 +153,7 @@ pub enum QueryArgumentOperation<'a> {
     NotMatch(Regex),
 }
 
-impl Display for QueryArgumentOperation<'_> {
+impl Display for QueryArgumentOperation {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         // TODO: create a pretty format method or use this in Query::pretty_format
         match self {
@@ -169,7 +169,7 @@ impl Display for QueryArgumentOperation<'_> {
     }
 }
 
-impl<'a> QueryArgumentOperation<'a> {
+impl<'a> QueryArgumentOperation {
     fn satisfies(&self, value: &Value, context: &Context<'a>) -> Result<bool, Error<'a>> {
         match self {
             QueryArgumentOperation::Equal(operation_value) => {
@@ -225,7 +225,13 @@ impl<'a> QueryArgumentOperation<'a> {
     ) -> Result<bool, Error<'a>> {
         match (operation_value, value) {
             (QueryArgumentValue::String(operation_value), Value::String(value)) => {
-                Ok(operation_value == value)
+                // TODO: we should not build the unespaced operation here, as it creates
+                // allocations on every iteration. We should do it at the lexer level, but
+                // the lexer's string is not owned. Maybe we should change all the parser/lexer model
+                // to work with owned strings
+                let unescaped_operation_value =
+                    unescape::unescape(operation_value).unwrap_or_default();
+                Ok(unescaped_operation_value == *value)
             }
             (QueryArgumentValue::Number(operation_value), Value::Number(value)) => {
                 value
@@ -340,12 +346,12 @@ impl<'a> QueryArgumentOperation<'a> {
 }
 
 #[derive(Debug, Clone, Constructor, Getters)]
-pub struct QueryArgument<'a> {
-    key: QueryKey<'a>,
-    operation: QueryArgumentOperation<'a>,
+pub struct QueryArgument {
+    key: QueryKey,
+    operation: QueryArgumentOperation,
 }
 
-impl Display for QueryArgument<'_> {
+impl Display for QueryArgument {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let key = self.key();
         let operation = self.operation();
@@ -354,9 +360,9 @@ impl Display for QueryArgument<'_> {
 }
 
 #[derive(Debug, Clone, Constructor, Default)]
-pub struct QueryArguments<'a>(pub Vec<QueryArgument<'a>>);
+pub struct QueryArguments(pub Vec<QueryArgument>);
 
-impl Display for QueryArguments<'_> {
+impl Display for QueryArguments {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let arguments = self
             .0
@@ -368,7 +374,7 @@ impl Display for QueryArguments<'_> {
     }
 }
 
-impl QueryArguments<'_> {
+impl QueryArguments {
     //TODO: improve method naming
     pub fn satisfies(&self, value: &Value, context: &Context) -> bool {
         self.0.iter().all(|argument| {
@@ -387,7 +393,7 @@ impl QueryArguments<'_> {
     }
 }
 
-impl<'a> QueryArgument<'a> {
+impl<'a> QueryArgument {
     const DEFAULT_INSPECTED_VALUE: Cow<'static, Value> = Cow::Owned(Value::Null);
 
     fn satisfies(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, Error<'a>> {
