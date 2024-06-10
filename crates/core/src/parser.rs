@@ -79,7 +79,7 @@ impl<'src> Parser<'src> {
         start.start..end.end
     }
 
-    fn peek<'a>(&'a mut self) -> Result<SpannedTokenRef<'a>> {
+    fn peek(&mut self) -> Result<SpannedTokenRef<'_>> {
         match self.lexer.peek() {
             Some((token, span)) => {
                 let token = token
@@ -222,7 +222,7 @@ impl<'src> Parser<'src> {
                 let arguments = self.parse_query_arguments()?;
                 Ok(AtomicQueryKey::new(key, arguments))
             }
-            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }
     }
 
@@ -235,7 +235,7 @@ impl<'src> Parser<'src> {
                 match self.next_token()? {
                     (Token::Key(key), _) => Ok(Some(key)),
                     (unexpected_token, span) => {
-                        Err(Error::UnexpectedToken(unexpected_token.into(), span))
+                        Err(Error::UnexpectedToken(unexpected_token, span))
                     }
                 }
             }
@@ -252,7 +252,7 @@ impl<'src> Parser<'src> {
                 match self.next_token()? {
                     (Token::RParen, _) => Ok(arguments),
                     (unexpected_token, span) => {
-                        Err(Error::UnexpectedToken(unexpected_token.into(), span))
+                        Err(Error::UnexpectedToken(unexpected_token, span))
                     }
                 }
             }
@@ -307,7 +307,7 @@ impl<'src> Parser<'src> {
             (Token::LessEqual, _) => Ok(QueryArgumentOperation::LessEqual(self.parse_number()?)),
             (Token::Tilde, _) => Ok(QueryArgumentOperation::Match(self.parse_regex()?)),
             (Token::NotTilde, _) => Ok(QueryArgumentOperation::NotMatch(self.parse_regex()?)),
-            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }
     }
 
@@ -319,7 +319,7 @@ impl<'src> Parser<'src> {
             (Token::Number(value), _) => Ok(QueryArgumentValue::Number(value)),
             (Token::Bool(value), _) => Ok(QueryArgumentValue::Bool(value)),
             (Token::Null, _) => Ok(QueryArgumentValue::Null),
-            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }
     }
     /// # Grammar
@@ -327,7 +327,7 @@ impl<'src> Parser<'src> {
     fn parse_number(&mut self) -> Result<f64> {
         match self.next_token()? {
             (Token::Number(value), _) => Ok(value),
-            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }
     }
 
@@ -338,7 +338,7 @@ impl<'src> Parser<'src> {
             (Token::String(value), span) => {
                 Regex::new(&value).map_err(|err| Error::Regex(err, span))
             }
-            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token.into(), span)),
+            (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }
     }
 }
