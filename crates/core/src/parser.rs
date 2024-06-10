@@ -215,10 +215,15 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `ATOMIC_QUERY_KEY -> key QUERY_ARGUMENTS`
+    /// `ATOMIC_QUERY_KEY -> key QUERY_ARGUMENTS | string QUERY_ARGUMENTS`
     fn parse_atomic_query_key(&mut self) -> Result<AtomicQueryKey> {
         match self.next_token()? {
             (Token::Key(key), _) => {
+                let arguments = self.parse_query_arguments()?;
+                Ok(AtomicQueryKey::new(key, arguments))
+            }
+            // TODO: change the name to this tokens? this is the right way to do this?
+            (Token::String(key), _) => {
                 let arguments = self.parse_query_arguments()?;
                 Ok(AtomicQueryKey::new(key, arguments))
             }
@@ -227,16 +232,16 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `QUERY_ALIAS -> : key | ε`
+    /// `QUERY_ALIAS -> : key | : string | ε`
     fn parse_query_alias(&mut self) -> Result<Option<String>> {
         match self.peek()? {
             (Token::Colon, _) => {
                 self.consume()?;
                 match self.next_token()? {
                     (Token::Key(key), _) => Ok(Some(key)),
-                    (unexpected_token, span) => {
-                        Err(Error::UnexpectedToken(unexpected_token, span))
-                    }
+                    // TODO: change the name to this tokens? this is the right way to do this?
+                    (Token::String(key), _) => Ok(Some(key)),
+                    (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
                 }
             }
             _ => Ok(None),
@@ -251,9 +256,7 @@ impl<'src> Parser<'src> {
                 let arguments = QueryArguments::new(self.parse_query_arguments_content()?);
                 match self.next_token()? {
                     (Token::RParen, _) => Ok(arguments),
-                    (unexpected_token, span) => {
-                        Err(Error::UnexpectedToken(unexpected_token, span))
-                    }
+                    (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
                 }
             }
             _ => Ok(Default::default()),

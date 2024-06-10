@@ -45,7 +45,7 @@ pub enum Token {
     Tilde,
     #[token("!~")]
     NotTilde,
-    // TODO: allow for more chars
+    // TODO: allow for more chars, so not so many things has to be escaped with quotes
     // This regex does not support keys starting with '-' or numbers
     #[regex(r"[a-zA-Z_][\w-]*", |lex| lex.slice().to_string())]
     Key(String),
@@ -59,7 +59,7 @@ pub enum Token {
     Number(f64),
     // Ssee https://github.com/maciejhirsz/logos/issues/133
     // This supports both single and double quoted strings
-    #[regex(r#"(?:"(?:[^"]|\|\\")*"|'(?:[^']|\|\\')*')"#, |lex| {
+    #[regex(r#"(?:"(?:[^"\\]|\\[^tun"]|\\t|\\u|\\n|\\")*")|(?:'([^'\\]|\\[^tun"]|\\t|\\u|\\n|\\')*')"#, |lex| {
         unescape::unescape(&lex.slice()[1..lex.slice().len() - 1]).unwrap()
     }
     )]

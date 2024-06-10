@@ -225,13 +225,7 @@ impl<'a> QueryArgumentOperation {
     ) -> Result<bool, Error<'a>> {
         match (operation_value, value) {
             (QueryArgumentValue::String(operation_value), Value::String(value)) => {
-                // TODO: we should not build the unespaced operation here, as it creates
-                // allocations on every iteration. We should do it at the lexer level, but
-                // the lexer's string is not owned. Maybe we should change all the parser/lexer model
-                // to work with owned strings
-                let unescaped_operation_value =
-                    unescape::unescape(operation_value).unwrap_or_default();
-                Ok(unescaped_operation_value == *value)
+                Ok(operation_value == value)
             }
             (QueryArgumentValue::Number(operation_value), Value::Number(value)) => {
                 value
