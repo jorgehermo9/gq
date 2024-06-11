@@ -1,19 +1,14 @@
 import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import {
-	CompletionSection,
 	type CompletionSource,
 	acceptCompletion,
 	autocompletion,
-	closeBrackets,
-	closeCompletion,
-	completionKeymap,
-	startCompletion,
 } from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
 import type { LanguageSupport } from "@codemirror/language";
-import { type Extension, Facet, Prec, keymap } from "@uiw/react-codemirror";
+import { type Extension, Prec, keymap } from "@uiw/react-codemirror";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 import urlPlugin from "./url-plugin";

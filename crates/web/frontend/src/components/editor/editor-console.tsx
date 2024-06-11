@@ -1,5 +1,4 @@
 import { ChevronsDown } from "lucide-react";
-import { memo } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Button } from "../ui/button";
 import styles from "./editor.module.css";

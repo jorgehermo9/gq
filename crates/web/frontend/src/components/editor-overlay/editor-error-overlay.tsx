@@ -1,5 +1,4 @@
 import { X } from "lucide-react";
-import { memo } from "react";
 import { Button } from "../ui/button";
 import styles from "./editor-overlay.module.css";
 

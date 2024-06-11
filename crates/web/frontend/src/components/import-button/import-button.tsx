@@ -5,7 +5,7 @@ import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
 import { type LoadingState, initLoadingState } from "@/model/loading-state";
 import { File, FileUp, Trash } from "lucide-react";
-import { memo, useState } from "react";
+import { useState } from "react";
 import { Button } from "../ui/button";
 import {
 	Dialog,

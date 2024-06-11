@@ -1,5 +1,4 @@
 import type { LoadingState } from "@/app/page-utils";
-import useDebounce from "@/hooks/useDebounce";
 import useLazyState from "@/hooks/useLazyState";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -16,7 +15,6 @@ import {
 	useCallback,
 	useEffect,
 	useMemo,
-	useRef,
 	useState,
 } from "react";
 import ActionButton from "../action-button/action-button";
