@@ -31,7 +31,7 @@ export const applyGq = async (
 	return result;
 };
 
-const triggerBlacklist = new Set(["{", ":"]);
+const triggerBlacklist = new Set<string>(["{", ":", " "]);
 
 export const getQueryCompletionSource = (
 	lspWorker?: PromiseWorker,
@@ -39,8 +39,8 @@ export const getQueryCompletionSource = (
 ): CompletionSource => {
 	return async (context: CompletionContext) => {
 		if (!lspWorker) return null;
-		const trigger = context.matchBefore(/./);
-		if (!trigger || triggerBlacklist.has(trigger.text)) return null;
+		const trigger = context.matchBefore(/./) || { text: "", from: 0, to: 0 };
+		if (!context.explicit && triggerBlacklist.has(trigger.text)) return null;
 		// TODO: This regex should follow the same rules as the json/yaml keys
 		const word = context.matchBefore(/\w*/);
 		const completionItems: Completion[] = await lspWorker.postMessage({

@@ -21,22 +21,25 @@ import {
 	getQueryCompletionSource,
 } from "./page-utils";
 import styles from "./page.module.css";
+import { CompletionSource } from "@codemirror/autocomplete";
 
 const Home = () => {
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(
 		undefined,
 	);
 	const [warningMessages, setWarningMessages] = useState<string[]>([]);
+	const inputContent = useRef<string>("");
+	const queryContent = useRef<string>("");
+	const inputType = useRef<FileType>(FileType.JSON);
+	const outputType = useRef<FileType>(FileType.JSON);
 	const convertInputEditorCallback = useRef<(fileType: FileType) => void>();
 	const convertOutputEditorCallback = useRef<(fileType: FileType) => void>();
 	const outputEditorLoadingCallback = useRef<(loading: LoadingState) => void>();
-	const inputContent = useRef<string>();
-	const queryContent = useRef<string>();
-	const inputType = useRef<FileType>();
-	const outputType = useRef<FileType>();
 	const updateInputEditorCallback = useRef<(data: Data) => void>();
 	const updateQueryEditorCallback = useRef<(data: Data) => void>();
 	const updateOutputEditorCallback = useRef<(data: Data) => void>();
+	const [queryCompletionSource, setQueryCompletionSource] =
+		useState<CompletionSource>();
 	const [isApplying, setIsApplying] = useState(false);
 	const {
 		settings: {
@@ -51,20 +54,12 @@ const Home = () => {
 
 	const updateOutputData = useCallback(
 		async (
-			inputContent?: string,
-			inputType?: FileType,
-			queryContent?: string,
+			inputContent: string,
+			inputType: FileType,
+			queryContent: string,
 			silent = true,
 		) => {
-			if (
-				!gqWorker ||
-				!outputType.current ||
-				!inputContent ||
-				!inputType ||
-				!queryContent ||
-				isApplying
-			)
-				return;
+			if (!gqWorker || isApplying) return;
 			setIsApplying(true);
 			outputEditorLoadingCallback.current?.({
 				isLoading: true,
@@ -123,17 +118,24 @@ const Home = () => {
 	}, [linkEditors, setSettings]);
 
 	const handleChangeInputContent = useCallback(
-		(content: string) =>
+		(content: string) => {
+			setQueryCompletionSource(() =>
+				getQueryCompletionSource(lspWorker, {
+					content: content,
+					type: inputType.current,
+				}),
+			);
 			autoApply &&
-			debounce(() =>
-				updateOutputData(
-					content,
-					inputType.current,
-					queryContent.current,
-					debounceTime < 500,
-				),
-			),
-		[autoApply, debounce, updateOutputData, debounceTime],
+				debounce(() =>
+					updateOutputData(
+						content,
+						inputType.current,
+						queryContent.current,
+						debounceTime < 500,
+					),
+				);
+		},
+		[autoApply, debounce, updateOutputData, debounceTime, lspWorker],
 	);
 
 	const handleChangeQueryContent = useCallback(
@@ -149,15 +151,6 @@ const Home = () => {
 			),
 		[autoApply, debounce, updateOutputData, debounceTime],
 	);
-
-	// TODO: Improve this
-	const inputQueryCompletionSource = useMemo(() => {
-		if (!inputContent.current || !inputType.current) return;
-		return getQueryCompletionSource(lspWorker, {
-			content: inputContent.current,
-			type: inputType.current,
-		});
-	}, [lspWorker, inputContent.current]);
 
 	return (
 		<main className="flex flex-col items-center p-8 h-screen">
@@ -182,7 +175,7 @@ const Home = () => {
 						title="Input"
 						defaultFileName="query"
 						fileTypes={[FileType.GQ]}
-						completionSource={inputQueryCompletionSource}
+						completionSource={queryCompletionSource}
 						updateCallback={updateQueryEditorCallback}
 						contentRef={queryContent}
 					/>

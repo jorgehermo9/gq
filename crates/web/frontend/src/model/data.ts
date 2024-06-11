@@ -13,7 +13,7 @@ export const emptyContent = (fileType: FileType): string => {
 		case FileType.GQ:
 			return "";
 		case FileType.YAML:
-			return "{}";
+			return "";
 	}
 };
 
