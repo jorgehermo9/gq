@@ -1,5 +1,6 @@
 import type { LoadingState } from "@/app/page-utils";
 import useDebounce from "@/hooks/useDebounce";
+import useLazyState from "@/hooks/useLazyState";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { type Data, emptyContent } from "@/model/data";
@@ -33,7 +34,6 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
-import useLazyState from "@/hooks/useLazyState";
 
 interface Props {
 	title: string;
@@ -79,7 +79,11 @@ const Editor = ({
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
 		string | undefined
 	>();
-	const [currentContent, setCurrentContent, instantContent] = useLazyState(emptyContent(fileTypes[0]), 50, onChangeContent);
+	const [currentContent, setCurrentContent, instantContent] = useLazyState(
+		emptyContent(fileTypes[0]),
+		50,
+		onChangeContent,
+	);
 	const [currentType, setType] = useState<FileType>(fileTypes[0]);
 	const {
 		settings: {
@@ -108,7 +112,7 @@ const Editor = ({
 				setLoading(initLoadingState);
 			}
 		},
-		[indentSize, formatWorker, loading, currentType],
+		[indentSize, formatWorker, loading, currentType, setCurrentContent],
 	);
 
 	const handleImportFile = useCallback(
@@ -117,7 +121,7 @@ const Editor = ({
 			setType(data.type);
 			formatOnImport && (await handleFormatCode(data.content));
 		},
-		[formatOnImport, handleFormatCode],
+		[formatOnImport, handleFormatCode, setCurrentContent],
 	);
 
 	const handleKeyDown = useCallback(
@@ -157,6 +161,7 @@ const Editor = ({
 			convertWorker,
 			onChangeFileType,
 			loading,
+			setCurrentContent,
 		],
 	);
 
@@ -188,6 +193,7 @@ const Editor = ({
 		convertCodeCallback,
 		loadingCallback,
 		updateCallback,
+		setCurrentContent,
 	]);
 
 	useEffect(() => {

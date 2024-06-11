@@ -29,4 +29,4 @@ const EditorErrorOverlay = ({
 	);
 };
 
-export default memo(EditorErrorOverlay);
+export default EditorErrorOverlay;

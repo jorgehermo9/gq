@@ -56,4 +56,4 @@ const EditorConsole = ({ lines, visible, onClose }: Props) => {
 	);
 };
 
-export default memo(EditorConsole);
+export default EditorConsole;
