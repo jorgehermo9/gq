@@ -1,5 +1,5 @@
 import { type Data, dataToDTO, dataToModel } from "@/model/data";
-import FileType, { fileTypeToDTO } from "@/model/file-type";
+import FileType from "@/model/file-type";
 import init, { format_data, format_query } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
 

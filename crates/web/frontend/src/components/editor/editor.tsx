@@ -1,7 +1,8 @@
 import type { LoadingState } from "@/app/page-utils";
+import useLazyState from "@/hooks/useLazyState";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { emptyContent, type Data } from "@/model/data";
+import { type Data, emptyContent } from "@/model/data";
 import FileType from "@/model/file-type";
 import { initLoadingState } from "@/model/loading-state";
 import { useSettings } from "@/providers/settings-provider";
@@ -17,9 +18,9 @@ import {
 	useState,
 } from "react";
 import ActionButton from "../action-button/action-button";
-import { EditorErrorOverlay } from "../editor-overlay/editor-error-overlay";
-import { EditorLoadingOverlay } from "../editor-overlay/editor-loading-overlay";
-import { EditorConsole } from "./editor-console";
+import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
+import EditorLoadingOverlay from "../editor-overlay/editor-loading-overlay";
+import EditorConsole from "./editor-console";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
 import { EditorTooLarge } from "./editor-too-large";
@@ -76,8 +77,10 @@ const Editor = ({
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
 		string | undefined
 	>();
-	const [currentContent, setContent] = useState<string>(
+	const [currentContent, setCurrentContent, instantContent] = useLazyState(
 		emptyContent(fileTypes[0]),
+		50,
+		onChangeContent,
 	);
 	const [currentType, setType] = useState<FileType>(fileTypes[0]);
 	const {
@@ -100,23 +103,23 @@ const Editor = ({
 				const data = { content, type: currentType };
 				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
-				setContent(result);
+				setCurrentContent(result);
 			} catch (err) {
 				setEditorErrorMessage(err.message);
 			} finally {
 				setLoading(initLoadingState);
 			}
 		},
-		[indentSize, formatWorker, loading, currentType],
+		[indentSize, formatWorker, loading, currentType, setCurrentContent],
 	);
 
 	const handleImportFile = useCallback(
 		async (data: Data) => {
-			setContent(data.content);
+			setCurrentContent(data.content);
 			setType(data.type);
 			formatOnImport && (await handleFormatCode(data.content));
 		},
-		[formatOnImport, handleFormatCode],
+		[formatOnImport, handleFormatCode, setCurrentContent],
 	);
 
 	const handleKeyDown = useCallback(
@@ -130,14 +133,6 @@ const Editor = ({
 		[focused, handleFormatCode, currentContent],
 	);
 
-	const handleChangeContent = useCallback(
-		(value: string) => {
-			setContent(value);
-			onChangeContent?.(value);
-		},
-		[onChangeContent],
-	);
-
 	const handleChangeFileType = useCallback(
 		(newFileType: FileType) => {
 			if (!convertWorker || newFileType === currentType || loading.isLoading)
@@ -149,7 +144,7 @@ const Editor = ({
 			const data = { content: currentContent, type: currentType };
 			convertCode(data, newFileType, dataTabSize, convertWorker)
 				.then((data) => {
-					setContent(data.content);
+					setCurrentContent(data.content);
 					setType(data.type);
 					setEditorErrorMessage(undefined);
 					onChangeFileType?.(data.type);
@@ -164,6 +159,7 @@ const Editor = ({
 			convertWorker,
 			onChangeFileType,
 			loading,
+			setCurrentContent,
 		],
 	);
 
@@ -186,7 +182,7 @@ const Editor = ({
 		}
 		if (updateCallback) {
 			updateCallback.current = (data: Data) => {
-				setContent(data.content);
+				setCurrentContent(data.content);
 				setType(data.type);
 			};
 		}
@@ -195,6 +191,7 @@ const Editor = ({
 		convertCodeCallback,
 		loadingCallback,
 		updateCallback,
+		setCurrentContent,
 	]);
 
 	useEffect(() => {
@@ -272,8 +269,8 @@ const Editor = ({
 				{available ? (
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"
-						value={currentContent}
-						onChange={handleChangeContent}
+						value={instantContent}
+						onChange={setCurrentContent}
 						height="100%"
 						theme={gqTheme}
 						extensions={extensions}
@@ -288,7 +285,7 @@ const Editor = ({
 					<EditorTooLarge
 						editable={editable}
 						type={currentType}
-						onClearContent={setContent}
+						onClearContent={setCurrentContent}
 					/>
 				)}
 			</div>

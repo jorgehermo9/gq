@@ -9,11 +9,11 @@ export type Data = {
 export const emptyContent = (fileType: FileType): string => {
 	switch (fileType) {
 		case FileType.JSON:
-			return "{}"
+			return "{}";
 		case FileType.GQ:
-			return ""
+			return "";
 		case FileType.YAML:
-			return "{}"
+			return "";
 	}
 };
 

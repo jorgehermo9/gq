@@ -7,7 +7,7 @@ interface Props {
 	loadingMessage: string;
 }
 
-export const EditorLoadingOverlay = ({ loading, loadingMessage }: Props) => {
+const EditorLoadingOverlay = ({ loading, loadingMessage }: Props) => {
 	const [show, setShow] = useState(false);
 
 	useEffect(() => {
@@ -25,3 +25,5 @@ export const EditorLoadingOverlay = ({ loading, loadingMessage }: Props) => {
 		</div>
 	);
 };
+
+export default EditorLoadingOverlay;

@@ -9,7 +9,7 @@ interface Props {
 	onClose: () => void;
 }
 
-export const EditorConsole = ({ lines, visible, onClose }: Props) => {
+const EditorConsole = ({ lines, visible, onClose }: Props) => {
 	return (
 		visible && (
 			<PanelGroup
@@ -54,3 +54,5 @@ export const EditorConsole = ({ lines, visible, onClose }: Props) => {
 		)
 	);
 };
+
+export default EditorConsole;

@@ -1,4 +1,4 @@
-import { type Data, emptyContent } from "@/model/data";
+import { emptyContent } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { Eraser } from "lucide-react";
 import ActionButton from "../action-button/action-button";
