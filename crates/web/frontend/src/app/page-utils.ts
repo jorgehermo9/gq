@@ -54,7 +54,7 @@ export const getQueryCompletionSource = (
 			options: completionItems.map((item) => ({
 				type: "text",
 				label: item.label,
-				detail: item.detail
+				detail: item.detail,
 			})),
 		};
 	};

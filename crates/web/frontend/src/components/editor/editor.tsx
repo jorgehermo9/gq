@@ -1,7 +1,7 @@
 import type { LoadingState } from "@/app/page-utils";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { emptyContent, type Data } from "@/model/data";
+import { type Data, emptyContent } from "@/model/data";
 import FileType from "@/model/file-type";
 import { initLoadingState } from "@/model/loading-state";
 import { useSettings } from "@/providers/settings-provider";
@@ -19,7 +19,7 @@ import {
 import ActionButton from "../action-button/action-button";
 import { EditorErrorOverlay } from "../editor-overlay/editor-error-overlay";
 import { EditorLoadingOverlay } from "../editor-overlay/editor-loading-overlay";
-import { EditorConsole } from "./editor-console";
+import EditorConsole from "./editor-console";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
 import { EditorTooLarge } from "./editor-too-large";

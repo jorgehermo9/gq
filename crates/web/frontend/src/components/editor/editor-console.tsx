@@ -1,4 +1,5 @@
 import { ChevronsDown } from "lucide-react";
+import { memo } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Button } from "../ui/button";
 import styles from "./editor.module.css";
@@ -9,7 +10,7 @@ interface Props {
 	onClose: () => void;
 }
 
-export const EditorConsole = ({ lines, visible, onClose }: Props) => {
+const EditorConsole = ({ lines, visible, onClose }: Props) => {
 	return (
 		visible && (
 			<PanelGroup
@@ -54,3 +55,5 @@ export const EditorConsole = ({ lines, visible, onClose }: Props) => {
 		)
 	);
 };
+
+export default memo(EditorConsole);

@@ -88,7 +88,7 @@ const Home = () => {
 			setIsApplying(false);
 			outputEditorLoadingCallback.current?.(initLoadingState);
 		},
-		[gqWorker, dataTabSize, isApplying, autoApply, debounceTime],
+		[gqWorker, dataTabSize, isApplying],
 	);
 
 	const handleClickExample = useCallback(
