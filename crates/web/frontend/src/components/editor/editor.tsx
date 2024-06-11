@@ -33,6 +33,7 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
+import useLazyState from "@/hooks/useLazyState";
 
 interface Props {
 	title: string;
@@ -78,10 +79,7 @@ const Editor = ({
 	const [editorErrorMessage, setEditorErrorMessage] = useState<
 		string | undefined
 	>();
-	const [currentContent, setContent] = useState<string>(
-		emptyContent(fileTypes[0]),
-	);
-	const currentContentRef = useRef<string>(emptyContent(fileTypes[0]));
+	const [currentContent, setCurrentContent, instantContent] = useLazyState(emptyContent(fileTypes[0]), 50, onChangeContent);
 	const [currentType, setType] = useState<FileType>(fileTypes[0]);
 	const {
 		settings: {
@@ -94,7 +92,6 @@ const Editor = ({
 	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = currentType === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = currentContent.length < 100000000;
-	const debounce = useDebounce(50);
 
 	const handleFormatCode = useCallback(
 		async (content: string) => {
@@ -104,8 +101,7 @@ const Editor = ({
 				const data = { content, type: currentType };
 				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
-				setContent(result);
-				currentContentRef.current = result;
+				setCurrentContent(result);
 			} catch (err) {
 				setEditorErrorMessage(err.message);
 			} finally {
@@ -117,8 +113,7 @@ const Editor = ({
 
 	const handleImportFile = useCallback(
 		async (data: Data) => {
-			currentContentRef.current = data.content;
-			setContent(data.content);
+			setCurrentContent(data.content);
 			setType(data.type);
 			formatOnImport && (await handleFormatCode(data.content));
 		},
@@ -136,17 +131,6 @@ const Editor = ({
 		[focused, handleFormatCode, currentContent],
 	);
 
-	const handleChangeContent = useCallback(
-		(value: string) => {
-			currentContentRef.current = value;
-			debounce(() => {
-				setContent(value);
-				onChangeContent?.(value);
-			});
-		},
-		[onChangeContent, debounce],
-	);
-
 	const handleChangeFileType = useCallback(
 		(newFileType: FileType) => {
 			if (!convertWorker || newFileType === currentType || loading.isLoading)
@@ -158,8 +142,7 @@ const Editor = ({
 			const data = { content: currentContent, type: currentType };
 			convertCode(data, newFileType, dataTabSize, convertWorker)
 				.then((data) => {
-					currentContentRef.current = data.content;
-					setContent(data.content);
+					setCurrentContent(data.content);
 					setType(data.type);
 					setEditorErrorMessage(undefined);
 					onChangeFileType?.(data.type);
@@ -196,8 +179,7 @@ const Editor = ({
 		}
 		if (updateCallback) {
 			updateCallback.current = (data: Data) => {
-				currentContentRef.current = data.content;
-				setContent(data.content);
+				setCurrentContent(data.content);
 				setType(data.type);
 			};
 		}
@@ -283,8 +265,8 @@ const Editor = ({
 				{available ? (
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"
-						value={currentContentRef.current}
-						onChange={handleChangeContent}
+						value={instantContent}
+						onChange={setCurrentContent}
 						height="100%"
 						theme={gqTheme}
 						extensions={extensions}
@@ -299,7 +281,7 @@ const Editor = ({
 					<EditorTooLarge
 						editable={editable}
 						type={currentType}
-						onClearContent={setContent}
+						onClearContent={setCurrentContent}
 					/>
 				)}
 			</div>
