@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Loader } from "../ui/sonner";
 import styles from "./editor-overlay.module.css";
 
@@ -7,7 +7,7 @@ interface Props {
 	loadingMessage: string;
 }
 
-export const EditorLoadingOverlay = ({ loading, loadingMessage }: Props) => {
+const EditorLoadingOverlay = ({ loading, loadingMessage }: Props) => {
 	const [show, setShow] = useState(false);
 
 	useEffect(() => {
@@ -25,3 +25,5 @@ export const EditorLoadingOverlay = ({ loading, loadingMessage }: Props) => {
 		</div>
 	);
 };
+
+export default memo(EditorLoadingOverlay);

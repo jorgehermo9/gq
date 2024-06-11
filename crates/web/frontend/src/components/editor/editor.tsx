@@ -1,4 +1,5 @@
 import type { LoadingState } from "@/app/page-utils";
+import useDebounce from "@/hooks/useDebounce";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { type Data, emptyContent } from "@/model/data";
@@ -14,11 +15,12 @@ import {
 	useCallback,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
 import ActionButton from "../action-button/action-button";
-import { EditorErrorOverlay } from "../editor-overlay/editor-error-overlay";
-import { EditorLoadingOverlay } from "../editor-overlay/editor-loading-overlay";
+import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
+import EditorLoadingOverlay from "../editor-overlay/editor-loading-overlay";
 import EditorConsole from "./editor-console";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
@@ -79,6 +81,7 @@ const Editor = ({
 	const [currentContent, setContent] = useState<string>(
 		emptyContent(fileTypes[0]),
 	);
+	const currentContentRef = useRef<string>(emptyContent(fileTypes[0]));
 	const [currentType, setType] = useState<FileType>(fileTypes[0]);
 	const {
 		settings: {
@@ -91,6 +94,7 @@ const Editor = ({
 	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = currentType === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = currentContent.length < 100000000;
+	const debounce = useDebounce(50);
 
 	const handleFormatCode = useCallback(
 		async (content: string) => {
@@ -101,6 +105,7 @@ const Editor = ({
 				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
 				setContent(result);
+				currentContentRef.current = result;
 			} catch (err) {
 				setEditorErrorMessage(err.message);
 			} finally {
@@ -112,6 +117,7 @@ const Editor = ({
 
 	const handleImportFile = useCallback(
 		async (data: Data) => {
+			currentContentRef.current = data.content;
 			setContent(data.content);
 			setType(data.type);
 			formatOnImport && (await handleFormatCode(data.content));
@@ -132,10 +138,13 @@ const Editor = ({
 
 	const handleChangeContent = useCallback(
 		(value: string) => {
-			setContent(value);
-			onChangeContent?.(value);
+			currentContentRef.current = value;
+			debounce(() => {
+				setContent(value);
+				onChangeContent?.(value);
+			});
 		},
-		[onChangeContent],
+		[onChangeContent, debounce],
 	);
 
 	const handleChangeFileType = useCallback(
@@ -149,6 +158,7 @@ const Editor = ({
 			const data = { content: currentContent, type: currentType };
 			convertCode(data, newFileType, dataTabSize, convertWorker)
 				.then((data) => {
+					currentContentRef.current = data.content;
 					setContent(data.content);
 					setType(data.type);
 					setEditorErrorMessage(undefined);
@@ -186,6 +196,7 @@ const Editor = ({
 		}
 		if (updateCallback) {
 			updateCallback.current = (data: Data) => {
+				currentContentRef.current = data.content;
 				setContent(data.content);
 				setType(data.type);
 			};
@@ -272,7 +283,7 @@ const Editor = ({
 				{available ? (
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"
-						value={currentContent}
+						value={currentContentRef.current}
 						onChange={handleChangeContent}
 						height="100%"
 						theme={gqTheme}

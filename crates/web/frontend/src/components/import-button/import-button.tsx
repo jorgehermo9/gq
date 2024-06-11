@@ -200,4 +200,4 @@ const ImportButton = ({
 	);
 };
 
-export default memo(ImportButton);
+export default ImportButton;
