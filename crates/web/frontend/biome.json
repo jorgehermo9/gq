@@ -11,5 +11,8 @@
 				"noUnusedImports": "warn"
 			}
 		}
+	},
+	"formatter": {
+		"lineWidth": 100
 	}
 }

@@ -81,8 +81,7 @@ const arrayFiltering: ExampleSection = {
 		{
 			query: 'products(name="Product 2")',
 			title: "Exact match",
-			description:
-				"You can use the `=` or `!=` operators to match exactly any primitive value",
+			description: "You can use the `=` or `!=` operators to match exactly any primitive value",
 		},
 		{
 			query: "products(quantity>=5)",
@@ -98,8 +97,7 @@ const arrayFiltering: ExampleSection = {
 		{
 			query: "products(quantity<5).name",
 			title: "Filter + accessing",
-			description:
-				"Furthermore, you can always chain field accessing after any array filtering",
+			description: "Furthermore, you can always chain field accessing after any array filtering",
 		},
 	],
 };
@@ -165,18 +163,11 @@ const otherExamples: ExampleSection = {
 	},
 	queries: [
 		{
-			query:
-				"{\n\tproducts(price<15).name: cheap\n\tproducts(price>=15).name: expensive\n}",
+			query: "{\n\tproducts(price<15).name: cheap\n\tproducts(price>=15).name: expensive\n}",
 			title: "Multiple filters + accessing",
-			description:
-				"Combine multiple filters in the same query to create complex queries",
+			description: "Combine multiple filters in the same query to create complex queries",
 		},
 	],
 };
 
-export const queryExamples = [
-	propertyAccessing,
-	arrayFiltering,
-	fieldAliasing,
-	otherExamples,
-];
+export const queryExamples = [propertyAccessing, arrayFiltering, fieldAliasing, otherExamples];

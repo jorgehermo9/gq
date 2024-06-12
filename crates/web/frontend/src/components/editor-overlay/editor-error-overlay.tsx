@@ -9,12 +9,7 @@ interface Props {
 	onClose: () => void;
 }
 
-const EditorErrorOverlay = ({
-	visibleBackdrop,
-	visibleMessage,
-	errorMessage,
-	onClose,
-}: Props) => {
+const EditorErrorOverlay = ({ visibleBackdrop, visibleMessage, errorMessage, onClose }: Props) => {
 	return (
 		<>
 			<div data-visible={visibleBackdrop} className={styles.errorOverlay} />

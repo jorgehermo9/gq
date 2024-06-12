@@ -1,9 +1,4 @@
-import {
-	Decoration,
-	MatchDecorator,
-	ViewPlugin,
-	WidgetType,
-} from "@uiw/react-codemirror";
+import { Decoration, MatchDecorator, ViewPlugin, WidgetType } from "@uiw/react-codemirror";
 
 class HyperLink extends WidgetType {
 	at: number;

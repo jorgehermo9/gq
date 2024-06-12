@@ -1,10 +1,15 @@
 import { JsData } from "gq-web";
 import FileType, { fileTypeToModel } from "./file-type";
 
-export type Data = {
+export class Data {
 	content: string;
 	type: FileType;
-};
+
+	constructor(content: string, type: FileType) {
+		this.content = content;
+		this.type = type;
+	}
+}
 
 export const emptyContent = (fileType: FileType): string => {
 	switch (fileType) {
@@ -18,10 +23,7 @@ export const emptyContent = (fileType: FileType): string => {
 };
 
 export const dataToModel = (dto: JsData): Data => {
-	return {
-		content: dto.payload,
-		type: fileTypeToModel(dto.data_type),
-	};
+	return new Data(dto.payload, fileTypeToModel(dto.data_type));
 };
 
 export const dataToDTO = (data: Data): JsData => {

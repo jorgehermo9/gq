@@ -1,22 +1,15 @@
-import type { LoadingState } from "@/app/page-utils";
 import useLazyState from "@/hooks/useLazyState";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { type Data, emptyContent } from "@/model/data";
+import { Data, emptyContent } from "@/model/data";
 import FileType from "@/model/file-type";
-import { initLoadingState } from "@/model/loading-state";
+import { type LoadingState, loading, notLoading } from "@/model/loading-state";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import CodeMirror, { type Extension } from "@uiw/react-codemirror";
 import { TriangleAlert } from "lucide-react";
-import {
-	type MutableRefObject,
-	useCallback,
-	useEffect,
-	useMemo,
-	useState,
-} from "react";
+import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
 import EditorLoadingOverlay from "../editor-overlay/editor-loading-overlay";
@@ -44,16 +37,12 @@ interface Props {
 	onDismissError?: () => void;
 	warningMessages?: string[];
 	editable?: boolean;
-	convertCodeCallback?: MutableRefObject<
-		((fileType: FileType) => void) | undefined
-	>;
-	loadingCallback?: MutableRefObject<
-		((loading: LoadingState) => void) | undefined
-	>;
-	updateCallback?: MutableRefObject<((data: Data) => void) | undefined>;
+	convertCodeCallback?: MutableRefObject<(fileType: FileType) => void>;
+	loadingCallback?: MutableRefObject<(loading: LoadingState) => void>;
+	updateCallback?: MutableRefObject<(data: Data) => void>;
 	completionSource?: CompletionSource;
-	contentRef?: MutableRefObject<string | undefined>;
-	typeRef?: MutableRefObject<FileType | undefined>;
+	contentRef?: MutableRefObject<string>;
+	typeRef?: MutableRefObject<FileType>;
 }
 
 const Editor = ({
@@ -74,52 +63,50 @@ const Editor = ({
 	typeRef,
 	editable = true,
 }: Props) => {
-	const [editorErrorMessage, setEditorErrorMessage] = useState<
-		string | undefined
-	>();
-	const [currentContent, setCurrentContent, instantContent] = useLazyState(
+	const [editorErrorMessage, setEditorErrorMessage] = useState<string>();
+	const [content, setContent, instantContent] = useLazyState(
 		emptyContent(fileTypes[0]),
 		50,
 		onChangeContent,
 	);
-	const [currentType, setType] = useState<FileType>(fileTypes[0]);
+	const [type, setType] = useState<FileType>(fileTypes[0]);
+	const [showConsole, setShowConsole] = useState(false);
+	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
+	const [focused, onChangeFocused] = useState(false);
 	const {
 		settings: {
 			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },
 		},
 	} = useSettings();
-	const [showWarnings, setShowWarnings] = useState(false);
-	const [loading, setLoading] = useState<LoadingState>(initLoadingState);
-	const [focused, onChangeFocused] = useState(false);
 	const { formatWorker, convertWorker } = useWorker();
-	const indentSize = currentType === FileType.GQ ? queryTabSize : dataTabSize;
-	const available = currentContent.length < 100000000;
+	const indentSize = type === FileType.GQ ? queryTabSize : dataTabSize;
+	const available = content.length < 100000000;
 
 	const handleFormatCode = useCallback(
-		async (content: string) => {
-			if (!formatWorker || loading.isLoading) return;
-			setLoading({ isLoading: true, message: "Formatting code..." });
+		async (cont: string) => {
+			if (!formatWorker || loadingState.isLoading) return;
+			setLoadingState(loading("Formatting code..."));
 			try {
-				const data = { content, type: currentType };
+				const data = new Data(cont, type);
 				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
-				setCurrentContent(result);
+				setContent(result.content);
 			} catch (err) {
 				setEditorErrorMessage(err.message);
 			} finally {
-				setLoading(initLoadingState);
+				setLoadingState(notLoading);
 			}
 		},
-		[indentSize, formatWorker, loading, currentType, setCurrentContent],
+		[indentSize, formatWorker, loadingState, type, setContent],
 	);
 
 	const handleImportFile = useCallback(
 		async (data: Data) => {
-			setCurrentContent(data.content);
+			setContent(data.content);
 			setType(data.type);
 			formatOnImport && (await handleFormatCode(data.content));
 		},
-		[formatOnImport, handleFormatCode, setCurrentContent],
+		[formatOnImport, handleFormatCode, setContent],
 	);
 
 	const handleKeyDown = useCallback(
@@ -127,40 +114,30 @@ const Editor = ({
 			if (!focused) return;
 			if (event.ctrlKey && event.key === "s") {
 				event.preventDefault();
-				handleFormatCode(currentContent);
+				handleFormatCode(content);
 			}
 		},
-		[focused, handleFormatCode, currentContent],
+		[focused, handleFormatCode, content],
 	);
 
 	const handleChangeFileType = useCallback(
-		(newFileType: FileType) => {
-			if (!convertWorker || newFileType === currentType || loading.isLoading)
-				return;
-			setLoading({
-				isLoading: true,
-				message: `Converting code to ${currentType.toUpperCase()}...`,
-			});
-			const data = { content: currentContent, type: currentType };
-			convertCode(data, newFileType, dataTabSize, convertWorker)
-				.then((data) => {
-					setCurrentContent(data.content);
-					setType(data.type);
-					setEditorErrorMessage(undefined);
-					onChangeFileType?.(data.type);
-				})
-				.catch((e) => setEditorErrorMessage(e.message))
-				.finally(() => setLoading({ isLoading: false, message: "" }));
+		async (newFileType: FileType) => {
+			if (!convertWorker || newFileType === type || loadingState.isLoading) return;
+			setLoadingState(loading(`Converting code to ${newFileType.toUpperCase()}...`));
+			const data = new Data(content, type);
+			try {
+				const convertedData = await convertCode(data, newFileType, dataTabSize, convertWorker);
+				setContent(convertedData.content);
+				setType(convertedData.type);
+				setEditorErrorMessage(undefined);
+				onChangeFileType?.(convertedData.type);
+			} catch (e) {
+				setEditorErrorMessage(e.message);
+			} finally {
+				setLoadingState(notLoading);
+			}
 		},
-		[
-			currentContent,
-			currentType,
-			dataTabSize,
-			convertWorker,
-			onChangeFileType,
-			loading,
-			setCurrentContent,
-		],
+		[content, type, dataTabSize, convertWorker, onChangeFileType, loadingState, setContent],
 	);
 
 	const handleDismissError = useCallback(() => {
@@ -178,34 +155,28 @@ const Editor = ({
 			convertCodeCallback.current = handleChangeFileType;
 		}
 		if (loadingCallback) {
-			loadingCallback.current = setLoading;
+			loadingCallback.current = setLoadingState;
 		}
 		if (updateCallback) {
 			updateCallback.current = (data: Data) => {
-				setCurrentContent(data.content);
+				setContent(data.content);
 				setType(data.type);
 			};
 		}
-	}, [
-		handleChangeFileType,
-		convertCodeCallback,
-		loadingCallback,
-		updateCallback,
-		setCurrentContent,
-	]);
+	}, [handleChangeFileType, convertCodeCallback, loadingCallback, updateCallback, setContent]);
 
 	useEffect(() => {
 		if (contentRef) {
-			contentRef.current = currentContent;
+			contentRef.current = instantContent;
 		}
 		if (typeRef) {
-			typeRef.current = currentType;
+			typeRef.current = type;
 		}
-	}, [currentContent, currentType, contentRef, typeRef]);
+	}, [instantContent, type, contentRef, typeRef]);
 
 	const extensions: Extension[] = useMemo(
-		() => getCodemirrorExtensionsByFileType(currentType, completionSource),
-		[currentType, completionSource],
+		() => getCodemirrorExtensionsByFileType(type, completionSource),
+		[type, completionSource],
 	);
 
 	return (
@@ -214,20 +185,18 @@ const Editor = ({
 				<EditorTitle
 					title={title}
 					fileTypes={fileTypes}
-					currentFileType={currentType}
+					currentFileType={type}
 					onChangeFileType={handleChangeFileType}
 				/>
 				<EditorMenu
-					fileType={currentType}
+					fileType={type}
 					defaultFilename={defaultFileName}
 					editable={editable}
-					onCopyToClipboard={() => copyToClipboard(currentContent)}
-					onFormatCode={() => handleFormatCode(currentContent)}
-					onImportFile={(data) => handleImportFile(data)}
-					onExportFile={(filename) =>
-						exportFile({ content: currentContent, type: currentType }, filename)
-					}
-					onChangeLoading={setLoading}
+					onCopyToClipboard={() => copyToClipboard(content)}
+					onFormatCode={() => handleFormatCode(content)}
+					onImportFile={handleImportFile}
+					onExportFile={(filename) => exportFile(new Data(content, type), filename)}
+					onChangeLoading={setLoadingState}
 					onError={(err) => setEditorErrorMessage(err.message)}
 				/>
 			</div>
@@ -238,14 +207,9 @@ const Editor = ({
 				onBlur={() => onChangeFocused(false)}
 				className={`${styles.editor} relative block h-full rounded-lg overflow-hidden`}
 			>
-				<EditorLoadingOverlay
-					loading={loading.isLoading}
-					loadingMessage={loading.message}
-				/>
+				<EditorLoadingOverlay loadingState={loadingState} />
 				<EditorErrorOverlay
-					visibleBackdrop={
-						!editable && (!!errorMessage || !!editorErrorMessage)
-					}
+					visibleBackdrop={!editable && (!!errorMessage || !!editorErrorMessage)}
 					visibleMessage={!!errorMessage || !!editorErrorMessage}
 					errorMessage={errorMessage || editorErrorMessage}
 					onClose={handleDismissError}
@@ -253,24 +217,22 @@ const Editor = ({
 				<ActionButton
 					description="Show warnings"
 					variant="ghost"
-					onClick={() => setShowWarnings(true)}
-					data-visible={
-						!!warningMessages && warningMessages.length > 0 && !showWarnings
-					}
+					onClick={() => setShowConsole(true)}
+					data-visible={!!warningMessages && warningMessages.length > 0 && !showConsole}
 					className={styles.warningIcon}
 				>
 					<TriangleAlert className="w-5 h-5 text-warning" />
 				</ActionButton>
 				<EditorConsole
 					lines={warningMessages || []}
-					visible={showWarnings}
-					onClose={() => setShowWarnings(false)}
+					visible={showConsole}
+					onClose={() => setShowConsole(false)}
 				/>
 				{available ? (
 					<CodeMirror
 						className="w-full h-full rounded-lg text-[0.8rem]"
 						value={instantContent}
-						onChange={setCurrentContent}
+						onChange={setContent}
 						height="100%"
 						theme={gqTheme}
 						extensions={extensions}
@@ -284,8 +246,7 @@ const Editor = ({
 				) : (
 					<EditorTooLarge
 						editable={editable}
-						type={currentType}
-						onClearContent={setCurrentContent}
+						onClearContent={() => setContent(emptyContent(type))}
 					/>
 				)}
 			</div>

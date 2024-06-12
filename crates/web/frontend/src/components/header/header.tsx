@@ -13,6 +13,7 @@ const Header = ({ onClickExample }: Props) => {
 	return (
 		<header className="w-full px-8 flex items-center justify-between mb-8">
 			<ExamplesSheet onClickExample={onClickExample} />
+
 			<h1 className="relative items-end text-5xl">
 				<span className="font-bold">
 					GQ <span className="font-normal tracking-tight">Playground</span>

@@ -10,26 +10,17 @@ interface Props {
 	onChangeFileType?: (fileType: FileType) => void;
 }
 
-const EditorTitle = ({
-	title,
-	fileTypes,
-	currentFileType,
-	onChangeFileType,
-}: Props) => {
+const EditorTitle = ({ title, fileTypes, currentFileType, onChangeFileType }: Props) => {
 	const handleClick = useCallback(() => {
 		if (!onChangeFileType) return;
-		onChangeFileType(
-			currentFileType === fileTypes[0] ? fileTypes[1] : fileTypes[0],
-		);
+		onChangeFileType(currentFileType === fileTypes[0] ? fileTypes[1] : fileTypes[0]);
 	}, [currentFileType, fileTypes, onChangeFileType]);
 
 	return (
 		<h2 className="flex gap-2 justify-center items-center">
 			<span className="text-lg">{title}</span>
 			{fileTypes.length === 1 ? (
-				<span className="text-lg font-bold text-accent">
-					{currentFileType.toUpperCase()}
-				</span>
+				<span className="text-lg font-bold text-accent">{currentFileType.toUpperCase()}</span>
 			) : (
 				<ActionButton
 					className={styles.languageToggle}
@@ -37,12 +28,8 @@ const EditorTitle = ({
 					description="Change file type"
 					variant="ghost"
 				>
-					<span data-active={fileTypes[0] === currentFileType}>
-						{fileTypes[0].toUpperCase()}
-					</span>
-					<span data-active={fileTypes[1] === currentFileType}>
-						{fileTypes[1].toUpperCase()}
-					</span>
+					<span data-active={fileTypes[0] === currentFileType}>{fileTypes[0].toUpperCase()}</span>
+					<span data-active={fileTypes[1] === currentFileType}>{fileTypes[1].toUpperCase()}</span>
 				</ActionButton>
 			)}
 		</h2>

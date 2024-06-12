@@ -5,41 +5,34 @@ import ApplyButton from "@/components/apply-button/apply-button";
 import Editor from "@/components/editor/editor";
 import Header from "@/components/header/header";
 import useDebounce from "@/hooks/useDebounce";
-import { cn } from "@/lib/utils";
-import type { Data } from "@/model/data";
+import { cn, i } from "@/lib/utils";
+import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
-import { initLoadingState } from "@/model/loading-state";
+import { type LoadingState, loading, notLoading } from "@/model/loading-state";
 import { setLinkEditors } from "@/model/settings";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
+import type { CompletionSource } from "@codemirror/autocomplete";
 import { Link2, Link2Off } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
-import {
-	type LoadingState,
-	applyGq,
-	getQueryCompletionSource,
-} from "./page-utils";
+import { applyGq, getQueryCompletionSource } from "./page-utils";
 import styles from "./page.module.css";
-import { CompletionSource } from "@codemirror/autocomplete";
 
 const Home = () => {
-	const [errorMessage, setErrorMessage] = useState<string | undefined>(
-		undefined,
-	);
+	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 	const [warningMessages, setWarningMessages] = useState<string[]>([]);
 	const inputContent = useRef<string>("");
 	const queryContent = useRef<string>("");
 	const inputType = useRef<FileType>(FileType.JSON);
 	const outputType = useRef<FileType>(FileType.JSON);
-	const convertInputEditorCallback = useRef<(fileType: FileType) => void>();
-	const convertOutputEditorCallback = useRef<(fileType: FileType) => void>();
-	const outputEditorLoadingCallback = useRef<(loading: LoadingState) => void>();
-	const updateInputEditorCallback = useRef<(data: Data) => void>();
-	const updateQueryEditorCallback = useRef<(data: Data) => void>();
-	const updateOutputEditorCallback = useRef<(data: Data) => void>();
-	const [queryCompletionSource, setQueryCompletionSource] =
-		useState<CompletionSource>();
+	const convertInputEditorCallback = useRef<(fileType: FileType) => void>(i);
+	const convertOutputEditorCallback = useRef<(fileType: FileType) => void>(i);
+	const outputEditorLoadingCallback = useRef<(loading: LoadingState) => void>(i);
+	const updateInputEditorCallback = useRef<(data: Data) => void>(i);
+	const updateQueryEditorCallback = useRef<(data: Data) => void>(i);
+	const updateOutputEditorCallback = useRef<(data: Data) => void>(i);
+	const [queryCompletionSource, setQueryCompletionSource] = useState<CompletionSource>();
 	const [isApplying, setIsApplying] = useState(false);
 	const {
 		settings: {
@@ -53,21 +46,16 @@ const Home = () => {
 	const { gqWorker, lspWorker } = useWorker();
 
 	const updateOutputData = useCallback(
-		async (
-			inputContent: string,
-			inputType: FileType,
-			queryContent: string,
-			silent = true,
-		) => {
+		async (inputContent: string, inputType: FileType, queryContent: string, silent = true) => {
 			if (!gqWorker || isApplying) return;
 			setIsApplying(true);
-			outputEditorLoadingCallback.current?.({
-				isLoading: true,
-				message: `Applying query to ${inputType.toUpperCase()}...`,
-			});
+			outputEditorLoadingCallback.current(
+				loading(`Applying query to ${inputType.toUpperCase()}...`),
+			);
 			try {
+				const data = new Data(inputContent, inputType);
 				const result = await applyGq(
-					{ content: inputContent, type: inputType },
+					data,
 					queryContent,
 					outputType.current,
 					dataTabSize,
@@ -75,21 +63,22 @@ const Home = () => {
 					silent,
 				);
 				setErrorMessage(undefined);
-				updateOutputEditorCallback.current?.(result);
+				updateOutputEditorCallback.current(result);
 			} catch (err) {
 				setErrorMessage(err.message);
 				setWarningMessages([]);
+			} finally {
+				setIsApplying(false);
+				outputEditorLoadingCallback.current(notLoading());
 			}
-			setIsApplying(false);
-			outputEditorLoadingCallback.current?.(initLoadingState);
 		},
 		[gqWorker, dataTabSize, isApplying],
 	);
 
 	const handleClickExample = useCallback(
 		(json: Data, query: Data) => {
-			updateInputEditorCallback.current?.(json);
-			updateQueryEditorCallback.current?.(query);
+			updateInputEditorCallback.current(json);
+			updateQueryEditorCallback.current(query);
 			updateOutputData(json.content, json.type, query.content, true);
 			toast.success("Example loaded!");
 		},
@@ -97,42 +86,30 @@ const Home = () => {
 	);
 
 	const handleChangeInputDataFileType = useCallback(
-		(fileType: FileType) => {
-			linkEditors && convertOutputEditorCallback.current?.(fileType);
-		},
+		(fileType: FileType) => linkEditors && convertOutputEditorCallback.current(fileType),
 		[linkEditors],
 	);
 
 	const handleChangeOutputDataFileType = useCallback(
-		(fileType: FileType) => {
-			linkEditors && convertInputEditorCallback.current?.(fileType);
-		},
+		(fileType: FileType) => linkEditors && convertInputEditorCallback.current(fileType),
 		[linkEditors],
 	);
 
 	const handleChangeLinked = useCallback(() => {
 		setSettings((prev) => setLinkEditors(prev, !linkEditors));
 		toast.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
-		if (linkEditors || !inputType.current) return;
-		convertOutputEditorCallback.current?.(inputType.current);
+		if (linkEditors) return;
+		convertOutputEditorCallback.current(inputType.current);
 	}, [linkEditors, setSettings]);
 
 	const handleChangeInputContent = useCallback(
 		(content: string) => {
 			setQueryCompletionSource(() =>
-				getQueryCompletionSource(lspWorker, {
-					content: content,
-					type: inputType.current,
-				}),
+				getQueryCompletionSource(lspWorker, new Data(content, inputType.current)),
 			);
 			autoApply &&
 				debounce(() =>
-					updateOutputData(
-						content,
-						inputType.current,
-						queryContent.current,
-						debounceTime < 500,
-					),
+					updateOutputData(content, inputType.current, queryContent.current, debounceTime < 500),
 				);
 		},
 		[autoApply, debounce, updateOutputData, debounceTime, lspWorker],
@@ -142,12 +119,7 @@ const Home = () => {
 		(content: string) =>
 			autoApply &&
 			debounce(() =>
-				updateOutputData(
-					inputContent.current,
-					inputType.current,
-					content,
-					debounceTime < 500,
-				),
+				updateOutputData(inputContent.current, inputType.current, content, debounceTime < 500),
 			),
 		[autoApply, debounce, updateOutputData, debounceTime],
 	);
@@ -188,28 +160,17 @@ const Home = () => {
 								"p-2 min-w-max border-2",
 								linkEditors ? "border-accent" : "border-accent-background",
 							)}
-							description={`${
-								linkEditors ? "Link" : "Unlink"
-							} input and output editor file types`}
+							description={`${linkEditors ? "Link" : "Unlink"} input and output editor file types`}
 							onClick={handleChangeLinked}
 						>
-							{linkEditors ? (
-								<Link2 className="w-3 h-3" />
-							) : (
-								<Link2Off className="w-3 h-3" />
-							)}
+							{linkEditors ? <Link2 className="w-3 h-3" /> : <Link2Off className="w-3 h-3" />}
 						</ActionButton>
 						<div className={styles.linkRightBorder} data-linked={linkEditors} />
 					</div>
 					<ApplyButton
 						autoApply={autoApply}
 						onClick={() =>
-							updateOutputData(
-								inputContent.current,
-								inputType.current,
-								queryContent.current,
-								false,
-							)
+							updateOutputData(inputContent.current, inputType.current, queryContent.current, false)
 						}
 					/>
 				</div>

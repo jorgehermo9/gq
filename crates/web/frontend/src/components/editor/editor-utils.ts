@@ -1,10 +1,6 @@
 import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
-import {
-	type CompletionSource,
-	acceptCompletion,
-	autocompletion,
-} from "@codemirror/autocomplete";
+import { type CompletionSource, acceptCompletion, autocompletion } from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
 import type { LanguageSupport } from "@codemirror/language";
@@ -13,12 +9,12 @@ import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 import urlPlugin from "./url-plugin";
 
-export const exportFile = (data: Data, fileName: string) => {
+export const exportFile = (data: Data, filename: string) => {
 	const blob = new Blob([data.content], { type: `application/${data.type}` });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;
-	a.download = `${fileName}.${data.type}`;
+	a.download = `${filename}.${data.type}`;
 	a.click();
 	URL.revokeObjectURL(url);
 	toast.success("File exported succesfully!");
@@ -34,15 +30,12 @@ export const formatCode = async (
 	indent: number,
 	formatWorker: PromiseWorker,
 	silent = true,
-): Promise<string> => {
+): Promise<Data> => {
 	const toastId = silent ? undefined : toast.loading("Formatting code...");
 	try {
-		const response: Data = await formatWorker.postMessage({
-			data: data,
-			indent: indent,
-		});
+		const response: Data = await formatWorker.postMessage({ data, indent });
 		!silent && toast.success("Code formatted!", { id: toastId });
-		return response.content;
+		return response;
 	} catch (err) {
 		!silent && toast.error(err.message, { id: toastId, duration: 5000 });
 		throw err;
@@ -58,11 +51,7 @@ export const convertCode = async (
 ): Promise<Data> => {
 	const toastId = silent ? undefined : toast.loading("Converting code...");
 	try {
-		const result: Data = await convertWorker.postMessage({
-			data: data,
-			outputType: outputType,
-			indent: indent,
-		});
+		const result: Data = await convertWorker.postMessage({ data, outputType, indent });
 		!silent && toast.success("Code converted!", { id: toastId });
 		return result;
 	} catch (err) {
@@ -75,9 +64,7 @@ const jsonLanguage = json();
 const gqLanguage = json();
 const yamlLanguage = yaml();
 
-const getCodemirrorLanguageByFileType = (
-	fileType: FileType,
-): LanguageSupport => {
+const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport => {
 	switch (fileType) {
 		case FileType.JSON:
 			return jsonLanguage;
@@ -103,8 +90,7 @@ export const getCodemirrorExtensionsByFileType = (
 				language,
 				autocompletion({
 					override: completionSource && [completionSource],
-					tooltipClass: () =>
-						"rounded-sm overflow-hidden !bg-muted-transparent !text-foreground",
+					tooltipClass: () => "rounded-sm overflow-hidden !bg-muted-transparent !text-foreground",
 					// TODO: Fix this
 					optionClass: () => "!aria[selected=true]:bg-accent",
 					closeOnBlur: true,
