@@ -18,10 +18,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
 					toast:
 						"group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
 					description: "group-[.toast]:text-muted-foreground",
-					actionButton:
-						"group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-					cancelButton:
-						"group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+					actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+					cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
 				},
 			}}
 			{...props}
@@ -31,9 +29,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
 const bars = Array(12).fill(0);
 
-export const Loader = ({ visible }: { visible: boolean }) => {
+export const Loader = () => {
 	return (
-		<div className={styles.sonnerLoadingWrapper} data-visible={visible}>
+		<div className={styles.sonnerLoadingWrapper} data-visible={true}>
 			<div className={styles.sonnerSpinner}>
 				{bars.map((_, i) => (
 					<div

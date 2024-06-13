@@ -77,14 +77,7 @@ export function gqThemeInit(options?: Partial<CreateThemeOptions>) {
 			},
 			{ tag: [t.number], color: "var(--code-secondary)" },
 			{
-				tag: [
-					t.operator,
-					t.punctuation,
-					t.separator,
-					t.url,
-					t.escape,
-					t.regexp,
-				],
+				tag: [t.operator, t.punctuation, t.separator, t.url, t.escape, t.regexp],
 				color: "var(--foreground)",
 			},
 			{
@@ -92,12 +85,7 @@ export function gqThemeInit(options?: Partial<CreateThemeOptions>) {
 				color: "var(--foreground)",
 			},
 			{
-				tag: [
-					t.special(t.string),
-					t.processingInstruction,
-					t.string,
-					t.inserted,
-				],
+				tag: [t.special(t.string), t.processingInstruction, t.string, t.inserted],
 				color: "var(--code-tertiary)",
 			},
 			{ tag: [t.angleBracket], color: "var(--foreground)" },

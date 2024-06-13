@@ -1,17 +1,9 @@
 import type { Completion } from "@/model/completion";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
-import type {
-	CompletionContext,
-	CompletionSource,
-} from "@codemirror/autocomplete";
+import type { CompletionContext, CompletionSource } from "@codemirror/autocomplete";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
-
-export interface LoadingState {
-	isLoading: boolean;
-	message: string;
-}
 
 export const applyGq = async (
 	inputData: Data,

@@ -46,10 +46,7 @@ const setAutoApply = (settings: Settings, autoApply: boolean): Settings => {
 	};
 };
 
-const setDebounceTime = (
-	settings: Settings,
-	debounceTime: number,
-): Settings => {
+const setDebounceTime = (settings: Settings, debounceTime: number): Settings => {
 	return {
 		...settings,
 		autoApplySettings: {
@@ -59,10 +56,7 @@ const setDebounceTime = (
 	};
 };
 
-const setFormatOnImport = (
-	settings: Settings,
-	formatOnImport: boolean,
-): Settings => {
+const setFormatOnImport = (settings: Settings, formatOnImport: boolean): Settings => {
 	return {
 		...settings,
 		formattingSettings: {
@@ -82,10 +76,7 @@ const setDataTabSize = (settings: Settings, dataTabSize: number): Settings => {
 	};
 };
 
-const setQueryTabSize = (
-	settings: Settings,
-	queryTabSize: number,
-): Settings => {
+const setQueryTabSize = (settings: Settings, queryTabSize: number): Settings => {
 	return {
 		...settings,
 		formattingSettings: {

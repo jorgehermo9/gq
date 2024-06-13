@@ -11,15 +11,8 @@ interface Message {
 	indent: number;
 }
 
-registerWebworker(
-	async ({ query, data, outputType, indent }: Message): Promise<Data> => {
-		await init();
-		const result: JsData = gq(
-			query,
-			dataToDTO(data),
-			fileTypeToDTO(outputType),
-			indent,
-		);
-		return dataToModel(result);
-	},
-);
+registerWebworker(async ({ query, data, outputType, indent }: Message): Promise<Data> => {
+	await init();
+	const result: JsData = gq(query, dataToDTO(data), fileTypeToDTO(outputType), indent);
+	return dataToModel(result);
+});

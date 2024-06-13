@@ -50,25 +50,18 @@ const SettingsSheet = ({ className }: Props) => {
 			<SheetContent>
 				<SheetHeader>
 					<SheetTitle>Settings</SheetTitle>
-					<SheetDescription>
-						Configure the playground settings to your liking.
-					</SheetDescription>
+					<SheetDescription>Configure the playground settings to your liking.</SheetDescription>
 				</SheetHeader>
 				<Separator />
 				<div className="flex flex-col gap-4">
 					<div className="flex gap-4 items-center">
-						<Label
-							htmlFor="auto-apply"
-							className="text-md font-semibold cursor-pointer"
-						>
+						<Label htmlFor="auto-apply" className="text-md font-semibold cursor-pointer">
 							Auto apply
 						</Label>
 						<Switch
 							id="auto-apply"
 							checked={autoApplySettings.autoApply}
-							onCheckedChange={(checked) =>
-								setSettings((prev) => setAutoApply(prev, checked))
-							}
+							onCheckedChange={(checked) => setSettings((prev) => setAutoApply(prev, checked))}
 						/>
 					</div>
 					<div className="ml-4">
@@ -81,9 +74,7 @@ const SettingsSheet = ({ className }: Props) => {
 						<Slider
 							id="debounce-time"
 							disabled={!autoApplySettings.autoApply}
-							onValueChange={(value) =>
-								setSettings((prev) => setDebounceTime(prev, value[0]))
-							}
+							onValueChange={(value) => setSettings((prev) => setDebounceTime(prev, value[0]))}
 							value={[autoApplySettings.debounceTime]}
 							max={5000}
 							min={0}
@@ -142,18 +133,13 @@ const SettingsSheet = ({ className }: Props) => {
 				</div>
 				<div className="mt-8 flex flex-col gap-4 w-full">
 					<div className="flex gap-4 items-center">
-						<Label
-							htmlFor="format-on-import"
-							className="text-md font-semibold cursor-pointer"
-						>
+						<Label htmlFor="format-on-import" className="text-md font-semibold cursor-pointer">
 							Format on import
 						</Label>
 						<Switch
 							id="format-on-import"
 							checked={formattingSettings.formatOnImport}
-							onCheckedChange={(checked) =>
-								setSettings((prev) => setFormatOnImport(prev, checked))
-							}
+							onCheckedChange={(checked) => setSettings((prev) => setFormatOnImport(prev, checked))}
 						/>
 					</div>
 				</div>

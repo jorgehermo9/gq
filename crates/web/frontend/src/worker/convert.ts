@@ -10,14 +10,8 @@ interface Message {
 	indent: number;
 }
 
-registerWebworker(
-	async ({ data, outputType, indent }: Message): Promise<Data> => {
-		await init();
-		const result = convert_data_to(
-			dataToDTO(data),
-			fileTypeToDTO(outputType),
-			indent,
-		);
-		return dataToModel(result);
-	},
-);
+registerWebworker(async ({ data, outputType, indent }: Message): Promise<Data> => {
+	await init();
+	const result = convert_data_to(dataToDTO(data), fileTypeToDTO(outputType), indent);
+	return dataToModel(result);
+});

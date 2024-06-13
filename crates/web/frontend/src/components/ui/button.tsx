@@ -13,8 +13,7 @@ const buttonVariants = cva(
 				error: "bg-error text-foreground hover:bg-error/90",
 				success: "bg-success text-background hover:bg-success/90",
 				outline: "border border-accent-background bg-background",
-				secondary:
-					"bg-secondary text-secondary-foreground hover:bg-secondary/80",
+				secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				ghost: "",
 				link: "text-primary underline-offset-4 hover:underline",
 			},

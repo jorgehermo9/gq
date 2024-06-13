@@ -1,7 +1,7 @@
 "use client";
 
 import { gqTheme } from "@/lib/theme";
-import type { Data } from "@/model/data";
+import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
@@ -54,10 +54,7 @@ interface Props {
 	className?: string;
 }
 
-const ExampleItemDescription = ({
-	description,
-	className,
-}: ExampleItemDescriptionProps) => (
+const ExampleItemDescription = ({ description, className }: ExampleItemDescriptionProps) => (
 	<p className={className}>
 		{description.split(" ").map((word, index) =>
 			word.startsWith("`") ? (
@@ -94,11 +91,7 @@ const ExampleItem = ({ example, onClick }: ExampleItemProps) => {
 	);
 };
 
-const ExamplesSection = ({
-	title,
-	exampleSection,
-	onClick,
-}: ExampleSectionProps) => {
+const ExamplesSection = ({ title, exampleSection, onClick }: ExampleSectionProps) => {
 	const {
 		settings: {
 			formattingSettings: { dataTabSize: jsonTabSize },
@@ -106,56 +99,41 @@ const ExamplesSection = ({
 	} = useSettings();
 
 	const handleClick = useCallback(
-		(query: string) => {
-			onClick(JSON.stringify(exampleSection.json), query);
-		},
+		(query: string) => onClick(JSON.stringify(exampleSection.json), query),
 		[exampleSection, onClick],
 	);
 
 	return (
-		<>
-			<div className="flex flex-col gap-4">
-				<h2 className="font-semibold text-md">{title}</h2>
-				<CodeMirror
-					className="w-full rounded-lg text-[0.8rem]"
-					value={JSON.stringify(
-						exampleSection.json,
-						null,
-						" ".repeat(jsonTabSize),
-					)}
-					height="100%"
-					theme={gqTheme}
-					extensions={[json()]}
-					editable={false}
-					basicSetup={{
-						lineNumbers: true,
-						lintKeymap: true,
-						highlightActiveLineGutter: false,
-						highlightActiveLine: false,
-					}}
-				/>
-				{exampleSection.queries.map((example) => (
-					<ExampleItem
-						key={example.title}
-						example={example}
-						onClick={handleClick}
-					/>
-				))}
-			</div>
-		</>
+		<div className="flex flex-col gap-4">
+			<h2 className="font-semibold text-md">{title}</h2>
+			<CodeMirror
+				className="w-full rounded-lg text-[0.8rem]"
+				value={JSON.stringify(exampleSection.json, null, " ".repeat(jsonTabSize))}
+				height="100%"
+				theme={gqTheme}
+				extensions={[json()]}
+				editable={false}
+				basicSetup={{
+					lineNumbers: true,
+					lintKeymap: true,
+					highlightActiveLineGutter: false,
+					highlightActiveLine: false,
+				}}
+			/>
+			{exampleSection.queries.map((example) => (
+				<ExampleItem key={example.title} example={example} onClick={handleClick} />
+			))}
+		</div>
 	);
 };
 
 const ExamplesSheet = ({ onClickExample, className }: Props) => {
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [dialogOpen, setDialogOpen] = useState(false);
-	const [selectedExample, setSelectedExample] = useState<
-		| {
-				json: string;
-				query: string;
-		  }
-		| undefined
-	>();
+	const [selectedExample, setSelectedExample] = useState<{
+		json: string;
+		query: string;
+	}>();
 	const {
 		settings: {
 			formattingSettings: { dataTabSize, queryTabSize },
@@ -169,33 +147,15 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 	}, []);
 
 	const handleSubmit = useCallback(async () => {
-		if (!selectedExample) return;
-		if (!formatWorker) return;
-		const formattedJson = await formatCode(
-			{ content: selectedExample.json, type: FileType.JSON },
-			dataTabSize,
-			formatWorker,
-			true,
-		);
-		const formattedQuery = await formatCode(
-			{ content: selectedExample.query, type: FileType.GQ },
-			queryTabSize,
-			formatWorker,
-			true,
-		);
+		if (!selectedExample || !formatWorker) return;
+		const jsonData = new Data(selectedExample.json, FileType.JSON);
+		const queryData = new Data(selectedExample.query, FileType.GQ);
+		const formattedJson = await formatCode(jsonData, dataTabSize, formatWorker, true);
+		const formattedQuery = await formatCode(queryData, queryTabSize, formatWorker, true);
 		setSheetOpen(false);
 		setDialogOpen(false);
-		onClickExample(
-			{ content: formattedJson, type: FileType.JSON },
-			{ content: formattedQuery, type: FileType.GQ },
-		);
-	}, [
-		dataTabSize,
-		queryTabSize,
-		onClickExample,
-		selectedExample,
-		formatWorker,
-	]);
+		onClickExample(formattedJson, formattedQuery);
+	}, [dataTabSize, queryTabSize, onClickExample, selectedExample, formatWorker]);
 
 	return (
 		<>
@@ -204,14 +164,12 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Replace editor content?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This will replace the content of both json and query editors with
-							the selected example.
+							This will replace the content of both json and query editors with the selected
+							example.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel onClick={() => setDialogOpen(false)}>
-							Cancel
-						</AlertDialogCancel>
+						<AlertDialogCancel onClick={() => setDialogOpen(false)}>Cancel</AlertDialogCancel>
 						<AlertDialogAction onClick={handleSubmit} className="success">
 							Continue
 						</AlertDialogAction>
@@ -228,8 +186,8 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 					<SheetHeader>
 						<SheetTitle>Query Examples</SheetTitle>
 						<SheetDescription>
-							Check some query examples and import them into your editor with
-							ease. There are endless possiblities!
+							Check some query examples and import them into your editor with ease. There are
+							endless possiblities!
 						</SheetDescription>
 					</SheetHeader>
 					{queryExamples.map((exampleSection: ExampleSection) => (

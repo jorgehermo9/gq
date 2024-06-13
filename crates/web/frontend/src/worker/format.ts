@@ -1,4 +1,4 @@
-import { type Data, dataToDTO, dataToModel } from "@/model/data";
+import { Data, dataToDTO, dataToModel } from "@/model/data";
 import FileType from "@/model/file-type";
 import init, { format_data, format_query } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
@@ -18,10 +18,7 @@ registerWebworker(async ({ data, indent }: Message): Promise<Data> => {
 		}
 		case FileType.GQ: {
 			const result = format_query(data.content, indent);
-			return {
-				content: result,
-				type: FileType.GQ,
-			};
+			return new Data(result, FileType.GQ);
 		}
 		default:
 			throw new Error("Invalid file type");

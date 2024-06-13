@@ -26,13 +26,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body
-				className={cn(
-					"min-h-screen antialiased",
-					montserrat.variable,
-					firaCode.variable,
-				)}
-			>
+			<body className={cn("min-h-screen antialiased", montserrat.variable, firaCode.variable)}>
 				<Toaster
 					offset="32px"
 					duration={2000}

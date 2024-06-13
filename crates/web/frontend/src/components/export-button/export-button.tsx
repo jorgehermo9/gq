@@ -5,13 +5,7 @@ import { DialogTrigger } from "@radix-ui/react-dialog";
 import { DownloadCloud } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
