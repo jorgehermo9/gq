@@ -1,6 +1,11 @@
 import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
-import { type CompletionSource, acceptCompletion, autocompletion, startCompletion } from "@codemirror/autocomplete";
+import {
+	type CompletionSource,
+	acceptCompletion,
+	autocompletion,
+	startCompletion,
+} from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
 import type { LanguageSupport } from "@codemirror/language";
@@ -96,10 +101,12 @@ export const getCodemirrorExtensionsByFileType = (
 					closeOnBlur: true,
 					defaultKeymap: true,
 				}),
-				Prec.highest(keymap.of([
-					{ key: "Tab", run: acceptCompletion },
-					{ key: "Ctrl-.", run: startCompletion }
-				])),
+				Prec.highest(
+					keymap.of([
+						{ key: "Tab", run: acceptCompletion },
+						{ key: "Ctrl-.", run: startCompletion },
+					]),
+				),
 			];
 		case FileType.YAML:
 			return [language, urlPlugin];
