@@ -125,12 +125,12 @@ const Home = () => {
 	);
 
 	return (
-		<main className="flex flex-col items-center p-8 h-screen">
-			<Header onClickExample={handleClickExample} />
-			<section className="mt-4 flex items-center justify-center w-full h-[80vh]">
-				<aside className="w-[44vw] h-[80vh] flex flex-col gap-8">
+		<main className="flex flex-col items-center p-4 px-12 h-screen gap-8">
+			<Header className="w-full" onClickExample={handleClickExample} />
+			<section className="flex items-center justify-center w-full">
+				<aside className="flex flex-col gap-8">
 					<Editor
-						className="w-[44vw] h-[40vh] max-h-[40vh]"
+						className="w-[44vw] h-[40vh]"
 						onChangeFileType={handleChangeInputDataFileType}
 						onChangeContent={handleChangeInputContent}
 						title="Input"
@@ -142,7 +142,7 @@ const Home = () => {
 						typeRef={inputType}
 					/>
 					<Editor
-						className="w-[44vw] h-[40vh] max-h-[40vh]"
+						className="w-[44vw] h-[40vh]"
 						onChangeContent={handleChangeQueryContent}
 						title="Input"
 						defaultFileName="query"
@@ -174,9 +174,9 @@ const Home = () => {
 						}
 					/>
 				</div>
-				<aside className="w-[44vw] h-[80vh] flex flex-col">
+				<aside className="flex flex-col">
 					<Editor
-						className="w-[44vw] h-[80vh]"
+						className="w-[44vw] h-[83vh]"
 						onChangeFileType={handleChangeOutputDataFileType}
 						title="Output"
 						editable={false}

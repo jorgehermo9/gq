@@ -181,7 +181,7 @@ const Editor = ({
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)}>
-			<div className="flex gap-4 items-center">
+			<div className="flex gap-4 items-center pr-2">
 				<EditorTitle
 					title={title}
 					fileTypes={fileTypes}

@@ -18,6 +18,13 @@ export function formatBytes(bytes: number, decimals = 2) {
 	return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
+export function formatNumber(number: number, decimals = 1) {
+	const dm = decimals < 0 ? 0 : decimals;
+	const sizes = ["", "K", "M", "B", "T", "Q"];
+	const i = Math.floor(Math.log(number) / Math.log(1000));
+	return `${Number.parseFloat((number / 1000 ** i).toFixed(dm))}${sizes[i]}`;
+}
+
 export const statusTextMap = new Map([
 	[200, "OK"],
 	[201, "Created"],
@@ -62,4 +69,4 @@ export const statusTextMap = new Map([
 	[505, "HTTP Version Not Supported"],
 ]);
 
-export const i = () => {};
+export const i = () => { };

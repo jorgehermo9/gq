@@ -179,7 +179,7 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
 				<SheetTrigger className={className} asChild>
 					<ActionButton description="Show query examples" className="p-3">
-						<Book className="w-5 h-5" />
+						<Book className="w-4 h-4" />
 					</ActionButton>
 				</SheetTrigger>
 				<SheetContent side="left" className="sm:max-w-lg overflow-y-auto">

@@ -33,7 +33,7 @@ const EditorMenu = ({
 }: Props) => {
 	return (
 		<>
-			<div className="hidden sm:flex pr-2 ml-auto items-center gap-4">
+			<div className="hidden sm:flex ml-auto items-center gap-4">
 				<ActionButton
 					className="px-4 py-2"
 					description="Copy to clipboard"

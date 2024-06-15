@@ -4,26 +4,25 @@ import type { Data } from "@/model/data";
 import { memo } from "react";
 import ExamplesSheet from "../examples-sheet/examples-sheet";
 import StarCount from "./star-count";
+import { cn } from "@/lib/utils";
 
 interface Props {
+	className?: string;
 	onClickExample: (json: Data, query: Data) => void;
 }
 
-const Header = ({ onClickExample }: Props) => {
+const Header = ({ className, onClickExample }: Props) => {
 	return (
-		<header className="w-full px-8 flex items-center justify-between mb-8">
-			<div className="flex-grow basis-0">
+		<header className={cn(className, "flex items-center justify-between overflow-hidden")}>
+			<div className="flex-grow basis-0 flex gap-4">
 				<ExamplesSheet onClickExample={onClickExample} />
+				<StarCount className="px-3" />
 			</div>
 
-			<h1 className="relative items-end text-5xl">
-				<span className="font-semibold">
-					GQ <span className="tracking-tight">Playground</span>
+			<h1 className="relative items-end text-[2.5rem]">
+				<span className="font-semibold text-foreground">
+					GQ <span className="font-medium tracking-tight">Playground</span>
 				</span>
-				<StarCount className="absolute left-full bottom-0 ml-8" />
-				{/* <Badge variant="secondary" className="absolute left-full bottom-2 ml-4">
-					beta
-				</Badge> */}
 			</h1>
 
 			<div className="flex justify-end flex-grow basis-0 gap-4">
