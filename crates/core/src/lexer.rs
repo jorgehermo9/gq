@@ -48,7 +48,7 @@ pub enum Token {
     // TODO: allow for more chars, so not so many things has to be escaped with quotes
     // This regex does not support keys starting with '-' or numbers
     #[regex(r"[a-zA-Z_][\w-]*", |lex| lex.slice().to_string())]
-    Key(String),
+    Identifier(String),
     // Values
     #[token("false", |_| false)]
     #[token("true", |_| true)]
@@ -57,9 +57,7 @@ pub enum Token {
     // TODO: the unwrap is ok here? the regex should be valid for the f64 parsing
     #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
     Number(f64),
-    // Ssee https://github.com/maciejhirsz/logos/issues/133
-    // This supports both single and double quoted strings
-    #[regex(r#"(?:"(?:[^"\\]|\\[^tun"]|\\t|\\u|\\n|\\")*")|(?:'([^'\\]|\\[^tun']|\\t|\\u|\\n|\\')*')"#, |lex| {
+    #[regex(r#"(?:"(?:[^"]|\\")*")|(?:'(?:[^']|\\')*')"#, |lex| {
         unescape::unescape(&lex.slice()[1..lex.slice().len() - 1]).unwrap()
     }
     )]
@@ -87,7 +85,7 @@ impl Display for Token {
             Token::LessEqual => write!(f, "<="),
             Token::Tilde => write!(f, "~"),
             Token::NotTilde => write!(f, "!~"),
-            Token::Key(key) => write!(f, "{key}"),
+            Token::Identifier(key) => write!(f, "{key}"),
             Token::Bool(b) => write!(f, "{b}"),
             Token::Number(n) => write!(f, "{n}"),
             Token::String(s) => write!(f, "{s}"),

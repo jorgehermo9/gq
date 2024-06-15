@@ -193,7 +193,7 @@ impl<'src> Parser<'src> {
     ///
     fn parse_root_query_key(&mut self) -> Result<QueryKey> {
         match self.peek()? {
-            (Token::Key(_), _) => self.parse_query_key(),
+            (Token::Identifier(_), _) => self.parse_query_key(),
             _ => Ok(Default::default()),
         }
     }
@@ -218,7 +218,7 @@ impl<'src> Parser<'src> {
     /// `ATOMIC_QUERY_KEY -> key QUERY_ARGUMENTS | string QUERY_ARGUMENTS`
     fn parse_atomic_query_key(&mut self) -> Result<AtomicQueryKey> {
         match self.next_token()? {
-            (Token::Key(key), _) => {
+            (Token::Identifier(key), _) => {
                 let arguments = self.parse_query_arguments()?;
                 Ok(AtomicQueryKey::new(key, arguments))
             }
@@ -238,7 +238,7 @@ impl<'src> Parser<'src> {
             (Token::Colon, _) => {
                 self.consume()?;
                 match self.next_token()? {
-                    (Token::Key(key), _) => Ok(Some(key)),
+                    (Token::Identifier(key), _) => Ok(Some(key)),
                     // TODO: change the name to this tokens? this is the right way to do this?
                     (Token::String(key), _) => Ok(Some(key)),
                     (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
