@@ -194,7 +194,8 @@ impl<'src> Parser<'src> {
     ///
     fn parse_root_query_key(&mut self) -> Result<QueryKey> {
         match self.peek()? {
-            (Token::Identifier(_), _) => self.parse_query_key(),
+            // We have to know what comes next due to the epsilon rule
+            (Token::Identifier(_), _) | (Token::String(_), _) => self.parse_query_key(),
             _ => Ok(Default::default()),
         }
     }
