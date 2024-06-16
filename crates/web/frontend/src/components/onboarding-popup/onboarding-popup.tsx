@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import styles from "./welcome-popup.module.css";
+import styles from "./onboarding-popup.module.css";
 import { Stars, X } from "lucide-react";
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 	onClose: () => void;
 }
 
-const WelcomePopup = ({ className, visible, onClose }: Props) => {
+const OnboardingPopup = ({ className, visible, onClose }: Props) => {
 	return (
 		<div
 			onClick={(e) => e.stopPropagation()}
@@ -29,4 +29,4 @@ const WelcomePopup = ({ className, visible, onClose }: Props) => {
 	);
 };
 
-export default WelcomePopup;
+export default OnboardingPopup;

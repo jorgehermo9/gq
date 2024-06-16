@@ -32,7 +32,7 @@ import {
 	SheetTrigger,
 } from "../ui/sheet";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
-import WelcomePopup from "../welcome-popup/welcome-popup";
+import OnboardingPopup from "../onboarding-popup/onboarding-popup";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -129,7 +129,7 @@ const ExamplesSection = ({ title, exampleSection, onClick }: ExampleSectionProps
 };
 
 const ExamplesSheet = ({ onClickExample, className }: Props) => {
-	const [welcomeVisible, setWelcomeVisible] = useState(false);
+	const [onboardingVisible, setOnboardingVisible] = useState(false);
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedExample, setSelectedExample] = useState<{
@@ -148,9 +148,17 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 		setDialogOpen(true);
 	}, []);
 
-	const handleOpenChange = useCallback((open: boolean) => {
-		setWelcomeVisible(false);
-		setSheetOpen(open);
+	const handleOpenChange = useCallback(
+		(open: boolean) => {
+			onboardingVisible && handleCloseOnboarding();
+			setSheetOpen(open);
+		},
+		[onboardingVisible],
+	);
+
+	const handleCloseOnboarding = useCallback(() => {
+		setOnboardingVisible(false);
+		localStorage.setItem("onboarding", "done");
 	}, []);
 
 	const handleSubmit = useCallback(async () => {
@@ -165,7 +173,7 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 	}, [dataTabSize, queryTabSize, onClickExample, selectedExample, formatWorker]);
 
 	useEffect(() => {
-		localStorage.getItem("settings") || setWelcomeVisible(true);
+		localStorage.getItem("onboarding") || setOnboardingVisible(true);
 	}, []);
 
 	return (
@@ -193,9 +201,9 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 						<ActionButton description="Show query examples" className="p-3">
 							<Book className="w-4 h-4" />
 						</ActionButton>
-						<WelcomePopup
-							visible={welcomeVisible}
-							onClose={() => setWelcomeVisible(false)}
+						<OnboardingPopup
+							visible={onboardingVisible}
+							onClose={handleCloseOnboarding}
 							className="absolute z-10 top-full translate-y-4"
 						/>
 					</div>

@@ -23,7 +23,8 @@ const StarCount = ({ className }: Props) => {
 	useEffect(() => {
 		fetch("https://api.github.com/repos/jorgehermo9/gq")
 			.then((res) => res.json())
-			.then((data) => setStars(data.stargazers_count));
+			.then((data) => setStars(formatNumber(data.stargazers_count)))
+			.catch(() => setStars("N/A"));
 	}, []);
 
 	return (
