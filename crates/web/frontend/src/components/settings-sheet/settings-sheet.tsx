@@ -44,7 +44,7 @@ const SettingsSheet = ({ className }: Props) => {
 		<Sheet>
 			<SheetTrigger className={className} asChild>
 				<ActionButton description="Show playground settings" className="p-3">
-					<Settings className="w-5 h-5" />
+					<Settings className="w-4 h-4" />
 				</ActionButton>
 			</SheetTrigger>
 			<SheetContent>

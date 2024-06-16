@@ -7,7 +7,7 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
-import { CircleHelp } from "lucide-react";
+import { Book } from "lucide-react";
 import { useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import { formatCode } from "../editor/editor-utils";
@@ -179,7 +179,7 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
 				<SheetTrigger className={className} asChild>
 					<ActionButton description="Show query examples" className="p-3">
-						<CircleHelp className="w-5 h-5" />
+						<Book className="w-4 h-4" />
 					</ActionButton>
 				</SheetTrigger>
 				<SheetContent side="left" className="sm:max-w-lg overflow-y-auto">
