@@ -8,7 +8,7 @@ import { useWorker } from "@/providers/worker-provider";
 import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
 import { Book } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import { formatCode } from "../editor/editor-utils";
 import SimpleEditor from "../editor/simple-editor";
@@ -32,6 +32,7 @@ import {
 	SheetTrigger,
 } from "../ui/sheet";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
+import WelcomePopup from "../welcome-popup/welcome-popup";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -128,6 +129,7 @@ const ExamplesSection = ({ title, exampleSection, onClick }: ExampleSectionProps
 };
 
 const ExamplesSheet = ({ onClickExample, className }: Props) => {
+	const [welcomeVisible, setWelcomeVisible] = useState(false);
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedExample, setSelectedExample] = useState<{
@@ -146,6 +148,11 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 		setDialogOpen(true);
 	}, []);
 
+	const handleOpenChange = useCallback((open: boolean) => {
+		setWelcomeVisible(false);
+		setSheetOpen(open);
+	}, []);
+
 	const handleSubmit = useCallback(async () => {
 		if (!selectedExample || !formatWorker) return;
 		const jsonData = new Data(selectedExample.json, FileType.JSON);
@@ -156,6 +163,10 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 		setDialogOpen(false);
 		onClickExample(formattedJson, formattedQuery);
 	}, [dataTabSize, queryTabSize, onClickExample, selectedExample, formatWorker]);
+
+	useEffect(() => {
+		localStorage.getItem("settings") || setWelcomeVisible(true);
+	}, []);
 
 	return (
 		<>
@@ -176,11 +187,18 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+			<Sheet open={sheetOpen} onOpenChange={handleOpenChange}>
 				<SheetTrigger className={className} asChild>
-					<ActionButton description="Show query examples" className="p-3">
-						<Book className="w-4 h-4" />
-					</ActionButton>
+					<div className="relative">
+						<ActionButton description="Show query examples" className="p-3">
+							<Book className="w-4 h-4" />
+						</ActionButton>
+						<WelcomePopup
+							visible={welcomeVisible}
+							onClose={() => setWelcomeVisible(false)}
+							className="absolute z-10 top-full translate-y-4"
+						/>
+					</div>
 				</SheetTrigger>
 				<SheetContent side="left" className="sm:max-w-lg overflow-y-auto">
 					<SheetHeader>

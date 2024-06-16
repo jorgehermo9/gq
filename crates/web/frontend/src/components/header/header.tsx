@@ -13,7 +13,7 @@ interface Props {
 
 const Header = ({ className, onClickExample }: Props) => {
 	return (
-		<header className={cn(className, "flex items-center justify-between overflow-hidden")}>
+		<header className={cn(className, "flex items-center justify-between")}>
 			<div className="flex-grow basis-0 flex gap-4">
 				<ExamplesSheet onClickExample={onClickExample} />
 				<StarCount className="px-3" />
