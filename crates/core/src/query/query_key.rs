@@ -44,7 +44,7 @@ pub struct AtomicQueryKey {
 
 impl Display for AtomicQueryKey {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let key = self.key().to_string();
+        let key = self.key();
         if self.arguments().0.is_empty() {
             return key.fmt(f);
         }
