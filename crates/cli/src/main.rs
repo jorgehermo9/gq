@@ -15,7 +15,6 @@ fn main() -> Result<()> {
     let input_query = String::try_from(args.input_query)?;
 
     let query = input_query.parse::<Query>()?;
-
     let value = Value::try_from(&input_data)?;
     let result = query.apply(value)?;
 

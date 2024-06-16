@@ -57,9 +57,13 @@ pub enum Token {
     // TODO: the unwrap is ok here? the regex should be valid for the f64 parsing
     #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
     Number(f64),
-    #[regex(r#"(?:"(?:[^"]|\\")*")|(?:'(?:[^']|\\')*')"#, |lex| {
+    // This string follows [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259)
+    // Single quoted strings are not allowed
+    #[regex(r#""(?:[^"]|\\")*""#, |lex| {
         // TODO: handle the unquote error with custom lexer errors
-        enquote::unquote(lex.slice()).expect("Error while unquoting")
+        // TODO: improve slicing?
+        let target_slice = &lex.slice()[1..lex.slice().len() - 1];
+        escape8259::unescape(target_slice).expect("Error while unquoting")
     }
     )]
     String(String),
@@ -170,17 +174,15 @@ mod test {
 
     #[rstest]
     #[case::simple(r#""JavaScript""#, "JavaScript")]
-    #[case::simple_with_single_quotes(r#"'JavaScript'"#, "JavaScript")]
     #[case::with_space(r#""Java Script""#, "Java Script")]
     #[case::with_double_commas(r#""Java\"Script""#, "Java\"Script")]
-    #[case::with_single_commas(r#"'Java\'Script'"#, "Java\'Script")]
-    #[case::single_quoted_with_double_commas(r#"'Java\"Script'"#, "Java\"Script")]
-    #[case::double_quoted_with_single_commas(r#""Java\'Script""#, "Java\'Script")]
+    #[case::with_single_commas(r#""Java'Script""#, "Java'Script")]
+    #[case::double_quoted_with_single_commas(r#""Java'Script""#, "Java'Script")]
     #[case::newline(r#""Java\nScript""#, "Java\nScript")]
     #[case::tab(r#""Java\tScript""#, "Java\tScript")]
     #[case::backslash(r#""Java\\Script""#, "Java\\Script")]
     #[case::backslash_and_quote(r#""Java\\\"Script""#, "Java\\\"Script")]
-    #[case::mixed(r#""Jav\r\n\ta\\\"Scri\"pt\n""#, "Jav\r\n\ta\\\"Scri\"pt\n")]
+    #[case::mixed(r#""/Jav\r\n\ta\\\"Scri\"pt\n""#, "/Jav\r\n\ta\\\"Scri\"pt\n")]
     fn string_token_parses(#[case] input: &str, #[case] expected: &str) {
         let expected = Token::String(expected.to_string());
         let mut lexer = Token::lexer(input);
@@ -196,6 +198,17 @@ mod test {
     #[should_panic]
     fn string_token_parse_unquote_fails_when_malformed_escape() {
         let input = r#""Java\\"Script""#;
+        let mut lexer = Token::lexer(input);
+
+        let token_result = lexer.next().expect("No token found");
+        token_result.expect("Error while parsing token");
+    }
+
+    // Single quoted strings are not allowed
+    #[test]
+    #[should_panic]
+    fn string_token_parse_fails_when_single_quoted() {
+        let input = r#"'Java Script'"#;
         let mut lexer = Token::lexer(input);
 
         let token_result = lexer.next().expect("No token found");

@@ -1,27 +1,43 @@
 use std::{
     borrow::Cow,
-    fmt::{self, Display, Formatter},
+    fmt::{self, Display, Formatter, Write},
     ops::Add,
+    str::FromStr,
 };
 
 use derive_getters::Getters;
 use derive_more::Constructor;
-use enquote::enquote;
+use once_cell::sync::Lazy;
+use regex::Regex;
 use serde_json::Value;
 
 use super::{apply::InternalError, context::Context, query_arguments::QueryArguments};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum RawKey {
     Identifier(String),
-    Escaped(String),
+    String(String),
+}
+
+// IMPORTANT: This regex must exactly match the identifier regex in the lexer. Also,
+// we have to add the '^' and '$' to make sure the whole string is matched.
+static IDENTIFIER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[a-zA-Z_][\w-]*$").unwrap());
+
+impl From<&str> for RawKey {
+    fn from(value: &str) -> Self {
+        if IDENTIFIER_REGEX.is_match(value) {
+            RawKey::Identifier(value.to_string())
+        } else {
+            RawKey::String(value.to_string())
+        }
+    }
 }
 
 impl RawKey {
     pub fn as_str(&self) -> &str {
         match self {
             RawKey::Identifier(identifier) => identifier,
-            RawKey::Escaped(escaped) => escaped,
+            RawKey::String(escaped) => escaped,
         }
     }
 }
@@ -30,7 +46,10 @@ impl Display for RawKey {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
             RawKey::Identifier(identifier) => identifier.fmt(f),
-            RawKey::Escaped(escaped) => enquote('\"', escaped).fmt(f),
+            RawKey::String(unescaped_string) => {
+                let escaped_string = escape8259::escape(unescaped_string);
+                write!(f, "\"{escaped_string}\"")
+            }
         }
     }
 }

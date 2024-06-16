@@ -226,7 +226,7 @@ impl<'src> Parser<'src> {
             }
             (Token::String(key), _) => {
                 let arguments = self.parse_query_arguments()?;
-                let raw_key = RawKey::Escaped(key);
+                let raw_key = RawKey::String(key);
                 Ok(AtomicQueryKey::new(raw_key, arguments))
             }
             (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
