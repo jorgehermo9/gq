@@ -16,7 +16,7 @@ const OnboardingPopup = ({ className, visible, onClose }: Props) => {
 			data-visible={visible}
 			className={cn(className, styles.popupContainer)}
 		>
-			<div className="absolute z-10 bottom-full h-4 w-[1px] bg-accent left-5" />
+			<div className="absolute bottom-full h-[1.1rem] w-[1px] bg-accent left-5" />
 			<div className="flex items-center gap-2 mb-2">
 				<Stars className="h-4 w-4" />
 				<h3 className="font-semibold text-md">New to GQ?</h3>

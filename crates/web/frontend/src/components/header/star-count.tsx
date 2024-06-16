@@ -36,14 +36,7 @@ const StarCount = ({ className }: Props) => {
 		>
 			<Github className="w-4 h-4 mr-2" />
 			<span className="text-sm font-medium mr-1">{stars}</span>
-			<Star
-				// data-visible={!clicked}
-				className="w-3 h-3 text-accent data-[visible=false]:opacity-0 data-[visible=true]:opacity-1 transition-opacity"
-			/>
-			{/* <Heart
-				data-visible={clicked}
-				className="w-3 h-3 text-accent data-[visible=false]:opacity-0 data-[visible=true]:opacity-1 transition-opacity"
-			/> */}
+			<Star className="w-3 h-3 text-accent data-[visible=false]:opacity-0 data-[visible=true]:opacity-1 transition-opacity" />
 		</a>
 	);
 };
