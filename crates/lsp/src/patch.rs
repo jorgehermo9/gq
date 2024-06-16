@@ -1,6 +1,9 @@
 use gq_core::{
     parser,
-    query::{AtomicQueryKey, ChildQuery, Query, QueryBuilder, QueryKey},
+    query::{
+        query_key::{AtomicQueryKey, QueryKey, RawKey},
+        ChildQuery, Query, QueryBuilder,
+    },
 };
 use uuid::{self, Uuid};
 
@@ -51,6 +54,7 @@ impl PatchedQuery {
             .keys()
             .iter()
             .map(AtomicQueryKey::key)
+            .map(RawKey::as_str)
             .position(|key| key.contains(&patch_id));
 
         if let Some(position) = patch_identifier_position {
@@ -78,7 +82,9 @@ impl PatchedQuery {
             .key()
             .keys()
             .iter()
-            .position(|key| key.key().contains(patch_id));
+            .map(AtomicQueryKey::key)
+            .map(RawKey::as_str)
+            .position(|key| key.contains(patch_id));
 
         if let Some(position) = patch_identifier_position {
             let target_keys = query.key.keys.into_iter().take(position);

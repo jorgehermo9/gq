@@ -2,7 +2,8 @@ use crate::lexer::{self, Token};
 use crate::query::query_arguments::{
     QueryArgument, QueryArgumentOperation, QueryArgumentValue, QueryArguments,
 };
-use crate::query::{AtomicQueryKey, ChildQuery, ChildQueryBuilder, Query, QueryBuilder, QueryKey};
+use crate::query::query_key::{AtomicQueryKey, QueryKey, RawKey};
+use crate::query::{ChildQuery, ChildQueryBuilder, Query, QueryBuilder};
 use logos::{Logos, Span, SpannedIter};
 use regex::Regex;
 use std::iter::Peekable;
@@ -220,12 +221,13 @@ impl<'src> Parser<'src> {
         match self.next_token()? {
             (Token::Identifier(key), _) => {
                 let arguments = self.parse_query_arguments()?;
-                Ok(AtomicQueryKey::new(key, arguments))
+                let raw_key = RawKey::Identifier(key);
+                Ok(AtomicQueryKey::new(raw_key, arguments))
             }
-            // TODO: change the name to this tokens? this is the right way to do this?
             (Token::String(key), _) => {
                 let arguments = self.parse_query_arguments()?;
-                Ok(AtomicQueryKey::new(key, arguments))
+                let raw_key = RawKey::Escaped(key);
+                Ok(AtomicQueryKey::new(raw_key, arguments))
             }
             (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }

@@ -5,11 +5,11 @@ use std::{
 
 use derive_getters::Getters;
 
-use super::query_key::QueryKey;
+use super::query_key::{QueryKey, RawKey};
 
 #[derive(Debug, Clone, Copy)]
 pub enum JsonPathEntry<'a> {
-    Key(&'a str),
+    Key(&'a RawKey),
     Index(usize),
 }
 
@@ -113,7 +113,7 @@ impl<'a> Context<'a> {
     }
 
     // TODO: see if &'a is necessary
-    pub fn push_raw_key(&self, raw_key: &'a str) -> Context<'a> {
+    pub fn push_raw_key(&self, raw_key: &'a RawKey) -> Context<'a> {
         let entry = JsonPathEntry::Key(raw_key);
         self.push_entry(entry)
     }

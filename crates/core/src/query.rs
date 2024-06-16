@@ -2,17 +2,17 @@ use std::collections::HashSet;
 
 use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
+use query_key::QueryKey;
 use thiserror::Error;
 
 pub mod apply;
 mod context;
 pub mod format;
 pub mod query_arguments;
-mod query_key;
+pub mod query_key;
 
 pub use self::context::OwnedJsonPath;
 use self::query_arguments::QueryArguments;
-pub use self::query_key::{AtomicQueryKey, QueryKey};
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -63,7 +63,7 @@ impl QueryBuilder {
             let child_query_key = child.output_key();
             if !output_keys.insert(child_query_key) {
                 return Err(RootQueryValidationError::DuplicatedOutputKeyInRoot(
-                    child_query_key.clone(),
+                    child_query_key.to_string(),
                 ));
             }
         }
@@ -116,7 +116,7 @@ impl ChildQueryBuilder {
                 let child_key = self.key.as_ref().expect("child key must be defined");
                 return Err(ChildQueryValidationError::DuplicatedOutputKey(
                     child_key.to_string(),
-                    child_output_key.clone(),
+                    child_output_key.to_string(),
                 ));
             }
         }
@@ -125,9 +125,10 @@ impl ChildQueryBuilder {
 }
 
 impl ChildQuery {
-    pub fn output_key(&self) -> &String {
+    pub fn output_key(&self) -> &str {
         self.alias()
             .as_ref()
-            .unwrap_or_else(|| self.key().last_key().key())
+            .map(String::as_str)
+            .unwrap_or_else(|| self.key().last_key().key().as_str())
     }
 }

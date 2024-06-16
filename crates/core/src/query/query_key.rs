@@ -6,14 +6,39 @@ use std::{
 
 use derive_getters::Getters;
 use derive_more::Constructor;
+use enquote::enquote;
 use serde_json::Value;
 
 use super::{apply::InternalError, context::Context, query_arguments::QueryArguments};
 
+#[derive(Debug, Clone)]
+pub enum RawKey {
+    Identifier(String),
+    Escaped(String),
+}
+
+impl RawKey {
+    pub fn as_str(&self) -> &str {
+        match self {
+            RawKey::Identifier(identifier) => identifier,
+            RawKey::Escaped(escaped) => escaped,
+        }
+    }
+}
+
+impl Display for RawKey {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            RawKey::Identifier(identifier) => identifier.fmt(f),
+            RawKey::Escaped(escaped) => enquote('\"', escaped).fmt(f),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Constructor, Getters)]
 pub struct AtomicQueryKey {
     // TODO: rename those attributes?
-    key: String,
+    key: RawKey,
     arguments: QueryArguments,
 }
 
