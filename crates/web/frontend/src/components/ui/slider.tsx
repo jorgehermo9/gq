@@ -10,18 +10,10 @@ const Slider = React.forwardRef<
 	React.ElementRef<typeof SliderPrimitive.Root>,
 	React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
 >(({ className, step, value, max, disabled, ...props }, ref) => (
-	<div
-		className={cn(
-			"flex flex-col gap-2",
-			disabled && "opacity-50 pointer-events-none",
-		)}
-	>
+	<div className={cn("flex flex-col gap-2", disabled && "opacity-50 pointer-events-none")}>
 		<SliderPrimitive.Root
 			ref={ref}
-			className={cn(
-				"relative flex w-full touch-none select-none items-center mt-4",
-				className,
-			)}
+			className={cn("relative flex w-full touch-none select-none items-center mt-4", className)}
 			value={value}
 			step={step}
 			max={max}

@@ -13,19 +13,16 @@ export function formatBytes(bytes: number, decimals = 2) {
 	if (!+bytes) return "0 Bytes";
 	const k = 1024;
 	const dm = decimals < 0 ? 0 : decimals;
-	const sizes = [
-		"Bytes",
-		"KiB",
-		"MiB",
-		"GiB",
-		"TiB",
-		"PiB",
-		"EiB",
-		"ZiB",
-		"YiB",
-	];
+	const sizes = ["Bytes", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
 	const i = Math.floor(Math.log(bytes) / Math.log(k));
 	return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
+}
+
+export function formatNumber(number: number, decimals = 1) {
+	const dm = decimals < 0 ? 0 : decimals;
+	const sizes = ["", "K", "M", "B", "T", "Q"];
+	const i = Math.floor(Math.log(number) / Math.log(1000));
+	return `${Number.parseFloat((number / 1000 ** i).toFixed(dm))}${sizes[i]}`;
 }
 
 export const statusTextMap = new Map([
@@ -71,3 +68,5 @@ export const statusTextMap = new Map([
 	[504, "Gateway Timeout"],
 	[505, "HTTP Version Not Supported"],
 ]);
+
+export const i = () => { };

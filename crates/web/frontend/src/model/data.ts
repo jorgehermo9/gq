@@ -1,27 +1,29 @@
 import { JsData } from "gq-web";
 import FileType, { fileTypeToModel } from "./file-type";
 
-export type Data = {
+export class Data {
 	content: string;
 	type: FileType;
-};
+
+	constructor(content: string, type: FileType) {
+		this.content = content;
+		this.type = type;
+	}
+}
 
 export const emptyContent = (fileType: FileType): string => {
 	switch (fileType) {
 		case FileType.JSON:
-			return "{}"
+			return "{}";
 		case FileType.GQ:
-			return ""
+			return "";
 		case FileType.YAML:
-			return "{}"
+			return "";
 	}
 };
 
 export const dataToModel = (dto: JsData): Data => {
-	return {
-		content: dto.payload,
-		type: fileTypeToModel(dto.data_type),
-	};
+	return new Data(dto.payload, fileTypeToModel(dto.data_type));
 };
 
 export const dataToDTO = (data: Data): JsData => {

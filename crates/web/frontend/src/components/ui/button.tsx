@@ -5,7 +5,7 @@ import * as React from "react";
 import styles from "./button.module.css";
 
 const buttonVariants = cva(
-	"relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+	"relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
 	{
 		variants: {
 			variant: {
@@ -13,8 +13,7 @@ const buttonVariants = cva(
 				error: "bg-error text-foreground hover:bg-error/90",
 				success: "bg-success text-background hover:bg-success/90",
 				outline: "border border-accent-background bg-background",
-				secondary:
-					"bg-secondary text-secondary-foreground hover:bg-secondary/80",
+				secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				ghost: "",
 				link: "text-primary underline-offset-4 hover:underline",
 			},

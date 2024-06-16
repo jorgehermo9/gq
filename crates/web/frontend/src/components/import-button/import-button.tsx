@@ -1,11 +1,11 @@
 import ActionButton from "@/components/action-button/action-button";
 import { formatBytes } from "@/lib/utils";
-import type { Data } from "@/model/data";
+import { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
-import { type LoadingState, initLoadingState } from "@/model/loading-state";
+import { type LoadingState, notLoading } from "@/model/loading-state";
 import { File, FileUp, Trash } from "lucide-react";
-import { memo, useState } from "react";
+import { useState } from "react";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -49,11 +49,12 @@ const ImportButton = ({
 		setFile(undefined);
 		try {
 			const fileContent = await importFile(file);
-			onImportFile({ content: fileContent, type: importableType });
+			onImportFile(new Data(fileContent, importableType));
 		} catch (err) {
 			onError(err);
+		} finally {
+			onChangeLoading(notLoading());
 		}
-		onChangeLoading(initLoadingState);
 	};
 
 	const handleImportUrl = async () => {
@@ -66,11 +67,12 @@ const ImportButton = ({
 		setUrl("");
 		try {
 			const fileContent = await importUrl(url);
-			onImportFile({ content: fileContent, type: importableType });
+			onImportFile(new Data(fileContent, importableType));
 		} catch (err) {
 			onError(err);
+		} finally {
+			onChangeLoading(notLoading());
 		}
-		onChangeLoading(initLoadingState);
 	};
 
 	const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
@@ -87,11 +89,7 @@ const ImportButton = ({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<ActionButton
-					description="Import file"
-					className="px-4 py-2"
-					hidden={hidden}
-				>
+				<ActionButton description="Import file" className="px-4 py-2" hidden={hidden}>
 					<FileUp className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
@@ -105,10 +103,7 @@ const ImportButton = ({
 				<form onSubmit={handleSubmit} autoComplete="off">
 					<div>
 						<div>
-							<Label
-								htmlFor="url-import"
-								variant={file !== undefined ? "disabled" : "default"}
-							>
+							<Label htmlFor="url-import" variant={file !== undefined ? "disabled" : "default"}>
 								From URL
 							</Label>
 							<Input
@@ -148,9 +143,7 @@ const ImportButton = ({
 									{file ? (
 										<div className="flex flex-col items-center justify-center gap-2 w-full h-full relative">
 											<File className="w-6 h-6" />
-											<span className="text-center leading-5 font-semibold">
-												{file.name}
-											</span>
+											<span className="text-center leading-5 font-semibold">{file.name}</span>
 											<span className="text-xs">{formatBytes(file.size)}</span>
 										</div>
 									) : (
@@ -200,4 +193,4 @@ const ImportButton = ({
 	);
 };
 
-export default memo(ImportButton);
+export default ImportButton;

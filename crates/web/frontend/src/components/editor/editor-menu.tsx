@@ -2,15 +2,6 @@
 
 import ActionButton from "@/components/action-button/action-button";
 import ExportButton from "@/components/export-button/export-button";
-import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuShortcut,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import type { LoadingState } from "@/model/loading-state";
@@ -42,7 +33,7 @@ const EditorMenu = ({
 }: Props) => {
 	return (
 		<>
-			<div className="hidden sm:flex pr-2 ml-auto items-center gap-4">
+			<div className="hidden sm:flex ml-auto items-center gap-4">
 				<ActionButton
 					className="px-4 py-2"
 					description="Copy to clipboard"

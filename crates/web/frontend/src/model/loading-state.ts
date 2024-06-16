@@ -3,7 +3,14 @@ export type LoadingState = {
 	message: string;
 };
 
-export const initLoadingState: LoadingState = {
+const initialLoadingState: LoadingState = {
 	isLoading: false,
 	message: "",
 };
+
+export const notLoading = (): LoadingState => initialLoadingState;
+
+export const loading = (message: string): LoadingState => ({
+	isLoading: true,
+	message,
+});

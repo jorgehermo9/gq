@@ -1,17 +1,9 @@
 import type { Completion } from "@/model/completion";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
-import type {
-	CompletionContext,
-	CompletionSource,
-} from "@codemirror/autocomplete";
+import type { CompletionContext, CompletionSource } from "@codemirror/autocomplete";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
-
-export interface LoadingState {
-	isLoading: boolean;
-	message: string;
-}
 
 export const applyGq = async (
 	inputData: Data,
@@ -31,7 +23,7 @@ export const applyGq = async (
 	return result;
 };
 
-const triggerBlacklist = new Set(["{", ":"]);
+const triggerBlacklist = new Set<string>(["{", ":", " "]);
 
 export const getQueryCompletionSource = (
 	lspWorker?: PromiseWorker,
@@ -39,8 +31,8 @@ export const getQueryCompletionSource = (
 ): CompletionSource => {
 	return async (context: CompletionContext) => {
 		if (!lspWorker) return null;
-		const trigger = context.matchBefore(/./);
-		if (!trigger || triggerBlacklist.has(trigger.text)) return null;
+		const trigger = context.matchBefore(/./) || { text: "", from: 0, to: 0 };
+		if (!context.explicit && triggerBlacklist.has(trigger.text)) return null;
 		// TODO: This regex should follow the same rules as the json/yaml keys
 		const word = context.matchBefore(/\w*/);
 		const completionItems: Completion[] = await lspWorker.postMessage({
@@ -54,7 +46,7 @@ export const getQueryCompletionSource = (
 			options: completionItems.map((item) => ({
 				type: "text",
 				label: item.label,
-				detail: item.detail
+				detail: item.detail,
 			})),
 		};
 	};
