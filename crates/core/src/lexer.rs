@@ -100,7 +100,7 @@ impl Display for Token {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use rstest::rstest;
 
