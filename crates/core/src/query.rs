@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
-use query_key::QueryKey;
+use query_key::{QueryKey, RawKey};
 use thiserror::Error;
 
 pub mod apply;
@@ -24,8 +24,8 @@ pub enum Error {
 
 #[derive(Debug, Error)]
 pub enum RootQueryValidationError {
-    #[error("root query has children with duplicated output keys: '{0}'")]
-    DuplicatedOutputKeyInRoot(String),
+    #[error("root query has children with duplicated output keys: {0}")]
+    DuplicatedOutputKeyInRoot(RawKey),
 }
 
 #[derive(Debug, Error)]
@@ -63,7 +63,7 @@ impl QueryBuilder {
             let child_query_key = child.output_key();
             if !output_keys.insert(child_query_key) {
                 return Err(RootQueryValidationError::DuplicatedOutputKeyInRoot(
-                    child_query_key.to_string(),
+                    child_query_key.clone(),
                 ));
             }
         }
@@ -92,9 +92,8 @@ pub enum ChildQueryBuilderError {
     build_fn(validate = "Self::validate", error = "ChildQueryBuilderError")
 )]
 pub struct ChildQuery {
-    // TODO: query alias should be a String?
     #[builder(default)]
-    alias: Option<String>,
+    alias: Option<RawKey>,
     // TODO: those fields should not be pub, they must be validated
     pub key: QueryKey,
     #[builder(default)]
@@ -125,10 +124,9 @@ impl ChildQueryBuilder {
 }
 
 impl ChildQuery {
-    pub fn output_key(&self) -> &str {
+    pub fn output_key(&self) -> &RawKey {
         self.alias()
             .as_ref()
-            .map(String::as_str)
-            .unwrap_or_else(|| self.key().last_key().key().as_str())
+            .unwrap_or_else(|| self.key().last_key().key())
     }
 }

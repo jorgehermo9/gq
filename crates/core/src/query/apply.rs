@@ -134,7 +134,10 @@ trait QueryApply {
                         continue;
                     }
                 };
-            filtered_object.insert(child.output_key().to_string(), child_filtered_value);
+            filtered_object.insert(
+                child.output_key().as_str().to_string(),
+                child_filtered_value,
+            );
         }
         Ok(Value::Object(filtered_object))
     }

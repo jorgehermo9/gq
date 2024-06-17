@@ -216,39 +216,35 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `ATOMIC_QUERY_KEY -> key QUERY_ARGUMENTS | string QUERY_ARGUMENTS`
+    /// `ATOMIC_QUERY_KEY -> RAW_KEY QUERY_ARGUMENTS`
     fn parse_atomic_query_key(&mut self) -> Result<AtomicQueryKey> {
+        let raw_key = self.parse_raw_key()?;
+        let arguments = self.parse_query_arguments()?;
+        Ok(AtomicQueryKey::new(raw_key, arguments))
+    }
+
+    /// # Grammar
+    /// `RAW_KEY -> key | string`
+    fn parse_raw_key(&mut self) -> Result<RawKey> {
         match self.next_token()? {
-            (Token::Identifier(key), _) => {
-                let arguments = self.parse_query_arguments()?;
-                let raw_key = RawKey::Identifier(key);
-                Ok(AtomicQueryKey::new(raw_key, arguments))
-            }
-            (Token::String(key), _) => {
-                let arguments = self.parse_query_arguments()?;
-                let raw_key = RawKey::String(key);
-                Ok(AtomicQueryKey::new(raw_key, arguments))
-            }
+            (Token::Identifier(key), _) => Ok(RawKey::Identifier(key)),
+            (Token::String(key), _) => Ok(RawKey::String(key)),
             (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }
     }
 
     /// # Grammar
-    /// `QUERY_ALIAS -> : key | : string | ε`
-    fn parse_query_alias(&mut self) -> Result<Option<String>> {
+    /// `QUERY_ALIAS -> : RAW_KEY | ε`
+    fn parse_query_alias(&mut self) -> Result<Option<RawKey>> {
         match self.peek()? {
             (Token::Colon, _) => {
                 self.consume()?;
-                match self.next_token()? {
-                    (Token::Identifier(key), _) => Ok(Some(key)),
-                    // TODO: change the name to this tokens? this is the right way to do this?
-                    (Token::String(key), _) => Ok(Some(key)),
-                    (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
-                }
+                self.parse_raw_key().map(Some)
             }
             _ => Ok(None),
         }
     }
+
     /// # Grammar
     /// `QUERY_ARGUMENTS -> ( QUERY_ARGUMENTS_CONTENT ) | ε`
     fn parse_query_arguments(&mut self) -> Result<QueryArguments> {
