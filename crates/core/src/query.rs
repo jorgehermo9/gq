@@ -24,7 +24,8 @@ pub enum Error {
 
 #[derive(Debug, Error)]
 pub enum RootQueryValidationError {
-    #[error("root query has children with duplicated output keys: {0}")]
+    // TODO: maybe we shouldnt wrap RawKey between ' '?
+    #[error("root query has children with duplicated output keys: '{0}'")]
     DuplicatedOutputKeyInRoot(RawKey),
 }
 
@@ -73,9 +74,9 @@ impl QueryBuilder {
 
 #[derive(Debug, Error)]
 pub enum ChildQueryValidationError {
+    // TODO: maybe we shouldnt wrap RawKey between ' '?
     #[error("query '{0}' has children with duplicated output keys: '{1}'")]
-    // TODO: Maybe we should not use String and use the owned version of the QueryKey
-    DuplicatedOutputKey(String, String),
+    DuplicatedOutputKey(String, RawKey),
 }
 
 #[derive(Debug, Error)]
@@ -115,7 +116,7 @@ impl ChildQueryBuilder {
                 let child_key = self.key.as_ref().expect("child key must be defined");
                 return Err(ChildQueryValidationError::DuplicatedOutputKey(
                     child_key.to_string(),
-                    child_output_key.to_string(),
+                    child_output_key.clone(),
                 ));
             }
         }
