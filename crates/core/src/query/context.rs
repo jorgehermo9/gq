@@ -9,7 +9,8 @@ use super::query_key::{QueryKey, RawKey};
 
 #[derive(Debug, Clone, Copy)]
 pub enum JsonPathEntry<'a> {
-    Key(&'a RawKey),
+    // TODO: should we use &str or RawKey?
+    Key(&'a str),
     Index(usize),
 }
 
@@ -47,6 +48,7 @@ impl<'a> JsonPath<'a> {
     }
 }
 
+// TODO: check if this works ok for keys with \n and etc
 impl Display for JsonPath<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
@@ -81,6 +83,7 @@ impl From<&JsonPath<'_>> for OwnedJsonPath {
     }
 }
 
+// TODO: check if this works ok for keys with \n and etc
 impl Display for OwnedJsonPath {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         if self.0.is_empty() {
@@ -114,7 +117,7 @@ impl<'a> Context<'a> {
 
     // TODO: see if &'a is necessary
     pub fn push_raw_key(&self, raw_key: &'a RawKey) -> Context<'a> {
-        let entry = JsonPathEntry::Key(raw_key);
+        let entry = JsonPathEntry::Key(raw_key.as_str());
         self.push_entry(entry)
     }
 
@@ -128,7 +131,7 @@ impl<'a> Context<'a> {
         let mut path = self.path.clone();
         // TODO: cleanup here
         for atomic_query_key in query_key.keys() {
-            path = path.push(JsonPathEntry::Key(atomic_query_key.key()));
+            path = path.push(JsonPathEntry::Key(atomic_query_key.key().as_str()));
         }
         Self {
             path,
