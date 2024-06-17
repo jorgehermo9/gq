@@ -34,6 +34,9 @@ impl From<&str> for RawKey {
 }
 
 impl RawKey {
+    // TODO: `as_str` is not consistent with the `to_string` method of this struct.
+    // is this ok? `as_str` would return the inner string while `to_string` will return
+    // the escaped and quoted string.
     pub fn as_str(&self) -> &str {
         match self {
             RawKey::Identifier(identifier) => identifier,
