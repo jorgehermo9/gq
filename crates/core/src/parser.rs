@@ -191,7 +191,6 @@ impl<'src> Parser<'src> {
 
     /// # Grammar
     /// `ROOT_QUERY_KEY -> QUERY_KEY | ε`
-    ///
     fn parse_root_query_key(&mut self) -> Result<QueryKey> {
         match self.peek()? {
             // We have to know what comes next due to the epsilon rule
