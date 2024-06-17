@@ -5,32 +5,68 @@ use std::{
 };
 
 use derive_getters::Getters;
-use derive_more::{Constructor, Display};
+use derive_more::Constructor;
+use once_cell::sync::Lazy;
+use regex::Regex;
 use serde_json::Value;
 
 use super::{apply::InternalError, context::Context, query_arguments::QueryArguments};
 
-pub type OwnedRawKey = RawKey<'static>;
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum RawKey {
+    Identifier(String),
+    // TODO: think of a better variant name
+    String(String),
+}
 
-#[derive(Debug, Clone, Constructor, Eq, PartialEq, Hash, Display)]
-pub struct RawKey<'a>(pub Cow<'a, str>);
+// IMPORTANT: This regex must exactly match the identifier regex in the lexer. Also,
+// we have to add the '^' and '$' to make sure the whole string is matched.
+static IDENTIFIER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[a-zA-Z_][\w-]*$").unwrap());
 
-impl RawKey<'_> {
-    pub fn into_owned(self) -> OwnedRawKey {
-        RawKey(Cow::Owned(self.0.into_owned()))
+impl From<&str> for RawKey {
+    fn from(value: &str) -> Self {
+        if IDENTIFIER_REGEX.is_match(value) {
+            RawKey::Identifier(value.to_string())
+        } else {
+            RawKey::String(value.to_string())
+        }
+    }
+}
+
+impl RawKey {
+    // TODO: `as_str` is not consistent with the `to_string` method of this struct.
+    // is this ok? `as_str` would return the inner string while `to_string` will return
+    // the escaped and quoted string.
+    pub fn as_str(&self) -> &str {
+        match self {
+            RawKey::Identifier(identifier) => identifier,
+            RawKey::String(escaped) => escaped,
+        }
+    }
+}
+
+impl Display for RawKey {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            RawKey::Identifier(identifier) => identifier.fmt(f),
+            RawKey::String(unescaped_string) => {
+                let escaped_string = escape8259::escape(unescaped_string);
+                write!(f, "\"{escaped_string}\"")
+            }
+        }
     }
 }
 
 #[derive(Debug, Clone, Constructor, Getters)]
-pub struct AtomicQueryKey<'a> {
+pub struct AtomicQueryKey {
     // TODO: rename those attributes?
-    key: RawKey<'a>,
-    arguments: QueryArguments<'a>,
+    key: RawKey,
+    arguments: QueryArguments,
 }
 
-impl Display for AtomicQueryKey<'_> {
+impl Display for AtomicQueryKey {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let key = self.key().to_string();
+        let key = self.key();
         if self.arguments().0.is_empty() {
             return key.fmt(f);
         }
@@ -41,11 +77,11 @@ impl Display for AtomicQueryKey<'_> {
 }
 
 #[derive(Debug, Clone, Constructor, Getters, Default)]
-pub struct QueryKey<'a> {
-    pub keys: Vec<AtomicQueryKey<'a>>,
+pub struct QueryKey {
+    pub keys: Vec<AtomicQueryKey>,
 }
 
-impl Display for QueryKey<'_> {
+impl Display for QueryKey {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let keys = self
             .keys()
@@ -57,16 +93,16 @@ impl Display for QueryKey<'_> {
     }
 }
 
-impl<'a> Add<QueryKey<'a>> for QueryKey<'a> {
-    type Output = QueryKey<'a>;
+impl Add<QueryKey> for QueryKey {
+    type Output = QueryKey;
 
-    fn add(mut self, mut rhs: QueryKey<'a>) -> Self::Output {
+    fn add(mut self, mut rhs: QueryKey) -> Self::Output {
         self.keys.append(&mut rhs.keys);
         self
     }
 }
-impl<'a> QueryKey<'a> {
-    pub fn last_key(&self) -> &AtomicQueryKey<'a> {
+impl<'a> QueryKey {
+    pub fn last_key(&self) -> &AtomicQueryKey {
         self.keys().last().expect("query key cannot be empty")
     }
 
@@ -97,7 +133,7 @@ impl<'a> QueryKey<'a> {
     pub fn inspect_owned_with_arguments(
         &'a self,
         value: Value,
-        arguments: &QueryArguments<'a>,
+        arguments: &QueryArguments,
         context: &Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
         Self::do_inspect(Cow::Owned(value), self.keys(), arguments, context).map(Cow::into_owned)
@@ -110,8 +146,8 @@ impl<'a> QueryKey<'a> {
     // a reference to the inspected value, not an owned Value (argument filtering).
     pub fn do_inspect<'b>(
         value: Cow<'b, Value>,
-        keys: &'a [AtomicQueryKey<'a>],
-        parent_arguments: &QueryArguments<'a>,
+        keys: &'a [AtomicQueryKey],
+        parent_arguments: &QueryArguments,
         context: &Context<'a>,
     ) -> Result<Cow<'b, Value>, InternalError<'a>> {
         let result = match value {
@@ -128,8 +164,8 @@ impl<'a> QueryKey<'a> {
 
     pub fn do_inspect_object<'b>(
         value: Cow<'b, Value>,
-        keys: &'a [AtomicQueryKey<'a>],
-        parent_arguments: &QueryArguments<'a>,
+        keys: &'a [AtomicQueryKey],
+        parent_arguments: &QueryArguments,
         context: &Context<'a>,
     ) -> Result<Cow<'b, Value>, InternalError<'a>> {
         if !parent_arguments.0.is_empty() {
@@ -148,12 +184,12 @@ impl<'a> QueryKey<'a> {
 
         let current = match value {
             Cow::Owned(Value::Object(mut object)) => object
-                .get_mut(raw_key.0.as_ref())
+                .get_mut(raw_key.as_str())
                 .map(Value::take)
                 .map(Cow::Owned),
             Cow::Borrowed(Value::Object(object)) => object
                 // TODO: implement Borrow so we can do .get(raw_key)
-                .get(raw_key.0.as_ref())
+                .get(raw_key.as_str())
                 .map(Cow::Borrowed),
             _ => unreachable!("In this match branch there are only Value::Object variants"),
         }
@@ -163,8 +199,8 @@ impl<'a> QueryKey<'a> {
     }
     pub fn do_inspect_array<'b>(
         value: Cow<'b, Value>,
-        keys: &'a [AtomicQueryKey<'a>],
-        parent_arguments: &QueryArguments<'a>,
+        keys: &'a [AtomicQueryKey],
+        parent_arguments: &QueryArguments,
         context: &Context<'a>,
     ) -> Cow<'b, Value> {
         let array_context = context.enter_array();
@@ -210,8 +246,8 @@ impl<'a> QueryKey<'a> {
 
     pub fn do_inspect_primitive<'b>(
         value: Cow<'b, Value>,
-        keys: &'a [AtomicQueryKey<'a>],
-        parent_arguments: &QueryArguments<'a>,
+        keys: &'a [AtomicQueryKey],
+        parent_arguments: &QueryArguments,
         context: &Context<'a>,
     ) -> Result<Cow<'b, Value>, InternalError<'a>> {
         if !parent_arguments.0.is_empty() {

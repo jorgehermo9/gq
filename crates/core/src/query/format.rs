@@ -17,7 +17,7 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-impl Query<'_> {
+impl Query {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
     pub fn pretty_format(&self, indentation: Indentation) -> String {
@@ -58,7 +58,7 @@ impl Query<'_> {
     }
 }
 
-impl ChildQuery<'_> {
+impl ChildQuery {
     fn do_pretty_format(&self, result: &mut String, indentation: Indentation, level: usize) {
         let indent_string = indentation.at_level(level);
         let sep = indentation.level_separator();
@@ -82,7 +82,7 @@ impl ChildQuery<'_> {
     }
 }
 
-impl Display for Query<'_> {
+impl Display for Query {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let formatted = self.pretty_format(Default::default());
         formatted.fmt(f)

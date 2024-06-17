@@ -5,10 +5,11 @@ use std::{
 
 use derive_getters::Getters;
 
-use super::{query_key::QueryKey, RawKey};
+use super::query_key::{QueryKey, RawKey};
 
 #[derive(Debug, Clone, Copy)]
 pub enum JsonPathEntry<'a> {
+    // TODO: should we use &str or RawKey?
     Key(&'a str),
     Index(usize),
 }
@@ -47,6 +48,7 @@ impl<'a> JsonPath<'a> {
     }
 }
 
+// TODO: check if this works ok for keys with \n and etc
 impl Display for JsonPath<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
@@ -81,6 +83,7 @@ impl From<&JsonPath<'_>> for OwnedJsonPath {
     }
 }
 
+// TODO: check if this works ok for keys with \n and etc
 impl Display for OwnedJsonPath {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         if self.0.is_empty() {
@@ -113,8 +116,8 @@ impl<'a> Context<'a> {
     }
 
     // TODO: see if &'a is necessary
-    pub fn push_raw_key(&self, raw_key: &'a RawKey<'a>) -> Context<'a> {
-        let entry = JsonPathEntry::Key(raw_key.0.as_ref());
+    pub fn push_raw_key(&self, raw_key: &'a RawKey) -> Context<'a> {
+        let entry = JsonPathEntry::Key(raw_key.as_str());
         self.push_entry(entry)
     }
 
@@ -124,11 +127,11 @@ impl<'a> Context<'a> {
     }
 
     // TODO: see if &'a is necessary
-    pub fn push_query_key(&self, query_key: &'a QueryKey<'a>) -> Context<'a> {
+    pub fn push_query_key(&self, query_key: &'a QueryKey) -> Context<'a> {
         let mut path = self.path.clone();
         // TODO: cleanup here
         for atomic_query_key in query_key.keys() {
-            path = path.push(JsonPathEntry::Key(atomic_query_key.key().0.as_ref()));
+            path = path.push(JsonPathEntry::Key(atomic_query_key.key().as_str()));
         }
         Self {
             path,

@@ -50,7 +50,7 @@ pub enum InternalError<'a> {
     NonFiltrableValue(JsonPath<'a>),
 }
 
-impl Query<'_> {
+impl Query {
     pub fn apply(&self, root_json: Value) -> Result<Value, Error> {
         let root_context = Context::new();
 
@@ -134,7 +134,10 @@ trait QueryApply {
                         continue;
                     }
                 };
-            filtered_object.insert(child.output_key().to_string(), child_filtered_value);
+            filtered_object.insert(
+                child.output_key().as_str().to_string(),
+                child_filtered_value,
+            );
         }
         Ok(Value::Object(filtered_object))
     }
@@ -166,13 +169,13 @@ trait QueryApply {
     }
 }
 
-impl QueryApply for Query<'_> {
+impl QueryApply for Query {
     fn children(&self) -> &Vec<ChildQuery> {
         self.children()
     }
 }
 
-impl QueryApply for ChildQuery<'_> {
+impl QueryApply for ChildQuery {
     fn children(&self) -> &Vec<ChildQuery> {
         self.children()
     }
