@@ -104,6 +104,18 @@ mod tests {
     use super::*;
     use rstest::rstest;
 
+    /// Gets the next token and asserts that there are no more tokens left
+    fn get_next_token(input: &str) -> Token {
+        let mut lexer = Token::lexer(input);
+        let token = lexer
+            .next()
+            .expect("There should be at least one token")
+            .expect("Error parsing token");
+        assert_eq!(lexer.next(), None);
+
+        token
+    }
+
     #[rstest]
     #[case::l_brace("{", Token::LBrace)]
     #[case::r_brace("}", Token::RBrace)]
@@ -124,11 +136,7 @@ mod tests {
     #[case::false_token("false", Token::Bool(false))]
     #[case::null("null", Token::Null)]
     fn simple_token_parses(#[case] input: &str, #[case] expected: Token) {
-        let mut lexer = Token::lexer(input);
-
-        let token_result = lexer.next().expect("No token found");
-        let token = token_result.expect("Error parsing token");
-
+        let token = get_next_token(input);
         assert_eq!(token, expected);
     }
 
@@ -144,13 +152,18 @@ mod tests {
     #[case::float_with_uppercase_positive_exponent("5.5E+5", 5.5e5)]
     #[case::float_with_uppercase_negative_exponent("5.5E-5", 5.5e-5)]
     fn number_token_parses(#[case] input: &str, #[case] expected: f64) {
+        let token = get_next_token(input);
         let expected = Token::Number(expected);
-        let mut lexer = Token::lexer(input);
-
-        let token_result = lexer.next().expect("No token found");
-        let token = token_result.expect("Error parsing token");
-
         assert_eq!(token, expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn number_token_parse_fails_when_wrong_decimal_separator() {
+        let input = "5,5";
+        // This fails due to the fact that this input is three tokens length
+        // and the get_next_token asserts that there are no tokens left
+        get_next_token(input);
     }
 
     #[rstest]
@@ -163,11 +176,7 @@ mod tests {
     #[case::starting_with_underscore("_key")]
     fn identifier_token_parses(#[case] input: &str) {
         let expected = Token::Identifier(input.to_string());
-        let mut lexer = Token::lexer(input);
-
-        let token_result = lexer.next().expect("No token found");
-        let token = token_result.expect("Error parsing token");
-
+        let token = get_next_token(input);
         assert_eq!(token, expected);
     }
 
@@ -184,23 +193,16 @@ mod tests {
     #[case::mixed(r#""/Jav\r\n\ta\\\"Scri\"pt\n""#, "/Jav\r\n\ta\\\"Scri\"pt\n")]
     fn string_token_parses(#[case] input: &str, #[case] expected: &str) {
         let expected = Token::String(expected.to_string());
-        let mut lexer = Token::lexer(input);
-
-        let token_result = lexer.next().expect("No token found");
-        let token = token_result.expect("Error while parsing token");
-
+        let token = get_next_token(input);
         assert_eq!(token, expected);
     }
 
     // TODO: change the lexer so an `Err` variant is returned instead of panicking
     #[test]
     #[should_panic]
-    fn string_token_parse_unquote_fails_when_malformed_escape() {
+    fn string_token_parse_unescape_fails_when_malformed_escaped_input() {
         let input = r#""Java\\"Script""#;
-        let mut lexer = Token::lexer(input);
-
-        let token_result = lexer.next().expect("No token found");
-        token_result.expect("Error while parsing token");
+        get_next_token(input);
     }
 
     // Single quoted strings are not allowed
@@ -208,9 +210,6 @@ mod tests {
     #[should_panic]
     fn string_token_parse_fails_when_single_quoted() {
         let input = r#"'Java Script'"#;
-        let mut lexer = Token::lexer(input);
-
-        let token_result = lexer.next().expect("No token found");
-        token_result.expect("Error while parsing token");
+        get_next_token(input);
     }
 }
