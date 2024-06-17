@@ -128,7 +128,7 @@ const fieldAliasing: ExampleSection = {
 		{
 			query: "{\n\tid: identifier\n}",
 			title: "Primitive property aliasing",
-			description: "You can modify the output property using the ':' token",
+			description: "You can modify the output property using the `:` token",
 		},
 		{
 			query: "{\n\tmodels.name: modelNames\n}",

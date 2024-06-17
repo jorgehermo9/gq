@@ -1,12 +1,4 @@
 .starCount {
 	@apply flex items-center border border-accent-background px-4 py-2 rounded-md bg-background cursor-pointer select-none;
 	transition: opacity 0.2s;
-
-	&[data-visible="true"] {
-		opacity: 1;
-	}
-
-	&[data-visible="false"] {
-		opacity: 0;
-	}
 }

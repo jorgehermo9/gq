@@ -1,0 +1,12 @@
+.popupContainer {
+	@apply rounded-md border border-accent w-96 p-4 bg-background;
+	transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+
+	&[data-visible="true"] {
+		@apply opacity-100 scale-100 visible;
+	}
+
+	&[data-visible="false"] {
+		@apply opacity-0 scale-95 invisible;
+	}
+}
