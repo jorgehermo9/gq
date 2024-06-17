@@ -45,7 +45,6 @@ pub enum Token {
     Tilde,
     #[token("!~")]
     NotTilde,
-    // TODO: allow for more chars, so not so many things has to be escaped with quotes
     // This regex does not support keys starting with '-' or numbers
     #[regex(r"[a-zA-Z_][\w-]*", |lex| lex.slice().to_string())]
     Identifier(String),
