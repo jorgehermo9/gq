@@ -176,7 +176,7 @@ const Home = () => {
 				</div>
 				<aside className="flex flex-col">
 					<Editor
-						className="w-[44vw] h-[83.5vh]"
+						className="w-[44vw] h-[82vh]"
 						onChangeFileType={handleChangeOutputDataFileType}
 						title="Output"
 						editable={false}

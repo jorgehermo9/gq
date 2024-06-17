@@ -148,7 +148,7 @@ const ImportButton = ({
 										</div>
 									) : (
 										<span className="w-1/2 text-center leading-5">
-											Drag and drop a file here or click to select a file
+											Drag and drop a file here or click to select one
 										</span>
 									)}
 								</Label>
