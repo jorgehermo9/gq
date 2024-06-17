@@ -26,7 +26,7 @@ const ExportButton = ({ defaultFilename, fileType, onExportFile }: Props) => {
 					<DownloadCloud className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
-			<DialogContent className="w-[16vw] min-w-96 max-w-sccreen">
+			<DialogContent className="w-[28rem] max-w-[80vw]">
 				<DialogHeader>
 					<DialogTitle>Export to file</DialogTitle>
 					<DialogDescription>

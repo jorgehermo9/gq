@@ -3,8 +3,9 @@ import ThemeButton from "@/components/theme-button/theme-button";
 import type { Data } from "@/model/data";
 import { memo } from "react";
 import ExamplesSheet from "../examples-sheet/examples-sheet";
-import StarCount from "./star-count";
+import StarCount from "../star-count/star-count";
 import { cn } from "@/lib/utils";
+import ShortcutPopup from "../shortcut-popup/shortcut-popup";
 
 interface Props {
 	className?: string;
@@ -16,6 +17,7 @@ const Header = ({ className, onClickExample }: Props) => {
 		<header className={cn(className, "flex items-center justify-between")}>
 			<div className="flex-grow basis-0 flex gap-4">
 				<ExamplesSheet onClickExample={onClickExample} />
+				<ShortcutPopup />
 				<StarCount className="px-3" />
 			</div>
 
