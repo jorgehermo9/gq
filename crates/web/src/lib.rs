@@ -62,7 +62,7 @@ pub fn convert_data_to(
 pub fn completions(
     query: &str,
     position: u32,
-    trigger: char,
+    _trigger: char,
     data: JsData,
 ) -> Vec<JsCompletionItem> {
     // TODO: handle u32 to usize conversion.

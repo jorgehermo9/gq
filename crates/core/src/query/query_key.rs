@@ -1,8 +1,7 @@
 use std::{
     borrow::Cow,
-    fmt::{self, Display, Formatter, Write},
+    fmt::{self, Display, Formatter},
     ops::Add,
-    str::FromStr,
 };
 
 use derive_getters::Getters;
