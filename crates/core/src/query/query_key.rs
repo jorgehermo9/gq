@@ -15,6 +15,7 @@ use super::{apply::InternalError, context::Context, query_arguments::QueryArgume
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum RawKey {
     Identifier(String),
+    // TODO: think of a better variant name
     String(String),
 }
 
