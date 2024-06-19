@@ -1,8 +1,12 @@
 [package]
 name = "gq-core"
 version = "0.1.0"
+description = "Core library for the GQ project. Currently is not intended for use outside of GQ frontends. Breaking changes may occur at any time."
 edition.workspace = true
 license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
 
 [dependencies]
 derive_more.workspace = true
