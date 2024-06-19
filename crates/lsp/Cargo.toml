@@ -1,13 +1,14 @@
 [package]
 name = "gq-lsp"
 version = "0.1.0"
-edition = "2021"
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
 serde_json.workspace = true
 log.workspace = true
 derive_more.workspace = true
-cached.workspace = true
+cached = "0.51.3"
 derive-getters = "0.4.0"
 uuid = { version = "1.8.0", features = ["v4"] }
 gq-core = { path = "../core" }

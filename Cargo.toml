@@ -2,10 +2,15 @@
 members = ["crates/*"]
 resolver = "2"
 
+[workspace.package]
+edition = "2021"
+authors = ["Jorge Hermo <jorgehermogonzalez@gmail.com>", "David Rodríguez"]
+repository = "https://github.com/jorgehermo9/gq/"
+license = "Apache-2.0"
+
 [workspace.dependencies]
 serde_json = { version = "1.0.117", features = ["preserve_order"] }
 serde_yaml = "0.9.34"
 serde = "1.0.203"
 log = "0.4.21"
 derive_more = "0.99.17"
-cached = "0.51.3"
