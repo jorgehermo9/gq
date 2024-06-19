@@ -8,7 +8,7 @@ license.workspace = true
 serde_json.workspace = true
 log.workspace = true
 derive_more.workspace = true
-cached = "0.51.3"
+cached.workspace = true
 derive-getters = "0.4.0"
 uuid = { version = "1.8.0", features = ["v4"] }
 gq-core = { path = "../core" }
