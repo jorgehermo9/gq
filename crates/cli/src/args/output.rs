@@ -27,7 +27,7 @@ impl OutputType {
 
 #[derive(Debug, Args)]
 pub struct Output {
-    /// JSON Output file,use  '-' for stdout
+    /// JSON Output file, use  '-' for stdout
     #[clap(long, short, value_parser, default_value = "-")]
     pub output: clio::Output,
     #[clap(long, default_value_t = OutputType::Match)]
