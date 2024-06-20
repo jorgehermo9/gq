@@ -29,6 +29,7 @@ const config = {
 					DEFAULT: "var(--muted)",
 					transparent: "var(--muted-transparent)",
 				},
+				shadow: "var(--shadow)",
 				error: "var(--error)",
 				warning: "var(--warning)",
 				success: "var(--success)",

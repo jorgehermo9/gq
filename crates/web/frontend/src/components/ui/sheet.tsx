@@ -4,7 +4,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { type VariantProps, cva } from "class-variance-authority";
 import { X } from "lucide-react";
 import * as React from "react";
-
+import styles from "./sheet.module.css";
 import { cn } from "@/lib/utils";
 
 const Sheet = SheetPrimitive.Root;
@@ -19,14 +19,7 @@ const SheetOverlay = React.forwardRef<
 	React.ElementRef<typeof SheetPrimitive.Overlay>,
 	React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
-	<SheetPrimitive.Overlay
-		className={cn(
-			"fixed inset-0 z-50 bg-black/70 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-			className,
-		)}
-		{...props}
-		ref={ref}
-	/>
+	<SheetPrimitive.Overlay className={cn(styles.overlay, className)} {...props} ref={ref} />
 ));
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 

@@ -202,11 +202,14 @@ const Editor = ({
 			</div>
 
 			<div
-				data-focus={focused}
+				data-title={defaultFileName}
 				onFocus={() => onChangeFocused(true)}
 				onBlur={() => onChangeFocused(false)}
-				className={`${styles.editor} relative block h-full rounded-lg overflow-hidden`}
+				className={`${styles.editor} relative h-full rounded-lg p-[1px] overflow-hidden`}
 			>
+				<div className={styles.editorBorder} data-focused={focused} />
+				{/* <div className={styles.editorBorderTop} />
+				<div className={styles.editorBorderBottom} /> */}
 				<EditorLoadingOverlay loadingState={loadingState} />
 				<EditorErrorOverlay
 					visibleBackdrop={!editable && (!!errorMessage || !!editorErrorMessage)}
@@ -230,7 +233,7 @@ const Editor = ({
 				/>
 				{available ? (
 					<CodeMirror
-						className="w-full h-full rounded-lg text-[0.8rem]"
+						className="w-full h-full rounded-lg text-[0.8rem] overflow-hidden"
 						value={instantContent}
 						onChange={setContent}
 						height="100%"

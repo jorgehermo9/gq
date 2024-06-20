@@ -1,16 +1,103 @@
 .editor {
-	transition: border-color 0.1s, box-shadow 0.1s;
+	&[data-title="query"] {
+		box-shadow: 0 60px 60px -100px var(--shadow);
+	}
+
+	&[data-title="input"] {
+		box-shadow: 0 60px 60px -100px var(--shadow);
+	}
+
+	&[data-title="output"] {
+		box-shadow: 0 60px 60px -100px var(--shadow);
+	}
 }
 
-.editor[data-focus="true"] {
-	border: 2px solid var(--accent);
-	@apply shadow-lg;
+.editorBorder {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: var(--radius);
+	transition: background-color 0.2s;
+
+	&[data-focused="true"] {
+		background-color: var(--accent);
+	}
+	
+	&[data-focused="false"] {
+		background-color: var(--accent-background);
+	}
 }
 
-.editor[data-focus="false"] {
-	border: 2px solid var(--accent-background);
-	@apply shadow-md;
+.editorBorderTop {
+	position: absolute;
+	/* z-index: 10; */
+	height: 40%;
+	width: 100%;
+	right: 50%;
+	bottom: 50%;
+	background: linear-gradient(to top, var(--accent), var(--foreground));
+	box-shadow: 0 0 50px 10px var(--accent);
+	transform-origin: 100% 50%;
+	animation: rotate-clockwise 2s cubic-bezier(.66,.17,.43,.91) infinite;
 }
+
+.editorBorderBottom {
+	position: absolute;
+	/* z-index: 10; */
+	height: 40%;
+	width: 100%;
+	right: 50%;
+	top: 50%;
+	background: linear-gradient(to bottom, var(--accent), var(--foreground));
+	box-shadow: 0 0 50px 10px var(--accent);
+	transform-origin: 100% 50%;
+	animation: rotate-counter-clockwise 2s cubic-bezier(.66,.17,.43,.91) infinite;
+}
+
+@keyframes rotate-clockwise {
+	0% {
+		opacity: 0;
+	}
+	2% {
+		opacity: 1;
+		transform: rotate(0deg);
+	}
+	50% {
+		transform: rotate(180deg);
+		opacity: 1;
+	}
+	60% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 0;
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes rotate-counter-clockwise {
+	0% {
+		opacity: 0;
+	}
+	2% {
+		opacity: 1;
+		transform: rotate(0deg);
+	}
+	50% {
+		transform: rotate(-180deg);
+		opacity: 1;
+	}
+	60% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 0;
+		transform: rotate(-360deg);
+	}
+	
+}
+
 
 .warningIcon {
 	position: absolute;
