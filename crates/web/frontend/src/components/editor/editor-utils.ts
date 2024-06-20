@@ -8,11 +8,12 @@ import {
 } from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
-import type { LanguageSupport } from "@codemirror/language";
 import { type Extension, Prec, keymap } from "@uiw/react-codemirror";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 import urlPlugin from "./url-plugin";
+import { LRLanguage, indentNodeProp, continuedIndent, foldNodeProp, foldInside, LanguageSupport } from '@codemirror/language';
+import { parser } from '@lezer/json';
 
 export const exportFile = (data: Data, filename: string) => {
 	const blob = new Blob([data.content], { type: `application/${data.type}` });
@@ -65,8 +66,27 @@ export const convertCode = async (
 	}
 };
 
+const gqLanguageParser = LRLanguage.define({
+	name: "gq",
+	parser: parser.configure({
+		props: [
+			indentNodeProp.add({
+				Object: continuedIndent({ except: /^\s*\}/ }),
+				Array: continuedIndent({ except: /^\s*\]/ })
+			}),
+			foldNodeProp.add({
+				"Object Array": foldInside
+			})
+		]
+	}),
+	languageData: {
+		closeBrackets: { brackets: ["[", "{", '"', "("] },
+		indentOnInput: /^\s*[\}\]]$/
+	}
+})
+
 const jsonLanguage = json();
-const gqLanguage = json();
+const gqLanguage = new LanguageSupport(gqLanguageParser);
 const yamlLanguage = yaml();
 
 const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport => {

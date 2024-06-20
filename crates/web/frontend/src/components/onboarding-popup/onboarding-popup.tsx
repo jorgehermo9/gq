@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import styles from "./onboarding-popup.module.css";
 import { Stars, X } from "lucide-react";
+import styles from "./onboarding-popup.module.css";
 
 interface Props {
 	className?: string;

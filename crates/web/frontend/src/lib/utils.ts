@@ -69,4 +69,4 @@ export const statusTextMap = new Map([
 	[505, "HTTP Version Not Supported"],
 ]);
 
-export const i = () => { };
+export const i = () => {};

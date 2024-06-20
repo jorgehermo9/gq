@@ -1,11 +1,11 @@
 import SettingsSheet from "@/components/settings-sheet/settings-sheet";
 import ThemeButton from "@/components/theme-button/theme-button";
+import { cn } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import { memo } from "react";
 import ExamplesSheet from "../examples-sheet/examples-sheet";
-import StarCount from "../star-count/star-count";
-import { cn } from "@/lib/utils";
 import ShortcutPopup from "../shortcut-popup/shortcut-popup";
+import StarCount from "../star-count/star-count";
 
 interface Props {
 	className?: string;

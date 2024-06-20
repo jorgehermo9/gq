@@ -3,7 +3,7 @@ import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { DownloadCloud } from "lucide-react";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
@@ -19,6 +19,12 @@ const ExportButton = ({ defaultFilename, fileType, onExportFile }: Props) => {
 	const [fileName, setFileName] = useState(defaultFilename);
 	const [open, setOpen] = useState(false);
 
+	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		onExportFile(fileName);
+		setOpen(false);
+	};
+
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
@@ -33,14 +39,7 @@ const ExportButton = ({ defaultFilename, fileType, onExportFile }: Props) => {
 						Export the content of the editor to a file with a custom name
 					</DialogDescription>
 				</DialogHeader>
-				<form
-					onSubmit={(e) => {
-						e.preventDefault();
-						onExportFile(fileName);
-						setOpen(false);
-					}}
-					autoComplete="off"
-				>
+				<form onSubmit={handleSubmit} autoComplete="off">
 					<Label htmlFor="filename">File Name</Label>
 					<div className="flex items-center relative">
 						<Input

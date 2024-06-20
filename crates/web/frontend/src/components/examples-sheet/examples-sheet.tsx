@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import { formatCode } from "../editor/editor-utils";
 import SimpleEditor from "../editor/simple-editor";
+import OnboardingPopup from "../onboarding-popup/onboarding-popup";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -32,7 +33,6 @@ import {
 	SheetTrigger,
 } from "../ui/sheet";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
-import OnboardingPopup from "../onboarding-popup/onboarding-popup";
 
 interface ExampleItemDescriptionProps {
 	description: string;
