@@ -34,7 +34,7 @@ const ShortcutPopup = () => {
 					</DialogDescription>
 				</DialogHeader>
 				{shortcutSections.map((shortcutSection) => (
-					<div className="mt-8">
+					<div className="mt-8" key={shortcutSection.title}>
 						<h3 className="font-semibold mb-1">{shortcutSection.title}</h3>
 						<Table>
 							<TableHeader>
