@@ -1,7 +1,7 @@
 .ripple {
 	position: absolute;
 	border-radius: 50%;
-	background-color: var(--accent);
+	background-image: radial-gradient(circle, var(--accent) 10%, var(--background) 100%);
 	animation: ripple 0.5s ease-out forwards;
 }
 

@@ -1,15 +1,5 @@
 .editor {
-	&[data-title="query"] {
-		box-shadow: 0 60px 60px -100px var(--shadow);
-	}
-
-	&[data-title="input"] {
-		box-shadow: 0 60px 60px -100px var(--shadow);
-	}
-
-	&[data-title="output"] {
-		box-shadow: 0 60px 60px -100px var(--shadow);
-	}
+	box-shadow: 0 60px 60px -100px var(--shadow);
 }
 
 .editorBorder {
@@ -19,19 +9,18 @@
 	height: 100%;
 	border-radius: var(--radius);
 	transition: background-color 0.2s;
-
+	
 	&[data-focused="true"] {
 		background-color: var(--accent);
 	}
 	
 	&[data-focused="false"] {
-		background-color: var(--accent-background);
+	background-color: var(--accent-background);
 	}
 }
 
 .editorBorderTop {
 	position: absolute;
-	/* z-index: 10; */
 	height: 40%;
 	width: 100%;
 	right: 50%;
@@ -39,12 +28,11 @@
 	background: linear-gradient(to top, var(--accent), var(--foreground));
 	box-shadow: 0 0 50px 10px var(--accent);
 	transform-origin: 100% 50%;
-	animation: rotate-clockwise 2s cubic-bezier(.66,.17,.43,.91) infinite;
+	opacity: 0;
 }
 
 .editorBorderBottom {
 	position: absolute;
-	/* z-index: 10; */
 	height: 40%;
 	width: 100%;
 	right: 50%;
@@ -52,7 +40,15 @@
 	background: linear-gradient(to bottom, var(--accent), var(--foreground));
 	box-shadow: 0 0 50px 10px var(--accent);
 	transform-origin: 100% 50%;
-	animation: rotate-counter-clockwise 2s cubic-bezier(.66,.17,.43,.91) infinite;
+	opacity: 0;
+}
+
+.showBorderTop {
+	animation: 2s rotate-clockwise cubic-bezier(.66,.17,.43,.91);
+}
+
+.showBorderBottom {
+	animation: 2s rotate-counter-clockwise cubic-bezier(.66,.17,.43,.91);
 }
 
 @keyframes rotate-clockwise {
@@ -95,7 +91,6 @@
 		opacity: 0;
 		transform: rotate(-360deg);
 	}
-	
 }
 
 

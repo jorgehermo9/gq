@@ -9,7 +9,7 @@ import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import CodeMirror, { type Extension } from "@uiw/react-codemirror";
 import { TriangleAlert } from "lucide-react";
-import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from "react";
+import { type MutableRefObject, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
 import EditorLoadingOverlay from "../editor-overlay/editor-loading-overlay";
@@ -73,6 +73,8 @@ const Editor = ({
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
 	const [focused, onChangeFocused] = useState(false);
+	const borderTopRef = useRef<HTMLDivElement | null>(null);
+	const borderBottomRef = useRef<HTMLDivElement | null>(null);
 	const {
 		settings: {
 			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },
@@ -202,14 +204,15 @@ const Editor = ({
 			</div>
 
 			<div
+				data-focused={focused}
 				data-title={defaultFileName}
 				onFocus={() => onChangeFocused(true)}
 				onBlur={() => onChangeFocused(false)}
 				className={`${styles.editor} relative h-full rounded-lg p-[1px] overflow-hidden`}
 			>
 				<div className={styles.editorBorder} data-focused={focused} />
-				{/* <div className={styles.editorBorderTop} />
-				<div className={styles.editorBorderBottom} /> */}
+				<div ref={borderTopRef} className={styles.editorBorderTop} />
+				<div ref={borderBottomRef} className={styles.editorBorderBottom} />
 				<EditorLoadingOverlay loadingState={loadingState} />
 				<EditorErrorOverlay
 					visibleBackdrop={!editable && (!!errorMessage || !!editorErrorMessage)}

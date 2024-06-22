@@ -48,7 +48,7 @@ const ShortcutPopup = () => {
 									<TableRow key={shortcut.description}>
 										<TableCell className="text-sm">{shortcut.description}</TableCell>
 										<TableCell className="text-right">
-											<code>{shortcut.shortcut}</code>
+											<code className="py-1 text-sm">{shortcut.shortcut}</code>
 										</TableCell>
 									</TableRow>
 								))}

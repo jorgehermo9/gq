@@ -27,7 +27,7 @@
   .dark {
     --background: #10151D;
     --foreground: #e1e5ec;
-    --accent: #B895FD;
+    --accent: #959efd;
     --accent-background: #2E3C51;
     --muted: #222b37;
 
@@ -37,11 +37,11 @@
 
     --shadow: #25A6E9;
 
-    --success: #8BAE82;
+    --success: #9ce99f;
     --warning: #d1c481;
-    --error: #983636;
+    --error: #c83030;
 
-    --muted-transparent: #222b370f;
+    --muted-transparent: #2933412a;
   }
 }
 
@@ -52,10 +52,22 @@
     scrollbar-color: var(--accent-background) var(--muted-transparent);
     scrollbar-width: thin;
   }
-
+  
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
   }
+}
+
+body {
+  background-image: 
+    radial-gradient(
+      circle at bottom center,
+      transparent,
+      var(--background) 60%
+    ),
+    radial-gradient(var(--muted) 1px, transparent 1px);
+  background-size: 100% 100%, 30px 30px;
+  background-color: var(--background);
 }
 
 textarea {
@@ -67,6 +79,7 @@ code {
   font-family: var(--font-mono);
   background-color: var(--muted-transparent);
   padding: 0 0.4rem;
+  border-radius: calc(var(--radius) - 4px);
 }
 
 /* body::before {
