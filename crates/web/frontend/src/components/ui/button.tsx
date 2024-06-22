@@ -42,21 +42,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 	({ className, variant, size, onClick, asChild = false, ...props }, ref) => {
 		const Comp = asChild ? Slot : "button";
 		const [isHover, setIsHover] = useState(false);
-		const [fillX, setFillX] = useState(0);
-		const [fillY, setFillY] = useState(0);
-		const containerRef = useRef<HTMLDivElement | null>(null);
+		const fillX = useSpring(50);
+		const fillY = useSpring(50);
+		const containerRef = useRef<HTMLButtonElement | null>(null);
 
-		const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
-			const { left, top, width, height } = containerRef.current?.getBoundingClientRect() ?? {
-				left: 0,
-				top: 0,
-				width: 0,
-				height: 0,
-			};
+		const handleMouseMove = (event: MouseEvent<HTMLButtonElement>) => {
+			const { left, top } = containerRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 };
 			const x = event.clientX - left;
 			const y = event.clientY - top;
-			setFillX(x);
-			setFillY(y);
+			fillX.set(x);
+			fillY.set(y);
 		};
 
 		const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -79,35 +74,48 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 		};
 
 		return (
-			<motion.div
+			<Comp
+				className={cn(buttonVariants({ variant, size, className }))}
 				ref={containerRef}
-				className={"relative"}
+				onClick={handleClick}
 				onMouseEnter={() => setIsHover(true)}
 				onMouseLeave={() => setIsHover(false)}
 				onMouseMove={handleMouseMove}
+				{...props}
 			>
-				<div className="z-10 h-full w-full">
-					<Comp
-						className={cn(buttonVariants({ variant, size, className }))}
-						ref={ref}
-						onClick={handleClick}
-						{...props}
-					/>
-				</div>
+				{props.children}
 				<motion.div
-					className="absolute -z-10 inset-0 rounded-md pointer-events-none transition-opacity duration-300"
+					className="absolute inset-0 -z-10 rounded-full pointer-events-none"
 					style={{
-						display: variant === "ghost" ? "none" : "block",
-						opacity: isHover ? 0.1 : 0,
-						backgroundImage: `radial-gradient(
-							circle at ${fillX}px ${fillY}px,
-							#ffffff,
-							var(--accent) 30%,
-							var(--background) 70%
-						)`,
+						x: fillX,
+						y: fillY,
+						width:
+							Math.max(
+								containerRef.current?.clientWidth ?? 0,
+								containerRef.current?.clientHeight ?? 0,
+							) * 1.6,
+						height:
+							Math.max(
+								containerRef.current?.clientWidth ?? 0,
+								containerRef.current?.clientHeight ?? 0,
+							) * 1.6,
 					}}
-				/>
-			</motion.div>
+					animate={{ opacity: isHover ? 0.2 : 0 }}
+				>
+					<div
+						className="absolute inset-0 -translate-x-1/2 -translate-y-1/2"
+						style={{
+							display: variant === "ghost" ? "none" : "block",
+							backgroundImage: `radial-gradient(
+								circle at 50% 50%,
+								#ffffff,
+								var(--accent) 20%,
+								var(--background) 60%
+							)`,
+						}}
+					/>
+				</motion.div>
+			</Comp>
 		);
 	},
 );
