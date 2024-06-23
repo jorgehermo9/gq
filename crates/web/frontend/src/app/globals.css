@@ -101,3 +101,7 @@ code {
 [data-type="error"]>[data-icon] {
   color: var(--error);
 }
+
+li[aria-selected="true"] {
+  @apply !bg-accent-background !text-accent;
+}

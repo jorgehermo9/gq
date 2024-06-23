@@ -55,7 +55,17 @@ const config = {
 			},
 		},
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		({ addVariant }: { addVariant: (name: string, variant: string) => void }) => {
+			addVariant('aria-selected', '&[aria-selected="true"]');
+		}
+	],
+	variants: {
+		extend: {
+			backgroundColor: ['aria-selected']
+		}
+	},
 } satisfies Config;
 
 export default config;

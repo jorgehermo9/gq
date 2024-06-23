@@ -1,18 +1,18 @@
 export type ShortcutSection = {
 	title: string;
 	shortcuts: Shortcut[];
-}
+};
 
 export type Shortcut = {
 	description: string;
 	shortcut: string;
-}
+};
 
 const globalShortcuts: Shortcut[] = [
 	{
 		description: "Apply the current query",
 		shortcut: "Alt + Enter",
-	}
+	},
 ];
 
 const editorShortcuts: Shortcut[] = [
