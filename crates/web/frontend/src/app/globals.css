@@ -103,5 +103,5 @@ code {
 }
 
 li[aria-selected="true"] {
-  @apply !bg-accent-background !text-accent;
+  @apply !bg-accent-background !text-[var(--code-secondary)];
 }
