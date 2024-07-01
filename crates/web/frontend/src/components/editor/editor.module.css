@@ -43,57 +43,6 @@
 	opacity: 0;
 }
 
-.showBorderTop {
-	animation: 2s rotate-clockwise cubic-bezier(.66,.17,.43,.91);
-}
-
-.showBorderBottom {
-	animation: 2s rotate-counter-clockwise cubic-bezier(.66,.17,.43,.91);
-}
-
-@keyframes rotate-clockwise {
-	0% {
-		opacity: 0;
-	}
-	2% {
-		opacity: 1;
-		transform: rotate(0deg);
-	}
-	50% {
-		transform: rotate(180deg);
-		opacity: 1;
-	}
-	60% {
-		opacity: 0;
-	}
-	100% {
-		opacity: 0;
-		transform: rotate(360deg);
-	}
-}
-
-@keyframes rotate-counter-clockwise {
-	0% {
-		opacity: 0;
-	}
-	2% {
-		opacity: 1;
-		transform: rotate(0deg);
-	}
-	50% {
-		transform: rotate(-180deg);
-		opacity: 1;
-	}
-	60% {
-		opacity: 0;
-	}
-	100% {
-		opacity: 0;
-		transform: rotate(-360deg);
-	}
-}
-
-
 .warningIcon {
 	position: absolute;
 	z-index: 10;

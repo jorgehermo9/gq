@@ -25,6 +25,7 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
+import { cubicBezier, motion } from "framer-motion";
 
 interface Props {
 	title: string;
@@ -73,8 +74,6 @@ const Editor = ({
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
 	const [focused, onChangeFocused] = useState(false);
-	const borderTopRef = useRef<HTMLDivElement | null>(null);
-	const borderBottomRef = useRef<HTMLDivElement | null>(null);
 	const {
 		settings: {
 			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },
@@ -83,6 +82,7 @@ const Editor = ({
 	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = type === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = content.length < 100000000;
+	const borderRepeatDelay = Math.random() * 15 + 5;
 
 	const handleFormatCode = useCallback(
 		async (cont: string) => {
@@ -211,8 +211,32 @@ const Editor = ({
 				className={`${styles.editor} relative h-full rounded-lg p-[1px] overflow-hidden`}
 			>
 				<div className={styles.editorBorder} data-focused={focused} />
-				<div ref={borderTopRef} className={styles.editorBorderTop} />
-				<div ref={borderBottomRef} className={styles.editorBorderBottom} />
+				<motion.div
+					className={styles.editorBorderTop}
+					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, 10, 180, 190, 360] }}
+					transition={{
+						duration: 4,
+						delay: borderRepeatDelay,
+						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
+						// repeat: Number.POSITIVE_INFINITY,
+						// repeatType: "loop",
+						repeatDelay: borderRepeatDelay,
+						times: [0, 0.1, 0.5, 0.6, 1],
+					}}
+				/>
+				<motion.div
+					className={styles.editorBorderBottom}
+					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, -10, -180, -190, -360] }}
+					transition={{
+						duration: 4,
+						delay: borderRepeatDelay,
+						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
+						// repeat: Number.POSITIVE_INFINITY,
+						// repeatType: "loop",
+						repeatDelay: borderRepeatDelay,
+						times: [0, 0.1, 0.5, 0.6, 1],
+					}}
+				/>
 				<EditorLoadingOverlay loadingState={loadingState} />
 				<EditorErrorOverlay
 					visibleBackdrop={!editable && (!!errorMessage || !!editorErrorMessage)}
