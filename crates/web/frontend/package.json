@@ -36,7 +36,7 @@
         "clsx": "^2.1.0",
         "cmdk": "^1.0.0",
         "copy-webpack-plugin": "^12.0.2",
-        "framer-motion": "^11.0.25",
+        "framer-motion": "^11.2.11",
         "gq-web": "file:pkg",
         "lucide-react": "^0.363.0",
         "next": "14.1.4",

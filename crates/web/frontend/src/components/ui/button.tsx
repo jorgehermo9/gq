@@ -1,18 +1,19 @@
 import { cn } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
 import { type VariantProps, cva } from "class-variance-authority";
-import * as React from "react";
+import { motion, useSpring } from "framer-motion";
+import { type MouseEvent, forwardRef, useRef, useState } from "react";
 import styles from "./button.module.css";
 
 const buttonVariants = cva(
-	"relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+	"relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
 	{
 		variants: {
 			variant: {
 				default: "bg-primary text-primary-foreground hover:bg-primary/90",
 				error: "bg-error text-foreground hover:bg-error/90",
-				success: "bg-success text-background hover:bg-success/90",
-				outline: "border border-accent-background bg-background",
+				success: "bg-success text-background",
+				outline: "border border-accent-background",
 				secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				ghost: "",
 				link: "text-primary underline-offset-4 hover:underline",
@@ -37,9 +38,25 @@ export interface ButtonProps
 	asChild?: boolean;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 	({ className, variant, size, onClick, asChild = false, ...props }, ref) => {
 		const Comp = asChild ? Slot : "button";
+		const [isHover, setIsHover] = useState(false);
+		const fillX = useSpring(0, { stiffness: 200, damping: 20 });
+		const fillY = useSpring(0, { stiffness: 200, damping: 20 });
+		const containerRef = useRef<HTMLButtonElement | null>(null);
+		const maxSize = Math.max(
+			containerRef.current?.clientWidth ?? 0,
+			containerRef.current?.clientHeight ?? 0,
+		);
+
+		const handleMouseMove = (event: MouseEvent<HTMLButtonElement>) => {
+			const { left, top } = containerRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 };
+			const x = event.clientX - left;
+			const y = event.clientY - top;
+			fillX.set(x);
+			fillY.set(y);
+		};
 
 		const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 			if (variant === "ghost") return onClick?.(e);
@@ -63,10 +80,38 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 		return (
 			<Comp
 				className={cn(buttonVariants({ variant, size, className }))}
-				ref={ref}
+				ref={containerRef}
 				onClick={handleClick}
+				onMouseEnter={() => setIsHover(true)}
+				onMouseLeave={() => setIsHover(false)}
+				onMouseMove={handleMouseMove}
 				{...props}
-			/>
+			>
+				{props.children}
+				<motion.div
+					className="absolute inset-0 -z-10 rounded-full pointer-events-none"
+					style={{
+						x: fillX,
+						y: fillY,
+						width: maxSize * 1.6,
+						height: maxSize * 1.6,
+					}}
+					animate={{ opacity: isHover ? 0.15 : 0 }}
+				>
+					<div
+						className="absolute inset-0 -translate-x-1/2 -translate-y-1/2"
+						style={{
+							display: variant === "ghost" ? "none" : "block",
+							backgroundImage: `radial-gradient(
+								circle at 50% 50%,
+								#eeefff,
+								var(--accent) 20%,
+								var(--background) 60%
+							)`,
+						}}
+					/>
+				</motion.div>
+			</Comp>
 		);
 	},
 );

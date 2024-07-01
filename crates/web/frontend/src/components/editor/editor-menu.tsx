@@ -5,7 +5,7 @@ import ExportButton from "@/components/export-button/export-button";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import type { LoadingState } from "@/model/loading-state";
-import { Clipboard, Sparkles } from "lucide-react";
+import { Braces, Clipboard } from "lucide-react";
 import ImportButton from "../import-button/import-button";
 
 interface Props {
@@ -47,7 +47,7 @@ const EditorMenu = ({
 					onClick={onFormatCode}
 					hidden={!editable}
 				>
-					<Sparkles className="w-3.5 h-3.5" />
+					<Braces className="w-3.5 h-3.5" />
 				</ActionButton>
 				<ImportButton
 					importableType={fileType}

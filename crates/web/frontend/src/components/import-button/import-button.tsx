@@ -93,7 +93,7 @@ const ImportButton = ({
 					<FileUp className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
-			<DialogContent className="w-[28vw] min-w-96 max-w-sccreen">
+			<DialogContent className="w-[36rem] max-w-[80vw]">
 				<DialogHeader>
 					<DialogTitle>Import file</DialogTitle>
 					<DialogDescription>

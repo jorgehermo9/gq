@@ -12,7 +12,7 @@ const EditorLoadingOverlay = ({ loadingState }: Props) => {
 
 	useEffect(() => {
 		if (loadingState.isLoading) {
-			const timeout = setTimeout(() => setShow(true), 10);
+			const timeout = setTimeout(() => setShow(true), 100);
 			return () => clearTimeout(timeout);
 		}
 		setShow(false);
