@@ -3,6 +3,7 @@ use crate::query::query_arguments::{
     QueryArgument, QueryArgumentOperation, QueryArgumentValue, QueryArguments,
 };
 use crate::query::query_key::{AtomicQueryKey, QueryKey, RawKey};
+use crate::query::query_operator::QueryOperator;
 use crate::query::{ChildQuery, ChildQueryBuilder, Query, QueryBuilder};
 use logos::{Logos, Span, SpannedIter};
 use regex::Regex;
@@ -109,10 +110,11 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `S -> QUERY_ARGUMENTS ROOT_QUERY_KEY | QUERY_ARGUMENTS ROOT_QUERY_KEY { QUERY_CONTENT }`
+    /// `S -> QUERY_ARGUMENTS QUERY_OPERATOR ROOT_QUERY_KEY | QUERY_OPERATOR QUERY_ARGUMENTS ROOT_QUERY_KEY { QUERY_CONTENT }`
     fn parse_root_query(&mut self) -> Result<Query> {
         let root_span_start = self.current_span()?;
         let arguments = self.parse_query_arguments()?;
+        let operator = self.parse_query_operator()?;
         let root_query_key = self.parse_root_query_key()?;
 
         match self.peek()? {
@@ -124,6 +126,7 @@ impl<'src> Parser<'src> {
 
                 QueryBuilder::default()
                     .arguments(arguments)
+                    .operator(operator)
                     .children(children)
                     .key(root_query_key)
                     .build()
@@ -133,6 +136,7 @@ impl<'src> Parser<'src> {
                 let root_span = Self::span_between(root_span_start, root_span_end);
                 QueryBuilder::default()
                     .arguments(arguments)
+                    .operator(operator)
                     .key(root_query_key)
                     .build()
                     .map_err(|err| Error::Construction(err.into(), root_span))
@@ -216,11 +220,12 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `ATOMIC_QUERY_KEY -> RAW_KEY QUERY_ARGUMENTS`
+    /// `ATOMIC_QUERY_KEY -> RAW_KEY QUERY_ARGUMENTS QUERY_OPERATOR`
     fn parse_atomic_query_key(&mut self) -> Result<AtomicQueryKey> {
         let raw_key = self.parse_raw_key()?;
         let arguments = self.parse_query_arguments()?;
-        Ok(AtomicQueryKey::new(raw_key, arguments))
+        let query_operator = self.parse_query_operator()?;
+        Ok(AtomicQueryKey::new(raw_key, arguments, query_operator))
     }
 
     /// # Grammar
@@ -258,6 +263,26 @@ impl<'src> Parser<'src> {
                 }
             }
             _ => Ok(Default::default()),
+        }
+    }
+
+    /// # Grammar
+    /// `QUERY_OPERATOR -> [NUMBER] | ε
+    fn parse_query_operator(&mut self) -> Result<Option<QueryOperator>> {
+        match self.peek()? {
+            (Token::LBracket, _) => {
+                self.consume()?;
+                // TODO: fix the usage of usize
+                let index = self.parse_number()? as usize;
+                // TODO: fix the creation of the range
+                // TODO: Implement the RangeIndexing
+                let query_operator = QueryOperator::Indexing(index);
+                match self.next_token()? {
+                    (Token::RBracket, _) => Ok(Some(query_operator)),
+                    (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
+                }
+            }
+            _ => Ok(None),
         }
     }
 

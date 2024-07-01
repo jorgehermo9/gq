@@ -23,6 +23,10 @@ pub enum Token {
     LParen,
     #[token(")")]
     RParen,
+    #[token("[")]
+    LBracket,
+    #[token("]")]
+    RBracket,
     #[token(".")]
     Dot,
     #[token(":")]
@@ -78,6 +82,8 @@ impl Display for Token {
             Token::RBrace => '}'.fmt(f),
             Token::LParen => '('.fmt(f),
             Token::RParen => ')'.fmt(f),
+            Token::LBracket => '['.fmt(f),
+            Token::RBracket => ']'.fmt(f),
             Token::Dot => '.'.fmt(f),
             Token::Colon => ':'.fmt(f),
             Token::Comma => ','.fmt(f),
@@ -121,6 +127,8 @@ mod tests {
     #[case::r_brace("}", Token::RBrace)]
     #[case::l_paren("(", Token::LParen)]
     #[case::r_paren(")", Token::RParen)]
+    #[case::l_bracket("[", Token::LBracket)]
+    #[case::r_bracket("]", Token::RBracket)]
     #[case::dot(".", Token::Dot)]
     #[case::colon(":", Token::Colon)]
     #[case::comma(",", Token::Comma)]
