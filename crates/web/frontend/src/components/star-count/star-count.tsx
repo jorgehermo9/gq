@@ -1,7 +1,6 @@
 import { cn, formatNumber } from "@/lib/utils";
 import { Github, Star } from "lucide-react";
 import { type MouseEvent, useCallback, useEffect, useState } from "react";
-import styles from "./header.module.css";
 import { Loader } from "../ui/sonner";
 
 interface Props {
@@ -34,7 +33,10 @@ const StarCount = ({ className }: Props) => {
 		<a
 			href="https://github.com/jorgehermo9/gq"
 			onClick={handleClick}
-			className={cn(styles.starCount, className)}
+			className={cn(
+				className,
+				"flex items-center border border-accent-background px-4 py-2 rounded-md bg-background cursor-pointer select-none",
+			)}
 		>
 			<Github className="w-4 h-4 mr-2" />
 			{fetching ? (

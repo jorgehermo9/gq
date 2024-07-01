@@ -1,15 +1,46 @@
 .editor {
-	transition: border-color 0.1s, box-shadow 0.1s;
+	box-shadow: 0 60px 60px -100px var(--shadow);
 }
 
-.editor[data-focus="true"] {
-	border: 2px solid var(--accent);
-	@apply shadow-lg;
+.editorBorder {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: var(--radius);
+	transition: background-color 0.2s;
+	
+	&[data-focused="true"] {
+		background-color: var(--accent);
+	}
+	
+	&[data-focused="false"] {
+	background-color: var(--accent-background);
+	}
 }
 
-.editor[data-focus="false"] {
-	border: 2px solid var(--accent-background);
-	@apply shadow-md;
+.editorBorderTop {
+	position: absolute;
+	height: 40%;
+	width: 100%;
+	right: 50%;
+	bottom: 50%;
+	background: linear-gradient(to top, var(--accent), var(--foreground));
+	box-shadow: 0 0 50px 10px var(--accent);
+	transform-origin: 100% 50%;
+	opacity: 0;
+}
+
+.editorBorderBottom {
+	position: absolute;
+	height: 40%;
+	width: 100%;
+	right: 50%;
+	top: 50%;
+	background: linear-gradient(to bottom, var(--accent), var(--foreground));
+	box-shadow: 0 0 50px 10px var(--accent);
+	transform-origin: 100% 50%;
+	opacity: 0;
 }
 
 .warningIcon {

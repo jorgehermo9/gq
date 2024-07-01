@@ -1,0 +1,21 @@
+.overlay {
+	@apply fixed inset-0 z-50;
+
+	&[data-state="open"] {
+		animation: blur 0.2s forwards;
+	}
+
+	&[data-state="closed"] {
+		animation: blur 0.2s backwards;
+	}
+}
+
+@keyframes blur {
+	from {
+		backdrop-filter: blur(0);
+	}
+
+	to {
+		backdrop-filter: blur(var(--blur));
+	}
+}

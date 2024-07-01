@@ -8,7 +8,15 @@ import {
 } from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
-import type { LanguageSupport } from "@codemirror/language";
+import {
+	LRLanguage,
+	LanguageSupport,
+	continuedIndent,
+	foldInside,
+	foldNodeProp,
+	indentNodeProp,
+} from "@codemirror/language";
+import { parser } from "@lezer/json";
 import { type Extension, Prec, keymap } from "@uiw/react-codemirror";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
@@ -65,8 +73,27 @@ export const convertCode = async (
 	}
 };
 
+const gqLanguageParser = LRLanguage.define({
+	name: "gq",
+	parser: parser.configure({
+		props: [
+			indentNodeProp.add({
+				Object: continuedIndent({ except: /^\s*\}/ }),
+				Array: continuedIndent({ except: /^\s*\]/ }),
+			}),
+			foldNodeProp.add({
+				"Object Array": foldInside,
+			}),
+		],
+	}),
+	languageData: {
+		closeBrackets: { brackets: ["[", "{", '"', "("] },
+		indentOnInput: /^\s*[\}\]]$/,
+	},
+});
+
 const jsonLanguage = json();
-const gqLanguage = json();
+const gqLanguage = new LanguageSupport(gqLanguageParser);
 const yamlLanguage = yaml();
 
 const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport => {
@@ -96,9 +123,7 @@ export const getCodemirrorExtensionsByFileType = (
 				autocompletion({
 					override: completionSource && [completionSource],
 					tooltipClass: () => "rounded-sm overflow-hidden !bg-muted-transparent !text-foreground",
-					// TODO: Fix this
-					optionClass: () => "!aria[selected=true]:bg-accent",
-					closeOnBlur: true,
+					closeOnBlur: false,
 					defaultKeymap: true,
 				}),
 				Prec.highest(
