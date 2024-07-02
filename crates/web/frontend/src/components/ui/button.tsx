@@ -13,7 +13,7 @@ const buttonVariants = cva(
 				default: "bg-primary text-primary-foreground hover:bg-primary/90",
 				error: "bg-error text-foreground hover:bg-error/90",
 				success: "bg-success text-background",
-				outline: "border border-accent-background",
+				outline: "border border-accent-background bg-background",
 				secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				ghost: "",
 				link: "text-primary underline-offset-4 hover:underline",
@@ -97,9 +97,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 					onMouseMove={handleMouseMove}
 					{...props}
 				>
-					{props.children}
 					<motion.div
-						className="absolute inset-0 -z-10 rounded-full pointer-events-none"
+						className="absolute inset-0 rounded-full pointer-events-none"
 						style={{
 							x: fillX,
 							y: fillY,
@@ -123,6 +122,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 							}}
 						/>
 					</motion.div>
+					{props.children}
 				</Comp>
 			</div>
 		);
