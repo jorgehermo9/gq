@@ -106,7 +106,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 							height: maxSize * 1.6,
 						}}
 						initial={{ opacity: 0 }}
-						animate={{ opacity: isHover ? 0.15 : 0 }}
+						animate={{ opacity: isHover ? 0.1 : 0 }}
 						transition={{ duration: 0.2 }}
 					>
 						<div
