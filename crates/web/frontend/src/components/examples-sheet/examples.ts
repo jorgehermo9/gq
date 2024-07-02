@@ -138,6 +138,39 @@ const fieldAliasing: ExampleSection = {
 	],
 };
 
+const arrayInRoot: ExampleSection = {
+	title: "Array in root",
+	json: [
+		{
+			name: "Product 1",
+			quantity: 8,
+			price: 9.95,
+		},
+		{
+			name: "Product 2",
+			quantity: 5,
+			price: 14.95,
+		},
+		{
+			name: "Product 3",
+			quantity: 4,
+			price: 24.95,
+		},
+	],
+	queries: [
+		{
+			query: "name",
+			title: "Primitive property",
+			description: "Simple accessing with the same syntax as the other examples",
+		},
+		{
+			query: "(quantity > 5)",
+			title: "Primitive property",
+			description: "Simple access to a primitive object property",
+		},
+	],
+};
+
 const otherExamples: ExampleSection = {
 	title: "Other examples",
 	json: {
