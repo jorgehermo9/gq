@@ -260,7 +260,7 @@ const Editor = ({
 				/>
 				{available ? (
 					<CodeMirror
-						className="w-full h-full rounded-lg text-[0.8rem] overflow-hidden"
+						className="w-full h-full rounded-lg text-xs overflow-hidden"
 						value={instantContent}
 						onChange={setContent}
 						height="100%"

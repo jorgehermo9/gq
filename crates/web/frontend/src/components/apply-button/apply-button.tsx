@@ -35,7 +35,7 @@ const ApplyButton = ({ autoApply, onClick }: Props) => {
 		<ActionButton
 			className="rounded-full p-4"
 			onClick={onClick}
-			description="Apply the query to the provided JSON (Alt + Enter)"
+			description="Apply the query to the provided JSON"
 		>
 			<Play className="w-6 h-6" />
 		</ActionButton>

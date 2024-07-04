@@ -23,7 +23,6 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "../ui/alert-dialog";
-import { Separator } from "../ui/separator";
 import {
 	Sheet,
 	SheetContent,
@@ -33,6 +32,8 @@ import {
 	SheetTrigger,
 } from "../ui/sheet";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import styles from "./examples-sheet.module.css";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -105,26 +106,30 @@ const ExamplesSection = ({ title, exampleSection, onClick }: ExampleSectionProps
 	);
 
 	return (
-		<div className="flex flex-col gap-4">
-			<h2 className="font-semibold text-md">{title}</h2>
-			<CodeMirror
-				className="w-full rounded-lg text-[0.8rem]"
-				value={JSON.stringify(exampleSection.json, null, " ".repeat(jsonTabSize))}
-				height="100%"
-				theme={gqTheme}
-				extensions={[json()]}
-				editable={false}
-				basicSetup={{
-					lineNumbers: true,
-					lintKeymap: true,
-					highlightActiveLineGutter: false,
-					highlightActiveLine: false,
-				}}
-			/>
-			{exampleSection.queries.map((example) => (
-				<ExampleItem key={example.title} example={example} onClick={handleClick} />
-			))}
-		</div>
+		<AccordionItem value={title}>
+			<AccordionTrigger className="font-semibold text-sm py-6">{title}</AccordionTrigger>
+			<AccordionContent>
+				<div className="flex flex-col gap-4">
+					<CodeMirror
+						className="w-full rounded-lg text-xs"
+						value={JSON.stringify(exampleSection.json, null, " ".repeat(jsonTabSize))}
+						height="100%"
+						theme={gqTheme}
+						extensions={[json()]}
+						editable={false}
+						basicSetup={{
+							lineNumbers: true,
+							lintKeymap: true,
+							highlightActiveLineGutter: false,
+							highlightActiveLine: false,
+						}}
+					/>
+					{exampleSection.queries.map((example) => (
+						<ExampleItem key={example.title} example={example} onClick={handleClick} />
+					))}
+				</div>
+			</AccordionContent>
+		</AccordionItem>
 	);
 };
 
@@ -208,7 +213,7 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 						/>
 					</div>
 				</SheetTrigger>
-				<SheetContent side="left" className="sm:max-w-lg overflow-y-auto">
+				<SheetContent side="left" className="sm:max-w-lg overflow-y-scroll">
 					<SheetHeader>
 						<SheetTitle>Query Examples</SheetTitle>
 						<SheetDescription>
@@ -216,16 +221,16 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 							endless possiblities!
 						</SheetDescription>
 					</SheetHeader>
-					{queryExamples.map((exampleSection: ExampleSection) => (
-						<div key={exampleSection.title}>
-							<Separator />
+					<Accordion type="multiple" className={styles.accordion}>
+						{queryExamples.map((exampleSection: ExampleSection) => (
 							<ExamplesSection
+								key={exampleSection.title}
 								title={exampleSection.title}
 								exampleSection={exampleSection}
 								onClick={handleClick}
 							/>
-						</div>
-					))}
+						))}
+					</Accordion>
 				</SheetContent>
 			</Sheet>
 		</>

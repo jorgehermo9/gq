@@ -29,7 +29,7 @@ const EditorConsole = ({ lines, visible, onClose }: Props) => {
 							<div
 								// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
 								key={index}
-								className="flex items-center gap-4 py-2.5 px-4 border-b border-muted-transparent text-[0.8rem] font-mono"
+								className="flex items-center gap-4 py-2.5 px-4 border-b border-muted-transparent text-xs font-mono"
 							>
 								<span className="text-warning font-semibold">WARN</span>
 								<span className="">{line}</span>
