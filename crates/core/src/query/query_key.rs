@@ -11,10 +11,8 @@ use regex::Regex;
 use serde_json::Value;
 
 use super::{
-    apply::InternalError,
-    context::Context,
-    query_arguments::QueryArguments,
-    query_operator::{self, QueryOperator},
+    apply::InternalError, context::Context, query_arguments::QueryArguments,
+    query_operators::QueryOperators,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -68,7 +66,7 @@ pub struct AtomicQueryKey {
     key: RawKey,
     arguments: QueryArguments,
     // TODO: change this to Vec<QueryOperator> so we can chain operators ([0][0] and etc``)
-    operator: Option<QueryOperator>,
+    operators: QueryOperators,
 }
 
 impl Display for AtomicQueryKey {
@@ -127,7 +125,7 @@ impl<'a> QueryKey {
             Cow::Borrowed(value),
             self.keys(),
             &QueryArguments::default(),
-            &None,
+            &QueryOperators::default(),
             context,
         )
     }
@@ -139,7 +137,7 @@ impl<'a> QueryKey {
         self.inspect_owned_with_arguments_and_operator(
             value,
             &QueryArguments::default(),
-            &None,
+            &QueryOperators::default(),
             context,
         )
     }
@@ -149,11 +147,17 @@ impl<'a> QueryKey {
         &'a self,
         value: Value,
         arguments: &QueryArguments,
-        operator: &Option<QueryOperator>,
+        operators: &QueryOperators,
         context: &Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
-        Self::do_inspect(Cow::Owned(value), self.keys(), arguments, operator, context)
-            .map(Cow::into_owned)
+        Self::do_inspect(
+            Cow::Owned(value),
+            self.keys(),
+            arguments,
+            operators,
+            context,
+        )
+        .map(Cow::into_owned)
     }
 
     // TODO:
@@ -165,7 +169,7 @@ impl<'a> QueryKey {
         value: Cow<'b, Value>,
         keys: &'a [AtomicQueryKey],
         parent_arguments: &QueryArguments,
-        parent_operator: &Option<QueryOperator>,
+        parent_operators: &QueryOperators,
         context: &Context<'a>,
     ) -> Result<Cow<'b, Value>, InternalError<'a>> {
         let result = match value {
@@ -178,11 +182,8 @@ impl<'a> QueryKey {
             value => Self::do_inspect_primitive(value, keys, parent_arguments, context)?,
         };
 
-        let result = if let Some(operator) = parent_operator {
-            operator.apply(result, context)?
-        } else {
-            result
-        };
+        let result = parent_operators.apply(result, context)?;
+
         Ok(result)
     }
 
@@ -205,7 +206,7 @@ impl<'a> QueryKey {
 
         let raw_key = atomic_query_key.key();
         let arguments = atomic_query_key.arguments();
-        let query_operator = atomic_query_key.operator();
+        let query_operators = atomic_query_key.operators();
         let new_context = context.push_raw_key(raw_key);
 
         let current = match value {
@@ -221,7 +222,7 @@ impl<'a> QueryKey {
         }
         .ok_or(InternalError::KeyNotFound(new_context.path().clone()))?;
 
-        Self::do_inspect(current, rest, arguments, query_operator, &new_context)
+        Self::do_inspect(current, rest, arguments, query_operators, &new_context)
     }
     pub fn do_inspect_array<'b>(
         value: Cow<'b, Value>,
@@ -251,7 +252,13 @@ impl<'a> QueryKey {
                     }
                     _ => &default_query_arguments,
                 };
-                Self::do_inspect(item, keys, arguments_to_propagate, &None, &item_context)
+                Self::do_inspect(
+                    item,
+                    keys,
+                    arguments_to_propagate,
+                    &QueryOperators::default(),
+                    &item_context,
+                )
             })
             .flat_map(|result| {
                 result

@@ -1,13 +1,14 @@
 use crate::lexer::{self, Token};
 use crate::query::query_arguments::{
-    QueryArgument, QueryArgumentOperation, QueryArgumentValue, QueryArguments,
+    Number, QueryArgument, QueryArgumentOperation, QueryArgumentValue, QueryArguments,
 };
 use crate::query::query_key::{AtomicQueryKey, QueryKey, RawKey};
-use crate::query::query_operator::QueryOperator;
+use crate::query::query_operators::{IndexingValue, QueryOperator, QueryOperators};
 use crate::query::{ChildQuery, ChildQueryBuilder, Query, QueryBuilder};
 use logos::{Logos, Span, SpannedIter};
 use regex::Regex;
 use std::iter::Peekable;
+use std::ops::Range;
 use std::str::FromStr;
 use thiserror::Error;
 
@@ -114,7 +115,7 @@ impl<'src> Parser<'src> {
     fn parse_root_query(&mut self) -> Result<Query> {
         let root_span_start = self.current_span()?;
         let arguments = self.parse_query_arguments()?;
-        let operator = self.parse_query_operator()?;
+        let operators = self.parse_query_operators()?;
         let root_query_key = self.parse_root_query_key()?;
 
         match self.peek()? {
@@ -126,7 +127,7 @@ impl<'src> Parser<'src> {
 
                 QueryBuilder::default()
                     .arguments(arguments)
-                    .operator(operator)
+                    .operators(operators)
                     .children(children)
                     .key(root_query_key)
                     .build()
@@ -136,7 +137,7 @@ impl<'src> Parser<'src> {
                 let root_span = Self::span_between(root_span_start, root_span_end);
                 QueryBuilder::default()
                     .arguments(arguments)
-                    .operator(operator)
+                    .operators(operators)
                     .key(root_query_key)
                     .build()
                     .map_err(|err| Error::Construction(err.into(), root_span))
@@ -224,8 +225,8 @@ impl<'src> Parser<'src> {
     fn parse_atomic_query_key(&mut self) -> Result<AtomicQueryKey> {
         let raw_key = self.parse_raw_key()?;
         let arguments = self.parse_query_arguments()?;
-        let query_operator = self.parse_query_operator()?;
-        Ok(AtomicQueryKey::new(raw_key, arguments, query_operator))
+        let query_operators = self.parse_query_operators()?;
+        Ok(AtomicQueryKey::new(raw_key, arguments, query_operators))
     }
 
     /// # Grammar
@@ -267,15 +268,25 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `QUERY_OPERATOR -> [NUMBER] | ε
+    /// `QUERY_OPERATORS -> QUERY_OPERATOR QUERY_OPERATORS | ε`
+    fn parse_query_operators(&mut self) -> Result<QueryOperators> {
+        let mut operators = Vec::new();
+
+        loop {
+            match self.parse_query_operator()? {
+                Some(operator) => operators.push(operator),
+                None => return Ok(QueryOperators::new(operators)),
+            }
+        }
+    }
+
+    /// # Grammar
+    /// `QUERY_OPERATOR -> [INDEX] | ε
     fn parse_query_operator(&mut self) -> Result<Option<QueryOperator>> {
         match self.peek()? {
             (Token::LBracket, _) => {
                 self.consume()?;
-                // TODO: fix the usage of usize
-                let index = self.parse_number()? as usize;
-                // TODO: fix the creation of the range
-                // TODO: Implement the RangeIndexing
+                let index = self.parse_index()?;
                 let query_operator = QueryOperator::Indexing(index);
                 match self.next_token()? {
                     (Token::RBracket, _) => Ok(Some(query_operator)),
@@ -338,21 +349,29 @@ impl<'src> Parser<'src> {
     }
 
     /// # Grammar
-    /// `QUERY_ARGUMENT_VALUE -> string | number | boolean | null`
+    /// `QUERY_ARGUMENT_VALUE -> string | NUMBER | boolean | null`
     fn parse_query_argument_value(&mut self) -> Result<QueryArgumentValue> {
+        match self.peek()? {
+            (Token::PosInteger(_), _) | (Token::NegInteger(_), _) | (Token::Float(_), _) => {
+                return Ok(QueryArgumentValue::Number(self.parse_number()?))
+            }
+            _ => (),
+        }
         match self.next_token()? {
             (Token::String(value), _) => Ok(QueryArgumentValue::String(value)),
-            (Token::Number(value), _) => Ok(QueryArgumentValue::Number(value)),
+            // (Token::Integer(value), _) => Ok(QueryArgumentValue::Number(value)),
             (Token::Bool(value), _) => Ok(QueryArgumentValue::Bool(value)),
             (Token::Null, _) => Ok(QueryArgumentValue::Null),
             (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }
     }
     /// # Grammar
-    /// `NUMBER -> number`
-    fn parse_number(&mut self) -> Result<f64> {
+    /// `NUMBER -> pos_integer | neg_integer | float`
+    fn parse_number(&mut self) -> Result<Number> {
         match self.next_token()? {
-            (Token::Number(value), _) => Ok(value),
+            (Token::PosInteger(value), _) => Ok(Number::PosInteger(value)),
+            (Token::NegInteger(value), _) => Ok(Number::NegInteger(value)),
+            (Token::Float(value), _) => Ok(Number::Float(value)),
             (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }
     }
@@ -366,6 +385,47 @@ impl<'src> Parser<'src> {
             }
             (unexpected_token, span) => Err(Error::UnexpectedToken(unexpected_token, span)),
         }
+    }
+
+    /// # Grammar
+    /// `INDEX -> pos_integer | RANGE`
+    /// TODO: this parsing is very nasty, refactor it or think another way
+    fn parse_index(&mut self) -> Result<IndexingValue> {
+        let first_number = match self.next_token()? {
+            // TODO correct way to handle usize casting
+            (Token::PosInteger(value), _) => value,
+            (unexpected_token, span) => return Err(Error::UnexpectedToken(unexpected_token, span)),
+        };
+
+        match self.peek()? {
+            (Token::Dot, _) => {
+                // TODO: handle u64 -> usize cast
+                let range = self.parse_range_end(first_number as usize)?;
+                Ok(IndexingValue::Range(range))
+            }
+            // TODO: handle u64 -> usize cast
+            _ => Ok(IndexingValue::Index(first_number as usize)),
+        }
+    }
+
+    /// # Grammar
+    /// `RANGE_END -> .. pos_integer`
+    fn parse_range_end(&mut self, start: usize) -> Result<Range<usize>> {
+        for _ in 0..2 {
+            match self.next_token()? {
+                (Token::Dot, _) => (),
+                (unexpected_token, span) => {
+                    return Err(Error::UnexpectedToken(unexpected_token, span))
+                }
+            }
+        }
+
+        let end = match self.next_token()? {
+            (Token::PosInteger(value), _) => value as usize,
+            (unexpected_token, span) => return Err(Error::UnexpectedToken(unexpected_token, span)),
+        };
+
+        Ok(start..end)
     }
 }
 

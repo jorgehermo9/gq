@@ -18,7 +18,7 @@ pub enum Error {
     #[error("tried to apply arguments in a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(OwnedJsonPath),
     #[error("{0}")]
-    QueryOperatorError(#[from] super::query_operator::Error),
+    QueryOperatorError(#[from] super::query_operators::Error),
 }
 
 impl From<InternalError<'_>> for Error {
@@ -52,7 +52,7 @@ pub enum InternalError<'a> {
     #[error("tried to apply arguments in a non-filtrable value (not an array) at '{0}'")]
     NonFiltrableValue(JsonPath<'a>),
     #[error("{0}")]
-    QueryOperatorError(#[from] super::query_operator::Error),
+    QueryOperatorError(#[from] super::query_operators::Error),
 }
 
 impl Query {
@@ -63,7 +63,7 @@ impl Query {
         let new_root_json = root_query_key.inspect_owned_with_arguments_and_operator(
             root_json,
             self.arguments(),
-            self.operator(),
+            self.operators(),
             &root_context,
         )?;
         // TODO: maybe the inspect function should return the inspected context

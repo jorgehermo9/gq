@@ -14,6 +14,7 @@ pub enum Error {
 #[derive(Clone, Debug, Logos, PartialEq)]
 #[logos(skip r"[ \t\r\n\f]+")]
 #[logos(error = Error)]
+
 pub enum Token {
     #[token("{")]
     LBrace,
@@ -56,10 +57,17 @@ pub enum Token {
     #[token("false", |_| false)]
     #[token("true", |_| true)]
     Bool(bool),
+    // TODO: conflate those 3 types into a single Number enum?
     // Got from https://logos.maciej.codes/examples/json.html, didn't even mind to understand it
     // TODO: the unwrap is ok here? the regex should be valid for the f64 parsing
-    #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
-    Number(f64),
+    #[regex(r"-?(?:0|[1-9]\d*)\.\d+(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
+    Float(f64),
+    // TODO: handle error
+    #[regex(r"0|[1-9]\d*", |lex| lex.slice().parse::<u64>().unwrap())]
+    PosInteger(u64),
+    // TODO: handle error
+    #[regex(r"-(?:0|[1-9]\d*)", |lex| lex.slice().parse::<i64>().unwrap())]
+    NegInteger(i64),
     // This string follows [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259)
     // Single quoted strings are not allowed
     #[regex(r#""(?:[^"]|\\")*""#, |lex| {
@@ -97,7 +105,9 @@ impl Display for Token {
             Token::NotTilde => "!~".fmt(f),
             Token::Identifier(key) => key.fmt(f),
             Token::Bool(b) => b.fmt(f),
-            Token::Number(n) => n.fmt(f),
+            Token::PosInteger(n) => n.fmt(f),
+            Token::NegInteger(n) => n.fmt(f),
+            Token::Float(n) => n.fmt(f),
             Token::String(s) => s.fmt(f),
             Token::Null => "null".fmt(f),
             Token::EOF => "EOF".fmt(f),
@@ -161,7 +171,7 @@ mod tests {
     #[case::float_with_uppercase_negative_exponent("5.5E-5", 5.5e-5)]
     fn number_token_parses(#[case] input: &str, #[case] expected: f64) {
         let token = get_next_token(input);
-        let expected = Token::Number(expected);
+        let expected = Token::Float(expected);
         assert_eq!(token, expected);
     }
 

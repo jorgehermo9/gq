@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use derive_builder::{Builder, UninitializedFieldError};
 use derive_getters::Getters;
 use query_key::{QueryKey, RawKey};
-use query_operator::QueryOperator;
+use query_operators::QueryOperators;
 use thiserror::Error;
 
 pub mod apply;
@@ -11,7 +11,7 @@ mod context;
 pub mod format;
 pub mod query_arguments;
 pub mod query_key;
-pub mod query_operator;
+pub mod query_operators;
 
 pub use self::context::OwnedJsonPath;
 use self::query_arguments::QueryArguments;
@@ -48,7 +48,7 @@ pub struct Query {
     #[builder(default)]
     pub arguments: QueryArguments,
     #[builder(default)]
-    pub operator: Option<QueryOperator>,
+    pub operators: QueryOperators,
     #[builder(default)]
     pub key: QueryKey,
     #[builder(default)]

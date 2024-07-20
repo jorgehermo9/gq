@@ -1,11 +1,11 @@
 use std::{borrow::Cow, ops::Range};
 
+use derive_more::Constructor;
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::query::query_arguments::ValueType;
-
 use super::context::Context;
+use crate::query::query_arguments::ValueType;
 
 #[derive(Error, Debug, Clone)]
 pub enum Error {
@@ -17,18 +17,22 @@ pub enum Error {
 }
 
 #[derive(Debug, Clone)]
+pub enum IndexingValue {
+    Range(Range<usize>),
+    Index(usize),
+}
+
+#[derive(Debug, Clone)]
 pub enum QueryOperator {
     // TODO: support for indexing with strings? ["key"]? Does this makes sense in our case?
-    RangeIndexing(Range<usize>),
     //TODO: should query arguments be a type of QueryOperator? so we can to something like
     // {query_key[0](key="x")}
-    Indexing(usize),
+    Indexing(IndexingValue),
 }
 
 impl QueryOperator {
     pub fn operator_type(&self) -> &str {
         match self {
-            Self::RangeIndexing(_) => "range indexing",
             Self::Indexing(_) => "indexing",
         }
     }
@@ -39,16 +43,20 @@ impl QueryOperator {
         _context: &Context,
     ) -> Result<Cow<'a, Value>, Error> {
         match self {
-            Self::RangeIndexing(range) => self.apply_range_indexing(range, value),
-            Self::Indexing(index) => self.apply_indexing(*index, value),
+            Self::Indexing(indexing_value) => match indexing_value {
+                IndexingValue::Range(range) => self
+                    .apply_range_indexing(range.clone(), value)
+                    .map(Cow::Owned),
+                IndexingValue::Index(index) => self.apply_indexing(*index, value),
+            },
         }
     }
 
     fn apply_range_indexing<'a>(
         &self,
-        range: &Range<usize>,
+        range: Range<usize>,
         value: Cow<'a, Value>,
-    ) -> Result<Cow<'a, Value>, Error> {
+    ) -> Result<Value, Error> {
         let array = match value {
             Cow::Owned(Value::Array(array)) => Cow::Owned(array),
             Cow::Borrowed(Value::Array(array)) => Cow::Borrowed(array),
@@ -60,16 +68,14 @@ impl QueryOperator {
             }
         };
 
-        match array {
-            Cow::Owned(mut array) => {
-                let indexed = array.drain(range.clone()).collect::<Vec<Value>>();
-                return Ok(Cow::Owned(Value::Array(indexed)));
-            }
-            Cow::Borrowed(array) => {
-                let indexed = array.get(range.clone()).unwrap_or_default().to_vec();
-                return Ok(Cow::Owned(Value::Array(indexed)));
-            }
+        let result = match array {
+            Cow::Owned(mut array) => array.drain(range).collect::<Vec<Value>>(),
+            Cow::Borrowed(array) => array
+                .get(range.clone())
+                .expect("TODO: handle range out of bounds")
+                .to_vec(),
         };
+        Ok(Value::Array(result))
     }
 
     fn apply_indexing<'a>(
@@ -100,5 +106,23 @@ impl QueryOperator {
                 return Ok(Cow::Borrowed(indexed));
             }
         };
+    }
+}
+
+#[derive(Debug, Clone, Constructor, Default)]
+pub struct QueryOperators(Vec<QueryOperator>);
+
+impl QueryOperators {
+    pub fn apply<'a>(
+        &self,
+        value: Cow<'a, Value>,
+        context: &Context,
+    ) -> Result<Cow<'a, Value>, Error> {
+        // TODO: handle context
+        let mut value = value;
+        for operator in self.0.iter() {
+            value = operator.apply(value, context)?;
+        }
+        Ok(value)
     }
 }
