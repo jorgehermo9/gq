@@ -44,6 +44,7 @@ impl QueryOperator {
     ) -> Result<Cow<'a, Value>, Error> {
         match self {
             Self::Indexing(indexing_value) => match indexing_value {
+                // TODO: move this logic into a IndexingValue method
                 IndexingValue::Range(range) => self
                     .apply_range_indexing(range.clone(), value)
                     .map(Cow::Owned),
