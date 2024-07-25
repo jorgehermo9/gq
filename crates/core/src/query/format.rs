@@ -17,6 +17,7 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+// TODO: implement pretty print with operators
 impl Query {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
@@ -58,6 +59,7 @@ impl Query {
     }
 }
 
+// TODO: implement pretty print with operators
 impl ChildQuery {
     fn do_pretty_format(&self, result: &mut String, indentation: Indentation, level: usize) {
         let indent_string = indentation.at_level(level);

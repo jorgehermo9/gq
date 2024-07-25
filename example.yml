@@ -1,0 +1,4 @@
+test:
+  smigol:
+    - name: 'smigol'
+      age: 100

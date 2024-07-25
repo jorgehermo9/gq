@@ -1,0 +1,46 @@
+[
+  {
+    "user": "David",
+    "bill": {
+      "title": "Hello",
+      "purchaser": "Trile S.A",
+      "seller": "Corunat S.A",
+      "products": [
+        {
+          "name": "Fanta",
+          "subname": "Orange",
+          "quantity": 1,
+          "price": 1.7,
+          "new": false,
+          "attribute_only_false": false,
+          "tags": {
+            "names": [["0.0", "0.1"]]
+          }
+        },
+        {
+          "name": "CocacolaUno",
+          "quantity": 8,
+          "price": 1.3,
+          "new": true,
+          "attribute_only_new": true,
+          "tags": {
+            "names": [["1.0", "1.1"]]
+          }
+        },
+        {
+          "name": "CocacolaDos",
+          "quantity": 8,
+          "price": 1.3,
+          "new": true,
+          "tags": {
+            "names": [["2.0", "2.1"]]
+          }
+        }
+      ]
+    },
+    "config": {
+      "font_size": 12,
+      "font_style": "latex"
+    }
+  }
+]

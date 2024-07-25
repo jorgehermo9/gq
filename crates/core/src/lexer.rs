@@ -23,6 +23,10 @@ pub enum Token {
     LParen,
     #[token(")")]
     RParen,
+    #[token("[")]
+    LBracket,
+    #[token("]")]
+    RBracket,
     #[token(".")]
     Dot,
     #[token(":")]
@@ -52,12 +56,19 @@ pub enum Token {
     #[token("false", |_| false)]
     #[token("true", |_| true)]
     Bool(bool),
+    // TODO: conflate those 3 types into a single Number enum?
     // Got from https://logos.maciej.codes/examples/json.html, didn't even mind to understand it
     // TODO: the unwrap is ok here? the regex should be valid for the f64 parsing
-    #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
-    Number(f64),
+    #[regex(r"-?(?:0|[1-9]\d*)\.\d+(?:[eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
+    Float(f64),
+    // TODO: handle error
+    #[regex(r"0|[1-9]\d*", |lex| lex.slice().parse::<u64>().unwrap())]
+    PosInteger(u64),
+    // TODO: handle error
+    #[regex(r"-(?:0|[1-9]\d*)", |lex| lex.slice().parse::<i64>().unwrap())]
+    NegInteger(i64),
     // This string follows [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259)
-    // Single quoted strings are not allowed
+    // Single quoted strings are not allowed since they are not part of that rfc standard
     #[regex(r#""(?:[^"]|\\")*""#, |lex| {
         // TODO: handle the unquote error with custom lexer errors
         // TODO: improve slicing?
@@ -78,6 +89,8 @@ impl Display for Token {
             Token::RBrace => '}'.fmt(f),
             Token::LParen => '('.fmt(f),
             Token::RParen => ')'.fmt(f),
+            Token::LBracket => '['.fmt(f),
+            Token::RBracket => ']'.fmt(f),
             Token::Dot => '.'.fmt(f),
             Token::Colon => ':'.fmt(f),
             Token::Comma => ','.fmt(f),
@@ -91,7 +104,9 @@ impl Display for Token {
             Token::NotTilde => "!~".fmt(f),
             Token::Identifier(key) => key.fmt(f),
             Token::Bool(b) => b.fmt(f),
-            Token::Number(n) => n.fmt(f),
+            Token::PosInteger(n) => n.fmt(f),
+            Token::NegInteger(n) => n.fmt(f),
+            Token::Float(n) => n.fmt(f),
             Token::String(s) => s.fmt(f),
             Token::Null => "null".fmt(f),
             Token::EOF => "EOF".fmt(f),
@@ -112,8 +127,12 @@ mod tests {
             .expect("There should be at least one token")
             .expect("Error parsing token");
         assert_eq!(lexer.next(), None);
-
         token
+    }
+
+    fn assert_next_token(input: &str, expected: Token) {
+        let token = get_next_token(input);
+        assert_eq!(token, expected);
     }
 
     #[rstest]
@@ -121,6 +140,8 @@ mod tests {
     #[case::r_brace("}", Token::RBrace)]
     #[case::l_paren("(", Token::LParen)]
     #[case::r_paren(")", Token::RParen)]
+    #[case::l_bracket("[", Token::LBracket)]
+    #[case::r_bracket("]", Token::RBracket)]
     #[case::dot(".", Token::Dot)]
     #[case::colon(":", Token::Colon)]
     #[case::comma(",", Token::Comma)]
@@ -136,34 +157,64 @@ mod tests {
     #[case::false_token("false", Token::Bool(false))]
     #[case::null("null", Token::Null)]
     fn simple_token_parses(#[case] input: &str, #[case] expected: Token) {
-        let token = get_next_token(input);
-        assert_eq!(token, expected);
+        assert_next_token(input, expected);
     }
 
     #[rstest]
-    #[case::positive("5", 5.0)]
-    #[case::negative("-5", -5.0)]
-    #[case::float("5.5", 5.5)]
-    #[case::negative_float("-5.5", -5.5)]
+    #[case::positive("5.0", 5.0)]
+    #[case::negative("-5.0", -5.0)]
+    #[case::positive_non_zero_decimal("5.5", 5.5)]
+    #[case::negative_non_zero_decimal("-5.5", -5.5)]
     #[case::float_with_exponent("5.5e5", 5.5e5)]
     #[case::float_with_negative_exponent("5.5e-5", 5.5e-5)]
     #[case::float_with_positive_exponent("5.5e+5", 5.5e5)]
     #[case::float_with_uppercase_exponent("5.5E5", 5.5e5)]
     #[case::float_with_uppercase_positive_exponent("5.5E+5", 5.5e5)]
     #[case::float_with_uppercase_negative_exponent("5.5E-5", 5.5e-5)]
-    fn number_token_parses(#[case] input: &str, #[case] expected: f64) {
-        let token = get_next_token(input);
-        let expected = Token::Number(expected);
-        assert_eq!(token, expected);
+    fn float_parses(#[case] input: &str, #[case] expected: f64) {
+        let expected = Token::Float(expected);
+        assert_next_token(input, expected);
     }
 
     #[test]
     #[should_panic]
-    fn number_token_parse_fails_when_wrong_decimal_separator() {
+    fn float_parse_fails_when_wrong_decimal_separator() {
         let input = "5,5";
         // This fails due to the fact that this input is three tokens length
         // and the get_next_token asserts that there are no tokens left
         get_next_token(input);
+    }
+
+    #[rstest]
+    #[case::pos_integer("5", 5)]
+    #[case::zero("0", 0)]
+    #[case::u64_max("18446744073709551615", u64::MAX)]
+    fn pos_integer_parses(#[case] input: &str, #[case] expected: u64) {
+        let expected = Token::PosInteger(expected);
+        assert_next_token(input, expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn pos_integer_fails_when_bigger_than_u64() {
+        let input = "18446744073709551616"; // u64::MAX + 1
+        get_next_token(&input);
+    }
+
+    #[rstest]
+    #[case::neg_integer("-5", -5)]
+    #[case::zero("-0", 0)]
+    #[case::neg_integer_max("-9223372036854775808", i64::MIN)]
+    fn neg_integer_parses(#[case] input: &str, #[case] expected: i64) {
+        let expected = Token::NegInteger(expected);
+        assert_next_token(input, expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn neg_integer_fails_when_smaller_than_i64() {
+        let input = "-9223372036854775809"; // i64::MIN - 1
+        get_next_token(&input);
     }
 
     #[rstest]
@@ -174,10 +225,9 @@ mod tests {
     #[case::with_dash_and_underscore("key-with-dash_and_underscore")]
     #[case::with_caps("KeyWithCaps")]
     #[case::starting_with_underscore("_key")]
-    fn identifier_token_parses(#[case] input: &str) {
+    fn identifier_parses(#[case] input: &str) {
         let expected = Token::Identifier(input.to_string());
-        let token = get_next_token(input);
-        assert_eq!(token, expected);
+        assert_next_token(input, expected);
     }
 
     #[rstest]
@@ -191,16 +241,15 @@ mod tests {
     #[case::backslash(r#""Java\\Script""#, "Java\\Script")]
     #[case::backslash_and_quote(r#""Java\\\"Script""#, "Java\\\"Script")]
     #[case::mixed(r#""/Jav\r\n\ta\\\"Scri\"pt\n""#, "/Jav\r\n\ta\\\"Scri\"pt\n")]
-    fn string_token_parses(#[case] input: &str, #[case] expected: &str) {
+    fn string_parses(#[case] input: &str, #[case] expected: &str) {
         let expected = Token::String(expected.to_string());
-        let token = get_next_token(input);
-        assert_eq!(token, expected);
+        assert_next_token(input, expected);
     }
 
     // TODO: change the lexer so an `Err` variant is returned instead of panicking
     #[test]
     #[should_panic]
-    fn string_token_parse_unescape_fails_when_malformed_escaped_input() {
+    fn string_parse_unescape_fails_when_malformed_escaped_input() {
         let input = r#""Java\\"Script""#;
         get_next_token(input);
     }
@@ -208,7 +257,7 @@ mod tests {
     // Single quoted strings are not allowed
     #[test]
     #[should_panic]
-    fn string_token_parse_fails_when_single_quoted() {
+    fn string_parse_fails_when_single_quoted() {
         let input = r#"'Java Script'"#;
         get_next_token(input);
     }

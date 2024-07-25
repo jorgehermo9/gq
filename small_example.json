@@ -1,0 +1,64 @@
+{
+	"user": "David",
+	"bill": {
+	  "title": "Hello",
+	  "purchaser": "Trile S.A",
+	  "seller": "Corunat S.A",
+	  "products": [
+		{
+		  "name": "Coca Cola",
+		  "quantity": 3,
+		  "price": 2.5,
+		  "new": false
+		},
+		{
+		  "name": "Pepsi",
+		  "quantity": 1,
+		  "price": 2.0,
+		  "new": false
+		},
+		{
+		  "name": "Fanta",
+		  "quantity": 1,
+		  "price": 1.7,
+		  "new": false
+		},
+		{
+		  "name": "Sprite",
+		  "quantity": 8,
+		  "price": 1.3,
+		  "new": false
+		},
+		{
+		  "name": "Pepsi Max",
+		  "quantity": 2,
+		  "price": 2.0,
+		  "new": true
+		},
+		{
+		  "name": "Fanta Zero",
+		  "quantity": 8,
+		  "price": 1.7,
+		  "new": true
+		},
+		{
+		  "name": "Sprite Zero",
+		  "quantity": 4,
+		  "price": 1.3,
+		  "new": true
+		},
+		{
+		  "name": "Coca Cola Zero",
+		  "quantity": 100,
+		  "price": 3.0,
+		  "new": true
+		}
+		
+	  ]
+	},
+	"config": {
+	  "font_size": 12,
+	  "font_style": "latex"
+	}
+  }
+  

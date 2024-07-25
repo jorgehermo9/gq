@@ -1,0 +1,3 @@
+
+test:
+  cargo nextest r
