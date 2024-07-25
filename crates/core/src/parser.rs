@@ -8,7 +8,7 @@ use crate::query::{ChildQuery, ChildQueryBuilder, Query, QueryBuilder};
 use logos::{Logos, Span, SpannedIter};
 use regex::Regex;
 use std::iter::Peekable;
-use std::ops::Range;
+use std::ops::RangeInclusive;
 use std::str::FromStr;
 use thiserror::Error;
 
@@ -412,7 +412,7 @@ impl<'src> Parser<'src> {
     /// `RANGE_END -> .. pos_integer`
     // TODO: we should match rust range syntax, allowing for the `std::ops::RangeBound` trait
     // https://doc.rust-lang.org/reference/expressions/range-expr.html
-    fn parse_range_end(&mut self, start: usize) -> Result<Range<usize>> {
+    fn parse_range_end(&mut self, start: usize) -> Result<RangeInclusive<usize>> {
         for _ in 0..2 {
             match self.next_token()? {
                 (Token::Dot, _) => (),
@@ -427,7 +427,7 @@ impl<'src> Parser<'src> {
             (unexpected_token, span) => return Err(Error::UnexpectedToken(unexpected_token, span)),
         };
 
-        Ok(start..end)
+        Ok(start..=end)
     }
 }
 

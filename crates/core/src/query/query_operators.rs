@@ -1,4 +1,4 @@
-use std::{borrow::Cow, ops::Range};
+use std::{borrow::Cow, ops::RangeInclusive};
 
 use derive_more::Constructor;
 use serde_json::Value;
@@ -19,7 +19,7 @@ pub enum Error {
 #[derive(Debug, Clone)]
 pub enum IndexingValue {
     // TODO: use `std::ops::RangeBounds` instead of `Range` in order to be more generic?
-    Range(Range<usize>),
+    Range(RangeInclusive<usize>),
     Index(usize),
 }
 
