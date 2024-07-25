@@ -50,7 +50,7 @@
 	transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
 
 	&>span {
-		@apply text-[0.8rem] font-mono;
+		@apply text-xs font-mono;
 	}
 
 	&>button {

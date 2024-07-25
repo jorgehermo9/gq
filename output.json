@@ -1,0 +1,50 @@
+{
+    "bill": {
+        "products": [
+            {
+                "name": "Fanta",
+                "new": false,
+                "price": 1.7,
+                "quantity": 1,
+                "subname": "Orange",
+                "tags": {
+                    "names": [
+                        "drink",
+                        "soda"
+                    ]
+                }
+            },
+            {
+                "name": "Cocacola",
+                "new": true,
+                "price": 1.3,
+                "quantity": 8,
+                "tags": {
+                    "names": [
+                        "expensive",
+                        "drink"
+                    ]
+                }
+            },
+            {
+                "name": "Cocacola",
+                "price": 1.3,
+                "quantity": 8,
+                "tags": {
+                    "names": [
+                        "expensive",
+                        "drink"
+                    ]
+                }
+            }
+        ],
+        "purchaser": "Trile S.A",
+        "seller": "Corunat S.A",
+        "title": "Hello"
+    },
+    "config": {
+        "font_size": 12,
+        "font_style": "latex"
+    },
+    "user": "David"
+}

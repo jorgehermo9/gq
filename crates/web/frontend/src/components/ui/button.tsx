@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
 import { type VariantProps, cva } from "class-variance-authority";
 import { motion, useSpring } from "framer-motion";
-import { type MouseEvent, forwardRef, useRef, useState } from "react";
+import { type MouseEvent, forwardRef, useRef, useState, useEffect } from "react";
 import styles from "./button.module.css";
 
 const buttonVariants = cva(
@@ -13,7 +13,7 @@ const buttonVariants = cva(
 				default: "bg-primary text-primary-foreground hover:bg-primary/90",
 				error: "bg-error text-foreground hover:bg-error/90",
 				success: "bg-success text-background",
-				outline: "border border-accent-background",
+				outline: "border border-accent-background bg-background",
 				secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				ghost: "",
 				link: "text-primary underline-offset-4 hover:underline",
@@ -42,13 +42,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 	({ className, variant, size, onClick, asChild = false, ...props }, ref) => {
 		const Comp = asChild ? Slot : "button";
 		const [isHover, setIsHover] = useState(false);
-		const fillX = useSpring(0, { stiffness: 200, damping: 20 });
-		const fillY = useSpring(0, { stiffness: 200, damping: 20 });
-		const containerRef = useRef<HTMLButtonElement | null>(null);
+		const containerRef = useRef<HTMLDivElement | null>(null);
 		const maxSize = Math.max(
 			containerRef.current?.clientWidth ?? 0,
 			containerRef.current?.clientHeight ?? 0,
 		);
+		const fillX = useSpring(0, { stiffness: 200, damping: 30 });
+		const fillY = useSpring(0, { stiffness: 200, damping: 30 });
 
 		const handleMouseMove = (event: MouseEvent<HTMLButtonElement>) => {
 			const { left, top } = containerRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 };
@@ -77,41 +77,54 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 			onClick?.(e);
 		};
 
+		useEffect(() => {
+			const { width, height } = containerRef.current?.getBoundingClientRect() ?? {
+				width: 0,
+				height: 0,
+			};
+			fillX.set(width / 2);
+			fillY.set(height / 2);
+		}, [fillX, fillY]);
+
 		return (
-			<Comp
-				className={cn(buttonVariants({ variant, size, className }))}
-				ref={containerRef}
-				onClick={handleClick}
-				onMouseEnter={() => setIsHover(true)}
-				onMouseLeave={() => setIsHover(false)}
-				onMouseMove={handleMouseMove}
-				{...props}
-			>
-				{props.children}
-				<motion.div
-					className="absolute inset-0 -z-10 rounded-full pointer-events-none"
-					style={{
-						x: fillX,
-						y: fillY,
-						width: maxSize * 1.6,
-						height: maxSize * 1.6,
-					}}
-					animate={{ opacity: isHover ? 0.15 : 0 }}
+			<div ref={containerRef}>
+				<Comp
+					className={cn(buttonVariants({ variant, size, className }))}
+					ref={ref}
+					onClick={handleClick}
+					onMouseEnter={() => setIsHover(true)}
+					onMouseLeave={() => setIsHover(false)}
+					onMouseMove={handleMouseMove}
+					{...props}
 				>
-					<div
-						className="absolute inset-0 -translate-x-1/2 -translate-y-1/2"
+					<motion.div
+						className="absolute inset-0 rounded-full pointer-events-none"
 						style={{
-							display: variant === "ghost" ? "none" : "block",
-							backgroundImage: `radial-gradient(
+							x: fillX,
+							y: fillY,
+							width: maxSize * 1.6,
+							height: maxSize * 1.6,
+						}}
+						initial={{ opacity: 0 }}
+						animate={{ opacity: isHover ? 0.1 : 0 }}
+						transition={{ duration: 0.2 }}
+					>
+						<div
+							className="absolute inset-0 -translate-x-1/2 -translate-y-1/2"
+							style={{
+								display: variant === "ghost" ? "none" : "block",
+								backgroundImage: `radial-gradient(
 								circle at 50% 50%,
 								#eeefff,
 								var(--accent) 20%,
 								var(--background) 60%
 							)`,
-						}}
-					/>
-				</motion.div>
-			</Comp>
+							}}
+						/>
+					</motion.div>
+					{props.children}
+				</Comp>
+			</div>
 		);
 	},
 );

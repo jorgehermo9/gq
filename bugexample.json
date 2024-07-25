@@ -1,0 +1,24 @@
+{
+    "category": "Programming Languages",
+    "languages": [
+        {
+            "name\thola": "JavaScript\\\"",
+            "popular": true,
+            "year": 1995,
+            "tipos bonitos": {
+                "tipos?.bonitos": "bonitos"
+            }
+        },
+        {
+            "name": "Java",
+            "popular": false,
+            "year": 1995
+        },
+        {
+            "name": "Rust",
+            "popular": true,
+            "year": 2010
+        }
+    ],
+    "users": 42230
+}

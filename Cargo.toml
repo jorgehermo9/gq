@@ -4,7 +4,7 @@ resolver = "2"
 
 [workspace.package]
 edition = "2021"
-authors = ["Jorge Hermo <jorgehermogonzalez@gmail.com>", "David Rodríguez"]
+authors = ["Jorge Hermo", "David Rodríguez"]
 repository = "https://github.com/jorgehermo9/gq/"
 homepage = "https://github.com/jorgehermo9/gq/"
 documentation = "https://github.com/jorgehermo9/gq/"

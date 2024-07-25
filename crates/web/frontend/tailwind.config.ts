@@ -50,22 +50,14 @@ const config = {
 				},
 			},
 			animation: {
-				"accordion-down": "accordion-down 0.2s ease-out",
-				"accordion-up": "accordion-up 0.2s ease-out",
+				"accordion-down": "accordion-down 0.3s ease-in-out",
+				"accordion-up": "accordion-up 0.3s ease-in-out",
 			},
 		},
 	},
 	plugins: [
 		require("tailwindcss-animate"),
-		({ addVariant }: { addVariant: (name: string, variant: string) => void }) => {
-			addVariant('aria-selected', '&[aria-selected="true"]');
-		}
 	],
-	variants: {
-		extend: {
-			backgroundColor: ['aria-selected']
-		}
-	},
 } satisfies Config;
 
 export default config;

@@ -1,0 +1,4 @@
+{
+  products(price<14.0)[0].name[0]: cheap
+  products(price>=14.0)[1].name: expensive
+}

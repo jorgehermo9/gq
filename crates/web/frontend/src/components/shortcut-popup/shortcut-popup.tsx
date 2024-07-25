@@ -56,7 +56,7 @@ const ShortcutPopup = () => {
 						</Table>
 					</div>
 				))}
-				<div className="flex gap-1 justify-center items-center mt-3 text-[0.8rem]">
+				<div className="flex gap-1 justify-center items-center mt-3 text-xs">
 					<a
 						href="https://codemirror.net/5/doc/manual.html#commands"
 						target="_blank"
