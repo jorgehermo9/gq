@@ -410,6 +410,8 @@ impl<'src> Parser<'src> {
 
     /// # Grammar
     /// `RANGE_END -> .. pos_integer`
+    // TODO: we should match rust range syntax, allowing for the `std::ops::RangeBound` trait
+    // https://doc.rust-lang.org/reference/expressions/range-expr.html
     fn parse_range_end(&mut self, start: usize) -> Result<Range<usize>> {
         for _ in 0..2 {
             match self.next_token()? {

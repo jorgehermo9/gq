@@ -18,8 +18,42 @@ pub enum Error {
 
 #[derive(Debug, Clone)]
 pub enum IndexingValue {
+    // TODO: use `std::ops::RangeBounds` instead of `Range` in order to be more generic?
     Range(Range<usize>),
     Index(usize),
+}
+
+impl IndexingValue {
+    // TODO: maybe we should return Result for out of bounds handling
+    pub fn apply<'a>(&self, array: Cow<'a, Vec<Value>>) -> Cow<'a, Value> {
+        match self {
+            Self::Range(range) => {
+                let result = match array {
+                    Cow::Owned(mut array) => array.drain(range.clone()).collect::<Vec<Value>>(),
+                    Cow::Borrowed(array) => array
+                        .get(range.clone())
+                        .expect("TODO: handle range out of bounds")
+                        // Note that this `to_vec` clones the underlying `Values`
+                        .to_vec(),
+                };
+                Cow::Owned(Value::Array(result))
+            }
+            Self::Index(index) => {
+                match array {
+                    Cow::Owned(mut array) => {
+                        // TODO: handle out of bounds here
+                        let indexed = array.remove(*index);
+                        Cow::Owned(indexed)
+                    }
+                    Cow::Borrowed(array) => {
+                        // TODO: handle out of bounds
+                        let indexed = array.get(*index).expect("out of bounds");
+                        Cow::Borrowed(indexed)
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -43,45 +77,13 @@ impl QueryOperator {
         _context: &Context,
     ) -> Result<Cow<'a, Value>, Error> {
         match self {
-            Self::Indexing(indexing_value) => match indexing_value {
-                // TODO: move this logic into a IndexingValue method
-                IndexingValue::Range(range) => self
-                    .apply_range_indexing(range.clone(), value)
-                    .map(Cow::Owned),
-                IndexingValue::Index(index) => self.apply_indexing(*index, value),
-            },
+            Self::Indexing(indexing_value) => self.apply_indexing(indexing_value, value),
         }
-    }
-
-    fn apply_range_indexing<'a>(
-        &self,
-        range: Range<usize>,
-        value: Cow<'a, Value>,
-    ) -> Result<Value, Error> {
-        let array = match value {
-            Cow::Owned(Value::Array(array)) => Cow::Owned(array),
-            Cow::Borrowed(Value::Array(array)) => Cow::Borrowed(array),
-            value => {
-                return Err(Error::UnsupportedType {
-                    query_operator: self.clone(),
-                    value_type: value.value_type(),
-                })
-            }
-        };
-
-        let result = match array {
-            Cow::Owned(mut array) => array.drain(range).collect::<Vec<Value>>(),
-            Cow::Borrowed(array) => array
-                .get(range.clone())
-                .expect("TODO: handle range out of bounds")
-                .to_vec(),
-        };
-        Ok(Value::Array(result))
     }
 
     fn apply_indexing<'a>(
         &self,
-        index: usize,
+        indexing_value: &IndexingValue,
         value: Cow<'a, Value>,
     ) -> Result<Cow<'a, Value>, Error> {
         let array = match value {
@@ -95,18 +97,7 @@ impl QueryOperator {
             }
         };
 
-        match array {
-            Cow::Owned(mut array) => {
-                // TODO: handle out of bounds here
-                let indexed = array.remove(index);
-                return Ok(Cow::Owned(indexed));
-            }
-            Cow::Borrowed(array) => {
-                // TODO: handle out of bounds
-                let indexed = array.get(index).expect("out of bounds");
-                return Ok(Cow::Borrowed(indexed));
-            }
-        };
+        Ok(indexing_value.apply(array))
     }
 }
 
@@ -120,10 +111,8 @@ impl QueryOperators {
         context: &Context,
     ) -> Result<Cow<'a, Value>, Error> {
         // TODO: handle context
-        let mut value = value;
-        for operator in self.0.iter() {
-            value = operator.apply(value, context)?;
-        }
-        Ok(value)
+        self.0
+            .iter()
+            .try_fold(value, |value, operator| operator.apply(value, context))
     }
 }
