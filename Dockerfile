@@ -1,4 +1,8 @@
 FROM rust:1.79.0 AS chef
+# `wasm-pack` dependency `libz-ng-sys 1.1.15` needs cmake
+# Remember to delete this once `libz-ng-sys 1.1.17` is used, since
+# it doesn't need cmake https://github.com/rust-lang/libz-sys/releases/tag/1.1.17
+RUN apt-get update && apt-get install -y cmake
 RUN cargo install cargo-chef --version 0.1.67 --locked
 RUN cargo install wasm-pack --version 0.13.0 --locked
 RUN rustup target add wasm32-unknown-unknown
