@@ -1,4 +1,4 @@
-FROM rust:1.79.0 AS chef
+FROM rust:1.80 AS chef
 # `wasm-pack` dependency `libz-ng-sys 1.1.15` needs cmake
 # Remember to delete this once `libz-ng-sys 1.1.17` is used, since
 # it doesn't need cmake https://github.com/rust-lang/libz-sys/releases/tag/1.1.17
