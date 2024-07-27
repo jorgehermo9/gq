@@ -196,7 +196,7 @@ const otherExamples: ExampleSection = {
 	},
 	queries: [
 		{
-			query: "{\n\tproducts(price<15).name: cheap\n\tproducts(price>=15).name: expensive\n}",
+			query: "{\n\tproducts(price<15.0).name: cheap\n\tproducts(price>=15.0).name: expensive\n}",
 			title: "Multiple filters + accessing",
 			description: "Combine multiple filters in the same query to create complex queries",
 		},

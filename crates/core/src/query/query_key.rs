@@ -1,16 +1,20 @@
 use std::{
     borrow::Cow,
+    cell::LazyCell,
     fmt::{self, Display, Formatter},
     ops::Add,
+    sync::LazyLock,
 };
 
 use derive_getters::Getters;
 use derive_more::Constructor;
-use once_cell::sync::Lazy;
 use regex::Regex;
 use serde_json::Value;
 
-use super::{apply::InternalError, context::Context, query_arguments::QueryArguments};
+use super::{
+    apply::InternalError, context::Context, query_arguments::QueryArguments,
+    query_operators::QueryOperators,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum RawKey {
@@ -21,7 +25,9 @@ pub enum RawKey {
 
 // IMPORTANT: This regex must exactly match the identifier regex in the lexer. Also,
 // we have to add the '^' and '$' to make sure the whole string is matched.
-static IDENTIFIER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[a-zA-Z_][\w-]*$").unwrap());
+// TODO: techdebt: check if `LazyCell` with static thread_local! can be used instead
+static IDENTIFIER_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| dbg!(Regex::new(r"^[a-zA-Z_][\w-]*$")).unwrap());
 
 impl From<&str> for RawKey {
     fn from(value: &str) -> Self {
@@ -62,17 +68,25 @@ pub struct AtomicQueryKey {
     // TODO: rename those attributes?
     key: RawKey,
     arguments: QueryArguments,
+    // TODO: change this to Vec<QueryOperator> so we can chain operators ([0][0] and etc``)
+    operators: QueryOperators,
 }
 
 impl Display for AtomicQueryKey {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let key = self.key();
-        if self.arguments().0.is_empty() {
-            return key.fmt(f);
+        self.key().fmt(f)?;
+
+        let arguments = self.arguments();
+        if !arguments.0.is_empty() {
+            arguments.fmt(f)?;
         }
 
-        let arguments = self.arguments().to_string();
-        write!(f, "{key}({arguments})")
+        let operators = self.operators();
+        if !operators.0.is_empty() {
+            operators.fmt(f)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -114,11 +128,13 @@ impl<'a> QueryKey {
         &'a self,
         value: &'b Value,
         context: &Context<'a>,
+        // This module should have its own Error type, do not reuse the InternalError
     ) -> Result<Cow<'b, Value>, InternalError<'a>> {
         Self::do_inspect(
             Cow::Borrowed(value),
             self.keys(),
             &QueryArguments::default(),
+            &QueryOperators::default(),
             context,
         )
     }
@@ -127,16 +143,30 @@ impl<'a> QueryKey {
         value: Value,
         context: &Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
-        self.inspect_owned_with_arguments(value, &QueryArguments::default(), context)
+        self.inspect_owned_with_arguments_and_operator(
+            value,
+            &QueryArguments::default(),
+            &QueryOperators::default(),
+            context,
+        )
     }
 
-    pub fn inspect_owned_with_arguments(
+    // TODO add operators here
+    pub fn inspect_owned_with_arguments_and_operator(
         &'a self,
         value: Value,
         arguments: &QueryArguments,
+        operators: &QueryOperators,
         context: &Context<'a>,
     ) -> Result<Value, InternalError<'a>> {
-        Self::do_inspect(Cow::Owned(value), self.keys(), arguments, context).map(Cow::into_owned)
+        Self::do_inspect(
+            Cow::Owned(value),
+            self.keys(),
+            arguments,
+            operators,
+            context,
+        )
+        .map(Cow::into_owned)
     }
 
     // TODO:
@@ -148,17 +178,21 @@ impl<'a> QueryKey {
         value: Cow<'b, Value>,
         keys: &'a [AtomicQueryKey],
         parent_arguments: &QueryArguments,
+        parent_operators: &QueryOperators,
         context: &Context<'a>,
     ) -> Result<Cow<'b, Value>, InternalError<'a>> {
         let result = match value {
             Cow::Owned(Value::Object(_)) | Cow::Borrowed(Value::Object(_)) => {
                 Self::do_inspect_object(value, keys, parent_arguments, context)?
             }
-            Cow::Owned(Value::Array(_)) | Cow::Borrowed(Value::Array(_)) => {
-                Self::do_inspect_array(value, keys, parent_arguments, context)
-            }
+            Cow::Owned(Value::Array(_)) | Cow::Borrowed(Value::Array(_)) => Cow::Owned(
+                Self::do_inspect_array(value, keys, parent_arguments, context)?,
+            ),
             value => Self::do_inspect_primitive(value, keys, parent_arguments, context)?,
         };
+
+        let result = parent_operators.apply(result, context)?;
+
         Ok(result)
     }
 
@@ -168,6 +202,7 @@ impl<'a> QueryKey {
         parent_arguments: &QueryArguments,
         context: &Context<'a>,
     ) -> Result<Cow<'b, Value>, InternalError<'a>> {
+        // TODO: maybe this check should be done inside QueryArguments, as we do in query operators
         if !parent_arguments.0.is_empty() {
             // TODO: throw an error here or log a warning?
             // in my opinion we should fail
@@ -180,6 +215,7 @@ impl<'a> QueryKey {
 
         let raw_key = atomic_query_key.key();
         let arguments = atomic_query_key.arguments();
+        let query_operators = atomic_query_key.operators();
         let new_context = context.push_raw_key(raw_key);
 
         let current = match value {
@@ -195,14 +231,14 @@ impl<'a> QueryKey {
         }
         .ok_or(InternalError::KeyNotFound(new_context.path().clone()))?;
 
-        Self::do_inspect(current, rest, arguments, &new_context)
+        Self::do_inspect(current, rest, arguments, query_operators, &new_context)
     }
     pub fn do_inspect_array<'b>(
         value: Cow<'b, Value>,
         keys: &'a [AtomicQueryKey],
         parent_arguments: &QueryArguments,
         context: &Context<'a>,
-    ) -> Cow<'b, Value> {
+    ) -> Result<Value, InternalError<'a>> {
         let array_context = context.enter_array();
 
         // TODO: think if there is a better way to do this, but I think this is the best we can do
@@ -225,7 +261,13 @@ impl<'a> QueryKey {
                     }
                     _ => &default_query_arguments,
                 };
-                Self::do_inspect(item, keys, arguments_to_propagate, &item_context)
+                Self::do_inspect(
+                    item,
+                    keys,
+                    arguments_to_propagate,
+                    &QueryOperators::default(),
+                    &item_context,
+                )
             })
             .flat_map(|result| {
                 result
@@ -241,7 +283,8 @@ impl<'a> QueryKey {
             // We have to own the values if we want to return a Value::Array
             .map(Cow::into_owned)
             .collect();
-        Cow::Owned(Value::Array(result))
+
+        Ok(Value::Array(result))
     }
 
     pub fn do_inspect_primitive<'b>(

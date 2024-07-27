@@ -9,9 +9,9 @@ use super::{
     QueryKey,
 };
 use derive_getters::Getters;
-use derive_more::Constructor;
+use derive_more::{Constructor, Display};
 use regex::Regex;
-use serde_json::{Number, Value};
+use serde_json::Value;
 use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
@@ -30,8 +30,9 @@ pub enum Error<'a> {
         operation_type: String,
         context: JsonPath<'a>,
     },
-    #[error("cannot conver number '{0}' to f64 at {1}")]
-    NumberConversionError(Number, JsonPath<'a>),
+    // TODO: is this necessary?
+    // #[error("cannot conver number '{0}' to f64 at {1}")]
+    // NumberConversionError(Number, JsonPath<'a>),
     #[error("{error} while processing arguments at '{context}'")]
     InsideArguments {
         error: Box<Self>,
@@ -76,9 +77,12 @@ impl ValueType for QueryArgumentValue {
     }
 }
 
-impl ValueType for f64 {
+impl ValueType for Number {
     fn value_type(&self) -> String {
-        "number".to_string()
+        match self {
+            Number::PosInteger(_) | Number::NegInteger(_) => "integer".to_string(),
+            Number::Float(_) => "float".to_string(),
+        }
     }
 }
 
@@ -122,10 +126,84 @@ impl OperationType for QueryArgumentOperation {
     }
 }
 
+#[derive(Debug, Clone, Display)]
+pub enum Number {
+    PosInteger(u64),
+    NegInteger(i64),
+    Float(f64),
+}
+
+impl From<u64> for Number {
+    fn from(value: u64) -> Self {
+        Self::PosInteger(value)
+    }
+}
+
+impl From<i64> for Number {
+    fn from(value: i64) -> Self {
+        Self::NegInteger(value)
+    }
+}
+
+impl From<f64> for Number {
+    fn from(value: f64) -> Self {
+        Self::Float(value)
+    }
+}
+
+impl PartialEq<serde_json::Number> for Number {
+    fn eq(&self, other: &serde_json::Number) -> bool {
+        match self {
+            Self::NegInteger(lhs_i64) if other.is_i64() => {
+                other.as_i64().expect("wrong conversion").eq(lhs_i64)
+            }
+            Self::PosInteger(lhs_u64) if other.is_u64() => {
+                other.as_u64().expect("wrong conversion").eq(lhs_u64)
+            }
+            Self::Float(lhs_f64) if other.is_f64() => {
+                other.as_f64().expect("wrong conversion").eq(lhs_f64)
+            }
+            _ => todo!("handle number implicit casting"),
+        }
+    }
+}
+
+impl PartialEq<Number> for serde_json::Number {
+    fn eq(&self, other: &Number) -> bool {
+        other.eq(self)
+    }
+}
+
+impl PartialOrd<serde_json::Number> for Number {
+    fn partial_cmp(&self, other: &serde_json::Number) -> Option<std::cmp::Ordering> {
+        match self {
+            Self::NegInteger(lhs_i64) if other.is_i64() => other
+                .as_i64()
+                .expect("wrong conversion")
+                .partial_cmp(lhs_i64),
+            Self::PosInteger(lhs_u64) if other.is_u64() => other
+                .as_u64()
+                .expect("wrong conversion")
+                .partial_cmp(lhs_u64),
+            Self::Float(lhs_f64) if other.is_f64() => other
+                .as_f64()
+                .expect("wrong conversion")
+                .partial_cmp(lhs_f64),
+            _ => todo!("handle number implicit casting"),
+        }
+    }
+}
+
+impl PartialOrd<Number> for serde_json::Number {
+    fn partial_cmp(&self, other: &Number) -> Option<std::cmp::Ordering> {
+        other.partial_cmp(self)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum QueryArgumentValue {
     String(String),
-    Number(f64),
+    Number(Number),
     Bool(bool),
     Null,
 }
@@ -145,10 +223,10 @@ impl Display for QueryArgumentValue {
 pub enum QueryArgumentOperation {
     Equal(QueryArgumentValue),
     NotEqual(QueryArgumentValue),
-    Greater(f64),
-    GreaterEqual(f64),
-    Less(f64),
-    LessEqual(f64),
+    Greater(Number),
+    GreaterEqual(Number),
+    Less(Number),
+    LessEqual(Number),
     Match(Regex),
     NotMatch(Regex),
 }
@@ -179,16 +257,16 @@ impl<'a> QueryArgumentOperation {
                 .satisfies_equal(operation_value, value, context)
                 .map(|result| !result),
             QueryArgumentOperation::Greater(operation_value) => {
-                self.satisfies_greater(*operation_value, value, context)
+                self.satisfies_greater(operation_value, value, context)
             }
             QueryArgumentOperation::GreaterEqual(operation_value) => self
-                .satisfies_less(*operation_value, value, context)
+                .satisfies_less(operation_value, value, context)
                 .map(|result| !result),
             QueryArgumentOperation::Less(operation_value) => {
-                self.satisfies_less(*operation_value, value, context)
+                self.satisfies_less(operation_value, value, context)
             }
             QueryArgumentOperation::LessEqual(operation_value) => self
-                .satisfies_greater(*operation_value, value, context)
+                .satisfies_greater(operation_value, value, context)
                 .map(|result| !result),
             QueryArgumentOperation::Match(operation_value) => {
                 self.satisfies_match(operation_value, value, context)
@@ -228,14 +306,7 @@ impl<'a> QueryArgumentOperation {
                 Ok(operation_value == value)
             }
             (QueryArgumentValue::Number(operation_value), Value::Number(value)) => {
-                value
-                    .as_f64()
-                    .map(|value| value == *operation_value)
-                    // TODO: improve number value conversion\
-                    .ok_or(Error::NumberConversionError(
-                        value.clone(),
-                        context.path().clone(),
-                    ))
+                Ok(operation_value == value)
             }
             (QueryArgumentValue::Bool(operation_value), Value::Bool(value)) => {
                 Ok(operation_value == value)
@@ -254,14 +325,12 @@ impl<'a> QueryArgumentOperation {
     }
     fn satisfies_greater(
         &self,
-        operation_value: f64,
+        operation_value: &Number,
         value: &Value,
         context: &Context<'a>,
     ) -> Result<bool, Error<'a>> {
         match value {
-            Value::Number(value) => value.as_f64().map(|value| value > operation_value).ok_or(
-                Error::NumberConversionError(value.clone(), context.path().clone()),
-            ),
+            Value::Number(value) => Ok(value > operation_value),
             Value::Array(array) => {
                 let satisfies_op = |item: &Value, context: &Context<'a>| {
                     self.satisfies_greater(operation_value, item, context)
@@ -274,14 +343,12 @@ impl<'a> QueryArgumentOperation {
 
     fn satisfies_less(
         &self,
-        operation_value: f64,
+        operation_value: &Number,
         value: &Value,
         context: &Context<'a>,
     ) -> Result<bool, Error<'a>> {
         match value {
-            Value::Number(value) => value.as_f64().map(|value| value < operation_value).ok_or(
-                Error::NumberConversionError(value.clone(), context.path().clone()),
-            ),
+            Value::Number(value) => Ok(value < operation_value),
             Value::Array(array) => {
                 let satisfies_op = |item: &Value, context: &Context<'a>| {
                     self.satisfies_less(operation_value, item, context)
@@ -364,7 +431,8 @@ impl Display for QueryArguments {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
-        arguments.fmt(f)
+
+        write!(f, "({arguments})")
     }
 }
 
