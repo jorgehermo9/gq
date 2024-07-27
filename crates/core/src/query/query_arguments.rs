@@ -431,7 +431,8 @@ impl Display for QueryArguments {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(", ");
-        arguments.fmt(f)
+
+        write!(f, "({arguments})")
     }
 }
 

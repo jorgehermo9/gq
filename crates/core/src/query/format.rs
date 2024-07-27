@@ -17,7 +17,7 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-// TODO: implement pretty print with operators
+// TODO:change pretty format to just Display trait
 impl Query {
     // TODO: do a test for this function, so parsing a formatted query, outputs the
     // same original query...
@@ -26,8 +26,14 @@ impl Query {
 
         let arguments = self.arguments();
         if !arguments.0.is_empty() {
-            result.push_str(&format!("({arguments})"));
+            result.push_str(&arguments.to_string());
         }
+
+        let operators = self.operators();
+        if !operators.0.is_empty() {
+            result.push_str(&operators.to_string());
+        }
+
         let key = self.key();
         if !key.keys().is_empty() {
             if self.children().is_empty() {

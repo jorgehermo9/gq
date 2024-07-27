@@ -1,12 +1,13 @@
 use std::{
     borrow::Cow,
+    cell::LazyCell,
     fmt::{self, Display, Formatter},
     ops::Add,
+    sync::LazyLock,
 };
 
 use derive_getters::Getters;
 use derive_more::Constructor;
-use once_cell::sync::Lazy;
 use regex::Regex;
 use serde_json::Value;
 
@@ -24,7 +25,9 @@ pub enum RawKey {
 
 // IMPORTANT: This regex must exactly match the identifier regex in the lexer. Also,
 // we have to add the '^' and '$' to make sure the whole string is matched.
-static IDENTIFIER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[a-zA-Z_][\w-]*$").unwrap());
+// TODO: techdebt: check if `LazyCell` with static thread_local! can be used instead
+static IDENTIFIER_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| dbg!(Regex::new(r"^[a-zA-Z_][\w-]*$")).unwrap());
 
 impl From<&str> for RawKey {
     fn from(value: &str) -> Self {
@@ -71,13 +74,19 @@ pub struct AtomicQueryKey {
 
 impl Display for AtomicQueryKey {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let key = self.key();
-        if self.arguments().0.is_empty() {
-            return key.fmt(f);
+        self.key().fmt(f)?;
+
+        let arguments = self.arguments();
+        if !arguments.0.is_empty() {
+            arguments.fmt(f)?;
         }
 
-        let arguments = self.arguments().to_string();
-        write!(f, "{key}({arguments})")
+        let operators = self.operators();
+        if !operators.0.is_empty() {
+            operators.fmt(f)?;
+        }
+
+        Ok(())
     }
 }
 

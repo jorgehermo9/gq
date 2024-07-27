@@ -1,4 +1,4 @@
-use std::{borrow::Cow, ops::RangeInclusive};
+use std::{borrow::Cow, fmt::Display, ops::RangeInclusive};
 
 use derive_more::Constructor;
 use serde_json::Value;
@@ -56,6 +56,15 @@ impl IndexingValue {
     }
 }
 
+impl Display for IndexingValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Range(range) => write!(f, "{}..{}", range.start(), range.end()),
+            Self::Index(index) => index.fmt(f),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum QueryOperator {
     // TODO: support for indexing with strings? ["key"]? Does this makes sense in our case?
@@ -101,8 +110,16 @@ impl QueryOperator {
     }
 }
 
+impl Display for QueryOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Indexing(indexing_value) => write!(f, "[{indexing_value}]"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Constructor, Default)]
-pub struct QueryOperators(Vec<QueryOperator>);
+pub struct QueryOperators(pub Vec<QueryOperator>);
 
 impl QueryOperators {
     pub fn apply<'a>(
@@ -114,5 +131,11 @@ impl QueryOperators {
         self.0
             .iter()
             .try_fold(value, |value, operator| operator.apply(value, context))
+    }
+}
+
+impl Display for QueryOperators {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.iter().try_for_each(|operator| operator.fmt(f))
     }
 }
