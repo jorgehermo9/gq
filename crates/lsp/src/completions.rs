@@ -53,7 +53,7 @@ impl ValueKey {
 // Either or something like that.
 fn do_get_value_keys(value: &Value) -> Box<dyn Iterator<Item = ValueKey> + '_> {
     match value {
-        Value::Object(map) => Box::new(map.iter().map(From::from)),
+        Value::Object(map) => Box::new(map.iter().map(ValueKey::from)),
         Value::Array(array) => Box::new(array.iter().flat_map(do_get_value_keys)),
         _ => Box::new(std::iter::empty()),
     }
