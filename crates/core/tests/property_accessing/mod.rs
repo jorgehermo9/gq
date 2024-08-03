@@ -1,6 +1,6 @@
-use super::fixtures::programming_languages;
+use crate::fixtures::programming_languages;
 use gq_core::query::Query;
-use rstest::*;
+use rstest::rstest;
 use serde_json::{json, Value};
 
 #[rstest]

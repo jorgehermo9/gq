@@ -261,4 +261,14 @@ mod tests {
         let input = r#"'Java Script'"#;
         get_next_token(input);
     }
+
+    #[test]
+    fn unknown_character_parsing_error() {
+        let input = "$";
+
+        let mut lexer = Token::lexer(input);
+        let token = lexer.next().expect("There should be at least one token");
+
+        assert!(matches!(token, Err(Error::UnknownCharacter)));
+    }
 }
