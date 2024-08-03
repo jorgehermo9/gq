@@ -263,7 +263,7 @@ mod tests {
     }
 
     #[test]
-    fn unknown_character_parsing_error() {
+    fn unknown_character_error() {
         let input = "$";
 
         let mut lexer = Token::lexer(input);
