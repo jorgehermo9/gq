@@ -1,6 +1,5 @@
 use std::{
     borrow::Cow,
-    cell::LazyCell,
     fmt::{self, Display, Formatter},
     ops::Add,
     sync::LazyLock,
@@ -27,7 +26,7 @@ pub enum RawKey {
 // we have to add the '^' and '$' to make sure the whole string is matched.
 // TODO: techdebt: check if `LazyCell` with static thread_local! can be used instead
 static IDENTIFIER_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| dbg!(Regex::new(r"^[a-zA-Z_][\w-]*$")).unwrap());
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z_][\w-]*$").unwrap());
 
 impl From<&str> for RawKey {
     fn from(value: &str) -> Self {
