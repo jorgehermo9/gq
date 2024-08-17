@@ -9,6 +9,12 @@ export default defineConfig({
 			social: {
 				github: 'https://github.com/jorgehermo9/gq',
 			},
+			editLink: {
+        baseUrl: 'https://github.com/jorgehermo9/gq/tree/feature/docs/docs',
+      },
+			customCss: [
+        './src/styles/custom.css',
+      ],
 			sidebar: [
 				{
 					label: 'Guides',

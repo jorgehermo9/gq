@@ -3,6 +3,8 @@ title: Getting Started
 description: A guide to help you get started with GQ
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 ## Installation
 
 You have three options to install gq cli in your computer
@@ -15,6 +17,12 @@ The `gq` binary is available through `cargo` and can be installed with the follo
 cargo install gq
 ```
 
->If you don't have `cargo` installed, you can check how to install it [here](https://www.rust-lang.org/tools/install)
+<Aside>If you don't have `cargo` installed, you can check how to install it [here](https://www.rust-lang.org/tools/install)</Aside>
 
 ### Using your distribution package manager
+
+You can install `gq` using your distribution package manager. For example, in Arch Linux you can install it with the following command:
+
+```sh
+yay -S gq
+```
