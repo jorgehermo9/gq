@@ -1,11 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
 	--sl-color-gray-2: #e1e5ec; /* Text color */
 	--sl-color-black: #10151D; /* Background color */
 	--sl-color-accent-low: #2E3C51;
 	--sl-color-accent: #959efd;
 	--sl-color-accent-high: #959efd;
-	--sl-color-bg-nav: var(--sl-color-black);
+	--sl-color-bg-nav: transparent;
 	--sl-color-bg-sidebar: var(--sl-color-black);
+
+  --blur: 5px;
 }
 
 .hero-background {
@@ -36,4 +42,5 @@
 
 header.header {
   border-bottom: 1px solid var(--sl-color-gray-6);
+  backdrop-filter: blur(var(--blur));
 }

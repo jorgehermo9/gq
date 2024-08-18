@@ -1,33 +1,43 @@
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
+import { defineConfig } from "astro/config";
+import starlight from "@astrojs/starlight";
+import tailwind from "@astrojs/tailwind";
 
 // https://astro.build/config
 export default defineConfig({
-	integrations: [
-		starlight({
-			title: 'GQ',
-			social: {
-				github: 'https://github.com/jorgehermo9/gq',
-			},
-			editLink: {
-        baseUrl: 'https://github.com/jorgehermo9/gq/tree/feature/docs/docs',
+  integrations: [
+    tailwind({
+      // Disable the default base styles
+      applyBaseStyles: false,
+    }),
+    starlight({
+      title: "GQ",
+      social: {
+        github: "https://github.com/jorgehermo9/gq",
       },
-			customCss: [
-        './src/styles/custom.css',
+      editLink: {
+        baseUrl: "https://github.com/jorgehermo9/gq/tree/feature/docs/docs",
+      },
+      customCss: ["./src/styles/custom.css"],
+      sidebar: [
+        {
+          label: "Introduction",
+          autogenerate: {
+            directory: "introduction",
+          },
+        },
+        {
+          label: "Usage",
+          autogenerate: {
+            directory: "usage",
+          },
+        },
+        {
+          label: "Reference",
+          autogenerate: {
+            directory: "reference",
+          },
+        },
       ],
-			sidebar: [
-				{
-					label: 'Guides',
-					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: 'Getting started', slug: 'guides/example' },
-					],
-				},
-				{
-					label: 'Reference',
-					autogenerate: { directory: 'reference' },
-				},
-			],
-		}),
-	],
+    }),
+  ],
 });

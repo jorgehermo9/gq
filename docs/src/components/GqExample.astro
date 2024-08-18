@@ -1,0 +1,24 @@
+---
+import { Code } from "@astrojs/starlight/components";
+
+interface Props {
+	codes: string[];
+	langs: string[];
+	titles: string[];
+}
+
+const { codes, langs, titles } = Astro.props;
+---
+
+<div class="flex">
+	{
+		codes.map((code, index) => (
+			<Code
+				class="!mt-0 h-full w-full"
+				code={code}
+				lang={langs[index]}
+				title={titles[index]}
+			/>
+		))
+	}
+</div>

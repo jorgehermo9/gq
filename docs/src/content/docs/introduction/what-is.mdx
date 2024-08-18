@@ -1,0 +1,27 @@
+---
+title: What is GQ?
+description: A brief introduction to GQ, its purpose and its features
+sidebar:
+  order: 1
+---
+
+import GqExample from '/src/components/GqExample.astro';
+import {Code} from '@astrojs/starlight/components';
+import inputJson from '/src/content/examples/products/simple-product.json?raw';
+import inputQuery from '/src/content/examples/products/simple-query.gq?raw';
+import outputJson from '/src/content/examples/products/simple-output.json?raw';
+
+## Main goal
+
+Among the rise of Rust as a fast and reliable programming language, countless projects have born to
+improve the performance and the overall experience of users and developers. Is in this context where
+GQ comes to life, a filtering tool that aims to provide the **fastest** processing times along with a significant
+improvement in the **simplicity** of its underlying query language.
+
+## Query language
+
+Based on [GraphQL](https://graphql.org/), we wanted to extend the capabilities of an already powerful
+QL outside the realm of API development. 
+
+<GqExample codes={[inputJson, inputQuery]} langs={['json', 'json']} titles={['input.json', 'input.gq']} />
+<Code code={outputJson} lang="json" title="output.json" />
