@@ -2,23 +2,29 @@
 import { Code } from "@astrojs/starlight/components";
 
 interface Props {
-	codes: string[];
-	langs: string[];
-	titles: string[];
+    codes: string[];
+    langs: string[];
+    titles: string[];
 }
 
 const { codes, langs, titles } = Astro.props;
 ---
 
-<div class="flex">
-	{
-		codes.map((code, index) => (
-			<Code
-				class="!mt-0 h-full w-full"
-				code={code}
-				lang={langs[index]}
-				title={titles[index]}
-			/>
-		))
-	}
+<style is:global>
+    .gq-code code {
+        height: 16rem !important;
+    }
+</style>
+
+<div class="flex gap-2">
+    {
+        codes.map((code, index) => (
+            <Code
+                class="gq-code !mt-0 w-1/2"
+                code={code}
+                lang={langs[index]}
+                title={titles[index]}
+            />
+        ))
+    }
 </div>

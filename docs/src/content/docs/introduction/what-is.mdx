@@ -7,9 +7,9 @@ sidebar:
 
 import GqExample from '/src/components/GqExample.astro';
 import {Code} from '@astrojs/starlight/components';
-import inputJson from '/src/content/examples/products/simple-product.json?raw';
-import inputQuery from '/src/content/examples/products/simple-query.gq?raw';
-import outputJson from '/src/content/examples/products/simple-output.json?raw';
+import inputJson from '/src/content/examples/introduction/introduction-input.json?raw';
+import inputQuery from '/src/content/examples/introduction/introduction-query.gq?raw';
+import outputJson from '/src/content/examples/introduction/introduction-output.json?raw';
 
 ## Main goal
 
@@ -21,7 +21,14 @@ improvement in the **simplicity** of its underlying query language.
 ## Query language
 
 Based on [GraphQL](https://graphql.org/), we wanted to extend the capabilities of an already powerful
-QL outside the realm of API development. 
+QL outside the realm of API development, remodeling it from the ground up to be more suitable for
+JSON filtering and accessing. let's take a look at a simple example:
 
 <GqExample codes={[inputJson, inputQuery]} langs={['json', 'json']} titles={['input.json', 'input.gq']} />
 <Code code={outputJson} lang="json" title="output.json" />
+
+As you can see, the query language has some similarities with GraphQL, like the JSON-like syntax, the argument definition or the
+field aliasing. However, it adds more funtionalites like the **dot operator** to access nested fields or the **extended comparison operators** to filter
+array elements.
+
+You can learn more about all the language capabilities in the [Usage Section](/usage/first-steps).
