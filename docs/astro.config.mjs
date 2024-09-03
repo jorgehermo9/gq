@@ -26,9 +26,9 @@ export default defineConfig({
           },
         },
         {
-          label: "Usage",
+          label: "Concepts",
           autogenerate: {
-            directory: "usage",
+            directory: "concepts",
           },
         },
         {
