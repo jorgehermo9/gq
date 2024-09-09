@@ -5,9 +5,10 @@ interface Props {
     codes: string[];
     langs: string[];
     titles: string[];
+    height: "fixed" | "auto";
 }
 
-const { codes, langs, titles } = Astro.props;
+const { codes, langs, titles, height = "fixed" } = Astro.props;
 ---
 
 <style is:global>
@@ -20,7 +21,7 @@ const { codes, langs, titles } = Astro.props;
     {
         codes.map((code, index) => (
             <Code
-                class="gq-code !mt-0 w-1/2"
+                class={`!mt-0 w-1/2 ${height === "fixed" ? "gq-code" : ""}`}
                 code={code}
                 lang={langs[index]}
                 title={titles[index]}

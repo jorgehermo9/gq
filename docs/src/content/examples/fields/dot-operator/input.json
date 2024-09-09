@@ -1,0 +1,19 @@
+{
+  "id": 1,
+  "customer": {
+    "firstName": "Jhon",
+    "lastName": "Doe"
+  },
+  "history": [
+    {
+      "id": 23415,
+      "operation": "BUY",
+      "price": 1000
+    },
+    {
+      "id": 81237,
+      "operation": "SELL",
+      "price": 2000
+    }
+  ]
+}

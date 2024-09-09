@@ -1,0 +1,46 @@
+---
+title: Fields
+description: Filtering JSON fields
+sidebar:
+  order: 1
+---
+
+import GqExample from '/src/components/GqExample.astro';
+import {Code} from '@astrojs/starlight/components';
+import simpleInputJson from '/src/content/examples/fields/simple/input.json?raw';
+import simpleQuery from '/src/content/examples/fields/simple/query.gq?raw';
+import simpleOutputJson from '/src/content/examples/fields/simple/output.json?raw';
+import dotOperatorInputJson from '/src/content/examples/fields/dot-operator/input.json?raw'; 
+import dotOperatorQuery from '/src/content/examples/fields/dot-operator/query.gq?raw'; 
+import dotOperatorOutputJson from '/src/content/examples/fields/dot-operator/output.json?raw'; 
+import dotOperatorQueryArray from '/src/content/examples/fields/dot-operator/query-array.gq?raw'; 
+import dotOperatorOutputJsonArray from '/src/content/examples/fields/dot-operator/output-array.json?raw'; 
+
+### Simple filtering
+
+You can filter JSON fields easily using a GraphQL-like syntax.
+
+Given this input JSON:
+
+<Code code={simpleInputJson} lang="json" title="input.json" />
+
+Say that we only want to retain the `firstName` field of the `customer` object. We can achieve it by using
+the query:
+
+<GqExample codes={[simpleQuery, simpleOutputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
+
+### Dot operator
+
+Additionaly, you can access nested fields using the **dot operator**.
+
+<Code code={dotOperatorInputJson} lang="json" title="input.json" />
+
+
+Say that we only want to get the `lastName` but this time, **we only want the raw string**. We can obtain it with the following query:
+
+<GqExample codes={[dotOperatorQuery, dotOperatorOutputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
+
+
+Furthermore, the dot operator can also be applied to array fields in order to perform effectively a *mapping* into all the elements:
+
+<GqExample codes={[dotOperatorQueryArray, dotOperatorOutputJsonArray]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
