@@ -1,0 +1,87 @@
+---
+title: Arguments
+description: First steps to get started with GQ and its query language
+sidebar:
+  order: 2
+---
+
+import GqExample from '/src/components/GqExample.astro';
+import { Code } from '@astrojs/starlight/components';
+import ageInput from '/src/content/examples/arguments/age/input.json?raw';
+import ageQuery from '/src/content/examples/arguments/age/query.gq?raw';
+import ageOutput from '/src/content/examples/arguments/age/output.json?raw';
+import logInput from '/src/content/examples/arguments/logs/input.json?raw';
+import logQuery from '/src/content/examples/arguments/logs/query.gq?raw';
+import logOutput from '/src/content/examples/arguments/logs/output.json?raw';
+
+Arguments are a way to filter elements inside an array. They are defined by a pair of parentheses `()` after the field name and can contain one or more conditions separated by commas `,`.
+
+As an example, consider this simple JSON:
+
+<Code code={ageInput} lang="json" title="input.json" />
+
+If we want to filter the `customer` array to only get the people who are at least 18 years old, we can use the following query:
+
+<GqExample codes={[ageQuery, ageOutput]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
+
+Or if we have a log export like this:
+
+<Code code={logInput} lang="json" title="input.json" />
+
+And we want to filter the logs to only get the ones with level `ERROR`, we can use the following query:
+
+<GqExample codes={[logQuery, logOutput]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
+
+There are several operations that can be used inside the arguments, such as:
+
+<table>
+  <thead>
+    <tr>
+      <th>Operation</th>
+      <th>Description</th>
+      <th>Suppoted types</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td className="text-center">`=`</td>
+      <td>Equals</td>
+      <td>any</td>
+    </tr>
+    <tr>
+      <td className="text-center">`!=`</td>
+      <td>Not equals</td>
+      <td>any</td>
+    </tr>
+    <tr>
+      <td className="text-center">`~`</td>
+      <td>Matches regex</td>
+      <td>string</td>
+    </tr>
+    <tr>
+      <td className="text-center">`!~`</td>
+      <td>Does not match regex</td>
+      <td>string</td>
+    </tr>
+    <tr>
+      <td className="text-center">`>`</td>
+      <td>Greater than</td>
+      <td>number</td>
+    </tr>
+    <tr>
+      <td className="text-center">`<`</td>
+      <td>Less than</td>
+      <td>number</td>
+    </tr>
+    <tr>
+      <td className="text-center">`>=`</td>
+      <td>Greater than or equals</td>
+      <td>number</td>
+    </tr>
+    <tr>
+      <td className="text-center">`<=`</td>
+      <td>Less than or equals</td>
+      <td>number</td>
+    </tr>
+  </tbody>
+</table>

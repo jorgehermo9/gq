@@ -1,0 +1,16 @@
+{
+  "logs": [
+    {
+      "ts": "2022-01-01T10:00:00Z",
+      "message": "[INFO] Message 1"
+    },
+    {
+      "ts": "2022-01-01T11:00:00Z",
+      "message": "[ERROR] Message 2"
+    },
+    {
+      "ts": "2022-01-01T12:00:00Z",
+      "message": "[INFO] Message 3"
+    }
+  ]
+}

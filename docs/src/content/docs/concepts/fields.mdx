@@ -6,7 +6,7 @@ sidebar:
 ---
 
 import GqExample from '/src/components/GqExample.astro';
-import {Code} from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
 import simpleInputJson from '/src/content/examples/fields/simple/input.json?raw';
 import simpleQuery from '/src/content/examples/fields/simple/query.gq?raw';
 import simpleOutputJson from '/src/content/examples/fields/simple/output.json?raw';
@@ -15,6 +15,8 @@ import dotOperatorQuery from '/src/content/examples/fields/dot-operator/query.gq
 import dotOperatorOutputJson from '/src/content/examples/fields/dot-operator/output.json?raw'; 
 import dotOperatorQueryArray from '/src/content/examples/fields/dot-operator/query-array.gq?raw'; 
 import dotOperatorOutputJsonArray from '/src/content/examples/fields/dot-operator/output-array.json?raw'; 
+import dotOperatorQueryComplex from '/src/content/examples/fields/dot-operator/complex-query.gq?raw'; 
+import dotOperatorOutputComplex from '/src/content/examples/fields/dot-operator/complex-output.json?raw'; 
 
 ### Simple filtering
 
@@ -35,12 +37,14 @@ Additionaly, you can access nested fields using the **dot operator**.
 
 <Code code={dotOperatorInputJson} lang="json" title="input.json" />
 
-
-Say that we only want to get the `lastName` but this time, **we only want the raw string**. We can obtain it with the following query:
+Say that we only want to get the release year but this time, **we only want the raw number**. We can obtain it with the following query:
 
 <GqExample codes={[dotOperatorQuery, dotOperatorOutputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
-
 
 Furthermore, the dot operator can also be applied to array fields in order to perform effectively a *mapping* into all the elements:
 
 <GqExample codes={[dotOperatorQueryArray, dotOperatorOutputJsonArray]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
+
+Naturally, you can also mix both the dot operator and the simple filtering:
+
+<GqExample codes={[dotOperatorQueryComplex, dotOperatorOutputComplex]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />

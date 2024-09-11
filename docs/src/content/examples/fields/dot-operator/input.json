@@ -1,19 +1,24 @@
 {
-  "id": 1,
-  "customer": {
-    "firstName": "Jhon",
-    "lastName": "Doe"
+  "title": "Countries",
+  "release": {
+    "year": 2021,
+    "month": "September"
   },
-  "history": [
+  "countries": [
     {
-      "id": 23415,
-      "operation": "BUY",
-      "price": 1000
+      "name": "United States",
+      "capital": "Washington, D.C.",
+      "population": 331002651
     },
     {
-      "id": 81237,
-      "operation": "SELL",
-      "price": 2000
+      "name": "Canada",
+      "capital": "Ottawa",
+      "population": 37742154
+    },
+    {
+      "name": "Australia",
+      "capital": "Canberra",
+      "population": 25499884
     }
   ]
 }
