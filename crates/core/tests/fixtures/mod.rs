@@ -60,7 +60,8 @@ pub fn ai_models() -> Value {
             {
               "name": "GPT-4O",
               "openSource": false,
-              "score": 71.49
+              "score": 71.49,
+              "tags": ["NLP", "Text Generation"]
             },
             {
               "name": "Claude",
