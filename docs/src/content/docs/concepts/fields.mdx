@@ -17,10 +17,15 @@ import dotOperatorQueryArray from '/src/content/examples/fields/dot-operator/que
 import dotOperatorOutputJsonArray from '/src/content/examples/fields/dot-operator/output-array.json?raw'; 
 import dotOperatorQueryComplex from '/src/content/examples/fields/dot-operator/complex-query.gq?raw'; 
 import dotOperatorOutputComplex from '/src/content/examples/fields/dot-operator/complex-output.json?raw'; 
+import specialKeyInputJson from '/src/content/examples/fields/special/input.json?raw';
+import chineseQuery from '/src/content/examples/fields/special/chinese-query.gq?raw';
+import chineseOutputJson from '/src/content/examples/fields/special/chinese-output.json?raw';
+import spacesQuery from '/src/content/examples/fields/special/spaces-query.gq?raw';
+import spacesOutputJson from '/src/content/examples/fields/special/spaces-output.json?raw';
+
+You can filter JSON fields easily using a GraphQL-like syntax regardless if it is deeply nested or if it is inside an array.
 
 ### Simple filtering
-
-You can filter JSON fields easily using a GraphQL-like syntax.
 
 Given this input JSON:
 
@@ -48,3 +53,18 @@ Furthermore, the dot operator can also be applied to array fields in order to pe
 Naturally, you can also mix both the dot operator and the simple filtering:
 
 <GqExample codes={[dotOperatorQueryComplex, dotOperatorOutputComplex]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
+
+### Special key names
+
+If you have a JSON with non-standard key names, you can double-quote them to match it. This includes keys with spaces, special UTF-8 characters 
+or custom language reserved words. Let's take a look at an example:
+
+<Code code={specialKeyInputJson} lang="json" title="input.json" />
+
+In this case, we want to get the `年份` field. We can achieve it by using the following query:
+
+<GqExample codes={[chineseQuery, chineseOutputJson]} langs={['json', 'json']} titles={['chinese-query.gq', 'chinese-output.json']} height="auto" />
+
+Or if you have a key with spaces:
+
+<GqExample codes={[spacesQuery, spacesOutputJson]} langs={['json', 'json']} titles={['spaces-query.gq', 'spaces-output.json']} height="auto" />

@@ -7,18 +7,15 @@
   "countries": [
     {
       "name": "United States",
-      "capital": "Washington, D.C.",
-      "population": 331002651
+      "capital": "Washington, D.C."
     },
     {
       "name": "Canada",
-      "capital": "Ottawa",
-      "population": 37742154
+      "capital": "Ottawa"
     },
     {
       "name": "Australia",
-      "capital": "Canberra",
-      "population": 25499884
+      "capital": "Canberra"
     }
   ]
 }

@@ -1,0 +1,17 @@
+{
+  "id": "AI-Models",
+  "models": [
+    {
+      "name": "GPT-4o",
+      "score": 71.49
+    },
+    {
+      "name": "Claude",
+      "score": 93.2
+    },
+    {
+      "name": "LLAMA",
+      "score": 88.7
+    }
+  ]
+}
