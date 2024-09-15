@@ -21,7 +21,7 @@ fn simple(ai_models: Value) {
 }
 
 #[rstest]
-fn nested_property(ai_models: Value) {
+fn nested_field(ai_models: Value) {
     let query: Query = r#"{
         models.name: modelNames
     }"#
@@ -41,7 +41,7 @@ fn nested_property(ai_models: Value) {
 }
 
 #[rstest]
-fn multiple_properties(ai_models: Value) {
+fn multiple_fields(ai_models: Value) {
     let query: Query = r#"{
         id: identifier
         models.name: modelNames
