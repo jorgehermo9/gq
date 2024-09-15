@@ -4,12 +4,72 @@ use rstest::rstest;
 use serde_json::{json, Value};
 // TODO: add tests to assert warns and errors are logged
 #[rstest]
-fn primitive_property(programming_languages: Value) {
+fn single_property(programming_languages: Value) {
     let query: Query = "category".parse().unwrap();
 
     let result = query.apply(programming_languages).unwrap();
 
     assert_eq!(result, "Programming Languages");
+}
+
+#[test]
+fn quoted_single_property() {
+    let value = json!({
+        "count()" : 42
+    });
+    let query: Query = r#""count()""#.parse().unwrap();
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, 42);
+}
+
+#[test]
+fn quoted_single_property_with_spaces() {
+    let value = json!({
+        "key with spaces" : 42
+    });
+    let query: Query = r#""key with spaces""#.parse().unwrap();
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, 42);
+}
+
+#[test]
+fn quoted_single_property_with_newline() {
+    let value = json!({
+        "key\nwith\nnewlines" : 42
+    });
+    let query: Query = r#""key\nwith\nnewlines""#.parse().unwrap();
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, 42);
+}
+
+#[test]
+fn quoted_single_property_with_tabs() {
+    let value = json!({
+        "key\twith\ttabs" : 42
+    });
+    let query: Query = r#""key\twith\ttabs""#.parse().unwrap();
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, 42);
+}
+
+#[test]
+fn quoted_single_property_with_double_quotes() {
+    let value = json!({
+        "key\"with\"double\"quotes" : 42
+    });
+    let query: Query = r#""key\"with\"double\"quotes""#.parse().unwrap();
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, 42);
 }
 
 #[rstest]
@@ -52,6 +112,74 @@ fn multiple_properties(programming_languages: Value) {
     });
 
     let result = query.apply(programming_languages).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn quoted_multiple_properties() {
+    let value = json!({
+        "count()" : 42,
+        "key with spaces" : 43,
+        "key\nwith\nnewlines" : 44,
+        "key\twith\ttabs" : 45,
+        "key\"with\"double\"quotes" : 46
+    });
+    let query: Query = r#"{
+        "count()"
+        "key with spaces"
+        "key\nwith\nnewlines"
+        "key\twith\ttabs"
+        "key\"with\"double\"quotes"
+    }"#
+    .parse()
+    .unwrap();
+    let expected = json!({
+        "count()": 42,
+        "key with spaces": 43,
+        "key\nwith\nnewlines": 44,
+        "key\twith\ttabs": 45,
+        "key\"with\"double\"quotes": 46
+    });
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn quoted_multiple_nested_properties() {
+    let value = json!({
+        "key with spaces": {
+            "key\nwith\nnewlines": {
+                "key\twith\ttabs": {
+                    "key\"with\"double\"quotes": 42
+                }
+            }
+        }
+    });
+    let query: Query = r#"{
+        "key with spaces" {
+            "key\nwith\nnewlines" {
+                "key\twith\ttabs" {
+                    "key\"with\"double\"quotes"
+                }
+            }
+        }
+    }"#
+    .parse()
+    .unwrap();
+    let expected = json!({
+        "key with spaces": {
+            "key\nwith\nnewlines": {
+                "key\twith\ttabs": {
+                    "key\"with\"double\"quotes": 42
+                }
+            }
+        }
+    });
+
+    let result = query.apply(value).unwrap();
 
     assert_eq!(result, expected);
 }
