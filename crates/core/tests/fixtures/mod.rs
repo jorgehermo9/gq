@@ -35,7 +35,7 @@ pub fn products() -> Value {
             {
               "name": "Product 1",
               "quantity": 8,
-              "price": 9.95
+              "price": 9.95,
             },
             {
               "name": "Product 2",

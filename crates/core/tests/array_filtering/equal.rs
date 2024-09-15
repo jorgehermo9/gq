@@ -95,7 +95,7 @@ fn null_argument_value(ai_models: Value) {
 }
 
 #[rstest]
-fn float_argument_with_null_field_value(ai_models: Value) {
+fn float_argument_value_with_null_field_value(ai_models: Value) {
     let query: Query = r#"models(score = 88.7)"#.parse().unwrap();
     let expected = json!([
         {
