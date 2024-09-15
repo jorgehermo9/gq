@@ -4,7 +4,7 @@ use rstest::rstest;
 use serde_json::{json, Value};
 // TODO: add tests to assert warns and errors are logged
 #[rstest]
-fn single_property(programming_languages: Value) {
+fn single_field(programming_languages: Value) {
     let query: Query = "category".parse().unwrap();
 
     let result = query.apply(programming_languages).unwrap();
@@ -13,7 +13,7 @@ fn single_property(programming_languages: Value) {
 }
 
 #[test]
-fn quoted_single_property() {
+fn quoted_single_field() {
     let value = json!({
         "count()" : 42
     });
@@ -25,7 +25,7 @@ fn quoted_single_property() {
 }
 
 #[test]
-fn quoted_single_property_with_spaces() {
+fn quoted_single_field_with_spaces() {
     let value = json!({
         "key with spaces" : 42
     });
@@ -37,7 +37,7 @@ fn quoted_single_property_with_spaces() {
 }
 
 #[test]
-fn quoted_single_property_with_newline() {
+fn quoted_single_field_with_newline() {
     let value = json!({
         "key\nwith\nnewlines" : 42
     });
@@ -49,7 +49,7 @@ fn quoted_single_property_with_newline() {
 }
 
 #[test]
-fn quoted_single_property_with_tabs() {
+fn quoted_single_field_with_tabs() {
     let value = json!({
         "key\twith\ttabs" : 42
     });
@@ -61,7 +61,7 @@ fn quoted_single_property_with_tabs() {
 }
 
 #[test]
-fn quoted_single_property_with_double_quotes() {
+fn quoted_single_field_with_double_quotes() {
     let value = json!({
         "key\"with\"double\"quotes" : 42
     });
@@ -73,7 +73,7 @@ fn quoted_single_property_with_double_quotes() {
 }
 
 #[rstest]
-fn property_inside_array(programming_languages: Value) {
+fn field_inside_array(programming_languages: Value) {
     let query: Query = "languages.name".parse().unwrap();
     let expected = json!(["JavaScript", "Java", "Rust"]);
 
@@ -83,7 +83,7 @@ fn property_inside_array(programming_languages: Value) {
 }
 
 #[rstest]
-fn multiple_properties(programming_languages: Value) {
+fn multiple_fields(programming_languages: Value) {
     let query: Query = "{
         category
         languages {
@@ -117,7 +117,7 @@ fn multiple_properties(programming_languages: Value) {
 }
 
 #[test]
-fn quoted_multiple_properties() {
+fn quoted_multiple_fields() {
     let value = json!({
         "count()" : 42,
         "key with spaces" : 43,
@@ -148,7 +148,7 @@ fn quoted_multiple_properties() {
 }
 
 #[test]
-fn quoted_multiple_nested_properties() {
+fn quoted_multiple_nested_fields() {
     let value = json!({
         "key with spaces": {
             "key\nwith\nnewlines": {
@@ -185,7 +185,7 @@ fn quoted_multiple_nested_properties() {
 }
 
 #[rstest]
-fn multiple_properties_different_order(programming_languages: Value) {
+fn multiple_fields_different_order(programming_languages: Value) {
     let query: Query = "{
         category
         languages {
