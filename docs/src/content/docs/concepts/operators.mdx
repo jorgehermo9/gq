@@ -4,3 +4,30 @@ description: First steps to get started with GQ and its query language
 sidebar:
   order: 4
 ---
+
+import GqExample from '/src/components/GqExample.astro';
+import { Code } from '@astrojs/starlight/components';
+import inputJson from '/src/content/examples/operators/companies/input.json?raw';
+import inputQuery from '/src/content/examples/operators/companies/query.gq?raw';
+import outputJson from '/src/content/examples/operators/companies/output.json?raw';
+import dotInputQuery from '/src/content/examples/operators/companies/dot-query.gq?raw';
+import dotOutputJson from '/src/content/examples/operators/companies/dot-output.json?raw';
+
+Operators are special language features that alter the normal output of a query or perform a specific function.
+
+## Array indexing
+
+As a way to access a specific element inside an array at a given position, we have integrated inside GQ the array
+indexing syntax. To do so, into an array field, you can specify the desired index enclosed in `[]`.
+
+Given the following input:
+
+<Code code={inputJson} lang="json" title="input.json" />
+
+If we want to obtain the first element in the `companies` array, we can apply the next query:
+
+<GqExample codes={[inputQuery, outputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
+
+This is obviously compatible with the [dot operator](/concepts/fields/#dot-operator) or any previously explained concept:
+
+<GqExample codes={[dotInputQuery, dotOutputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />

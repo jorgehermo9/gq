@@ -19,7 +19,7 @@ import productOutput from '/src/content/examples/arguments/products/output.json?
 
 Arguments are a way to filter elements inside an array. They are defined by a pair of parentheses `()` after the field name and can contain one or more conditions separated by commas `,`.
 
-### Basic examples
+## Basic examples
 
 As an example, consider this simple JSON:
 
@@ -37,7 +37,7 @@ And we want to filter the logs to only get the ones with level `ERROR`, we can u
 
 <GqExample codes={[logQuery, logOutput]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
 
-### Conjunctive conditions
+## Conjunctive conditions
 
 Right now, the conditions inside the arguments are combined using a logical AND. This means that all the conditions must be met in order to obtain the element.
 Let's see an example with a product list:
@@ -53,7 +53,7 @@ The logical OR operator is not supported yet as it increases the complexity of t
 For the moment, you can divide your conditions into multiple queries and use the [aliasing](/concepts/aliases) to avoid key conflicts.
 :::
 
-### Supported operations
+## Supported operations
 
 The follwing table shows all the operations that can be used inside the arguments:
 

@@ -25,7 +25,7 @@ import spacesOutputJson from '/src/content/examples/fields/special/spaces-output
 
 You can filter JSON fields easily using a GraphQL-like syntax regardless if it is deeply nested or if it is inside an array.
 
-### Simple filtering
+## Simple filtering
 
 Given this input JSON:
 
@@ -36,7 +36,7 @@ the query:
 
 <GqExample codes={[simpleQuery, simpleOutputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
 
-### Dot operator
+## Dot operator
 
 Additionaly, you can access nested fields using the **dot operator**.
 
@@ -54,9 +54,9 @@ Naturally, you can also mix both the dot operator and the simple filtering:
 
 <GqExample codes={[dotOperatorQueryComplex, dotOperatorOutputComplex]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
 
-### Special key names
+## Special key names
 
-If you have a JSON with non-standard key names, you can double-quote them to match it. This includes keys with spaces, special UTF-8 characters 
+If you have a JSON with non-standard key names, you can double-quote them to match them. This includes keys with spaces, special UTF-8 characters 
 or custom language reserved words. Let's take a look at an example:
 
 <Code code={specialKeyInputJson} lang="json" title="input.json" />

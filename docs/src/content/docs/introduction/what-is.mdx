@@ -24,10 +24,10 @@ Based on [GraphQL](https://graphql.org/), we wanted to extend the capabilities o
 QL outside the realm of API development, remodeling it from the ground up to be more suitable for
 JSON filtering and accessing. let's take a look at a simple example:
 
-<GqExample codes={[inputJson, inputQuery]} langs={['json', 'json']} titles={['input.json', 'input.gq']} />
-<Code code={outputJson} lang="json" title="output.json" />
+<Code code={inputJson} lang="json" title="output.json" />
+<GqExample codes={[inputQuery, outputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} />
 
-As you can see, the query language has some similarities with GraphQL, like the JSON-like syntax, the argument definition or the
+As you can see, the query language has some similarities with GraphQL, including a JSON-like syntax, the argument definition or the
 field aliasing. However, it adds more funtionalites like the **dot operator** to access nested fields or the **extended comparison operators** to filter
 array elements.
 
