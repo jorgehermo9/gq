@@ -6,11 +6,11 @@ sidebar:
 ---
 import GqExample from '/src/components/GqExample.astro';
 import { Code } from '@astrojs/starlight/components';
-import aliasInput from '/src/content/examples/aliases/models/input.json?raw';
-import aliasQuery from '/src/content/examples/aliases/models/alias-query.gq?raw';
-import aliasOutput from '/src/content/examples/aliases/models/alias-output.json?raw';
-import quotedAliasQuery from '/src/content/examples/aliases/models/quoted-alias-query.gq?raw';
-import quotedAliasOutput from '/src/content/examples/aliases/models/quoted-alias-output.json?raw';
+import aliasInput from '/src/examples/aliases/models/input.json?raw';
+import aliasQuery from '/src/examples/aliases/models/alias-query.gq?raw';
+import aliasOutput from '/src/examples/aliases/models/alias-output.json?raw';
+import quotedAliasQuery from '/src/examples/aliases/models/quoted-alias-query.gq?raw';
+import quotedAliasOutput from '/src/examples/aliases/models/quoted-alias-output.json?raw';
 
 With aliases you can rename the output fields of a query. They are defined by a colon `:` after the field name (or after the arguments if they are present)
 and can be double quoted if they contain special characters or spaces.
