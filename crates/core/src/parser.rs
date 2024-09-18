@@ -438,3 +438,30 @@ impl FromStr for Query {
         Parser::new(s).parse()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    // TODO: add more parser tests
+    #[test]
+    #[should_panic]
+    fn same_alias() {
+        r#"{
+            id: alias
+            models: alias
+        }"#
+        .parse::<Query>()
+        .unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn alias_collides_with_existant_field() {
+        r#"{
+            id: models
+            models
+        }"#
+        .parse::<Query>()
+        .unwrap();
+    }
+}
