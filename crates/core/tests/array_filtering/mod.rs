@@ -200,23 +200,3 @@ fn root_filtering_nested_field_and_accessing() {
 
     assert_eq!(result, expected);
 }
-
-// TODO: Assert that a warning is logged
-#[rstest]
-fn missing_field() {
-    let value = json!([
-        {
-            "name": "Product 1",
-            "price": {
-                "currency":"EUR",
-                "value": 100
-            }
-        }
-    ]);
-    let query: Query = r#"products(missing_field = 5)"#.parse().unwrap();
-    let expected = json!([]);
-
-    let result = query.apply(value).unwrap();
-
-    assert_eq!(result, expected);
-}

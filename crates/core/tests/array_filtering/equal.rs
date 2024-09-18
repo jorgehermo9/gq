@@ -144,11 +144,32 @@ fn multiple_arguments(programming_languages: Value) {
 }
 
 #[rstest]
+fn value_not_found(programming_languages: Value) {
+    let query: Query = r#"languages(name = "Go")"#.parse().unwrap();
+    let expected = json!([]);
+
+    let result = query.apply(programming_languages).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+// TODO: Assert that a warning is logged
+#[rstest]
+fn missing_field(programming_languages: Value) {
+    let query: Query = r#"languages(missing_field = 5)"#.parse().unwrap();
+    let expected = json!([]);
+
+    let result = query.apply(programming_languages).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+// TODO: assert that a warning is logged
+#[rstest]
 fn incompatible_argument_type(programming_languages: Value) {
     let query: Query = r#"languages(name = 1995)"#.parse().unwrap();
     let expected = json!([]);
     let result = query.apply(programming_languages).unwrap();
 
-    // TODO: assert that a warning is logged
     assert_eq!(result, expected);
 }
