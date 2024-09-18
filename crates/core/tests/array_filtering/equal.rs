@@ -127,6 +127,7 @@ fn array_field_value_includes_argument_value(ai_models: Value) {
     assert_eq!(result, expected);
 }
 
+// TODO: decide if its ok to test this here or it is enough testing it in the parent module
 #[rstest]
 fn multiple_arguments(programming_languages: Value) {
     let query: Query = r#"languages(popular = true, year = 1995)"#.parse().unwrap();
@@ -145,7 +146,7 @@ fn multiple_arguments(programming_languages: Value) {
 
 #[rstest]
 fn value_not_found(programming_languages: Value) {
-    let query: Query = r#"languages(name = "Go")"#.parse().unwrap();
+    let query: Query = r#"languages(name = "value_not_found")"#.parse().unwrap();
     let expected = json!([]);
 
     let result = query.apply(programming_languages).unwrap();
