@@ -3,13 +3,84 @@ use gq_core::query::Query;
 use rstest::rstest;
 use serde_json::{json, Value};
 // TODO: add tests to assert warns and errors are logged
+//
 #[rstest]
 fn single_field(programming_languages: Value) {
+    let query: Query = "{ category }".parse().unwrap();
+    let expected = json!({"category": "Programming Languages"});
+
+    let result = query.apply(programming_languages).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[rstest]
+fn root_single_field(programming_languages: Value) {
     let query: Query = "category".parse().unwrap();
 
     let result = query.apply(programming_languages).unwrap();
 
     assert_eq!(result, "Programming Languages");
+}
+
+#[rstest]
+fn single_nested_field() {
+    let value = json!({
+        "parent": {
+            "child": {
+                "grandchild": "value"
+            }
+        }
+    });
+    let query: Query = "{ parent { child { grandchild } } }".parse().unwrap();
+    let expected = json!({
+        "parent": {
+            "child": {
+                "grandchild": "value"
+            }
+        }
+    });
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[rstest]
+fn single_nested_field_compressed() {
+    let value = json!({
+        "parent": {
+            "child": {
+                "grandchild": "value"
+            }
+        }
+    });
+    let query: Query = "{ parent { child.grandchild } }".parse().unwrap();
+    let expected = json!({
+        "parent": {
+            "grandchild": "value"
+        }
+    });
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[rstest]
+fn root_single_nested_field() {
+    let value = json!({
+        "parent": {
+            "child": {
+                "grandchild": "value"
+            }
+        }
+    });
+    let query: Query = "parent.child.grandchild".parse().unwrap();
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, "value");
 }
 
 #[test]

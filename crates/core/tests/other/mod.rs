@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 
 use crate::fixtures::products;
 
-// TODO: add advanced usage complicated test8
+// TODO: add advanced usage complicated test
 
 #[rstest]
 fn filtering_accessing_and_aliasing(products: Value) {
