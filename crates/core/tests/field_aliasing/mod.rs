@@ -21,6 +21,22 @@ fn simple(ai_models: Value) {
 }
 
 #[rstest]
+fn quoted_alias(ai_models: Value) {
+    let query: Query = r#"{
+        id: "my quoted identifier"
+    }"#
+    .parse()
+    .unwrap();
+    let expected = json!({
+        "my quoted identifier": "AI-Models"
+    });
+
+    let result = query.apply(ai_models).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[rstest]
 fn nested_field(ai_models: Value) {
     let query: Query = r#"{
         models.name: modelNames

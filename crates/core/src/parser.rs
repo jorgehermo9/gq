@@ -443,6 +443,7 @@ impl FromStr for Query {
 mod tests {
     use super::*;
     // TODO: add more parser tests
+
     #[test]
     #[should_panic]
     fn same_alias() {
