@@ -84,7 +84,7 @@ fn root_single_nested_field() {
 }
 
 #[test]
-fn quoted_single_field() {
+fn root_quoted_single_field() {
     let value = json!({
         "count()" : 42
     });
@@ -96,7 +96,7 @@ fn quoted_single_field() {
 }
 
 #[test]
-fn quoted_single_field_with_spaces() {
+fn root_quoted_single_field_with_spaces() {
     let value = json!({
         "key with spaces" : 42
     });
@@ -108,7 +108,7 @@ fn quoted_single_field_with_spaces() {
 }
 
 #[test]
-fn quoted_single_field_with_newline() {
+fn root_quoted_single_field_with_newline() {
     let value = json!({
         "key\nwith\nnewlines" : 42
     });
@@ -120,7 +120,7 @@ fn quoted_single_field_with_newline() {
 }
 
 #[test]
-fn quoted_single_field_with_tabs() {
+fn root_quoted_single_field_with_tabs() {
     let value = json!({
         "key\twith\ttabs" : 42
     });
@@ -132,7 +132,7 @@ fn quoted_single_field_with_tabs() {
 }
 
 #[test]
-fn quoted_single_field_with_double_quotes() {
+fn root_quoted_single_field_with_double_quotes() {
     let value = json!({
         "key\"with\"double\"quotes" : 42
     });
@@ -144,7 +144,7 @@ fn quoted_single_field_with_double_quotes() {
 }
 
 #[rstest]
-fn field_inside_array(programming_languages: Value) {
+fn root_field_inside_array(programming_languages: Value) {
     let query: Query = "languages.name".parse().unwrap();
     let expected = json!(["JavaScript", "Java", "Rust"]);
 
