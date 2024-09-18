@@ -116,6 +116,40 @@ fn multiple_fields(programming_languages: Value) {
     assert_eq!(result, expected);
 }
 
+#[rstest]
+fn multiple_fields_different_order(programming_languages: Value) {
+    let query: Query = "{
+        category
+        languages {
+            year
+            name
+        }
+    }"
+    .parse()
+    .unwrap();
+    let expected = json!({
+      "category": "Programming Languages",
+      "languages": [
+        {
+          "year": 1995,
+          "name": "JavaScript"
+        },
+        {
+          "year": 1995,
+          "name": "Java"
+        },
+        {
+          "year": 2010,
+          "name": "Rust"
+        }
+      ]
+    });
+
+    let result = query.apply(programming_languages).unwrap();
+
+    assert_eq!(result, expected);
+}
+
 #[test]
 fn quoted_multiple_fields() {
     let value = json!({
@@ -180,40 +214,6 @@ fn quoted_multiple_nested_fields() {
     });
 
     let result = query.apply(value).unwrap();
-
-    assert_eq!(result, expected);
-}
-
-#[rstest]
-fn multiple_fields_different_order(programming_languages: Value) {
-    let query: Query = "{
-        category
-        languages {
-            year
-            name
-        }
-    }"
-    .parse()
-    .unwrap();
-    let expected = json!({
-      "category": "Programming Languages",
-      "languages": [
-        {
-          "year": 1995,
-          "name": "JavaScript"
-        },
-        {
-          "year": 1995,
-          "name": "Java"
-        },
-        {
-          "year": 2010,
-          "name": "Rust"
-        }
-      ]
-    });
-
-    let result = query.apply(programming_languages).unwrap();
 
     assert_eq!(result, expected);
 }
