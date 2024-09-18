@@ -1,13 +1,5 @@
 .editor {
 	box-shadow: 0 60px 60px -100px var(--shadow);
-}
-
-.editorBorder {
-	position: absolute;
-	inset: 0;
-	width: 100%;
-	height: 100%;
-	border-radius: var(--radius);
 	transition: background-color 0.2s;
 	&[data-focused="true"] {
 		background-color: var(--accent);

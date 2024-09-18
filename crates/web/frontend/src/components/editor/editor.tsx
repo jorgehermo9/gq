@@ -78,7 +78,7 @@ const Editor = ({
 	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = type === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = content.length < 100000000;
-	const borderRepeatDelay = Math.random() * 15 + 5;
+	// const borderRepeatDelay = Math.random() * 5 + 15;
 
 	const handleFormatCode = useCallback(
 		async (cont: string) => {
@@ -204,17 +204,16 @@ const Editor = ({
 				data-title={defaultFileName}
 				className={`${styles.editor} relative h-full rounded-lg p-[1px] overflow-hidden`}
 			>
-				<div className={styles.editorBorder} data-focused={focused} />
 				<motion.div
 					className={styles.editorBorderTop}
 					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, 10, 180, 190, 360] }}
 					transition={{
 						duration: 4,
-						delay: borderRepeatDelay,
+						delay: 0,
 						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
 						// repeat: Number.POSITIVE_INFINITY,
 						// repeatType: "loop",
-						repeatDelay: borderRepeatDelay,
+						// repeatDelay: borderRepeatDelay,
 						times: [0, 0.1, 0.5, 0.6, 1],
 					}}
 				/>
@@ -223,11 +222,11 @@ const Editor = ({
 					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, -10, -180, -190, -360] }}
 					transition={{
 						duration: 4,
-						delay: borderRepeatDelay,
+						delay: 0,
 						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
 						// repeat: Number.POSITIVE_INFINITY,
 						// repeatType: "loop",
-						repeatDelay: borderRepeatDelay,
+						// repeatDelay: borderRepeatDelay,
 						times: [0, 0.1, 0.5, 0.6, 1],
 					}}
 				/>
@@ -252,26 +251,28 @@ const Editor = ({
 					visible={showConsole}
 					onClose={() => setShowConsole(false)}
 				/>
-				{available ? (
-					<CodeMirror
-						onFocus={() => onChangeFocused(true)}
-						onBlur={() => onChangeFocused(false)}
-						className="w-full h-full rounded-lg text-xs overflow-hidden"
-						value={instantContent}
-						onChange={setContent}
-						height="100%"
-						theme={gqTheme}
-						extensions={extensions}
-						readOnly={!editable}
-						basicSetup={{
-							autocompletion: true,
-							lineNumbers: true,
-							lintKeymap: true,
-						}}
-					/>
-				) : (
-					<EditorTooLarge editable={editable} onClearContent={() => setContent("")} />
-				)}
+				<div className="bg-background w-full h-full rounded-lg">
+					{available ? (
+						<CodeMirror
+							onFocus={() => onChangeFocused(true)}
+							onBlur={() => onChangeFocused(false)}
+							className="w-full h-full rounded-lg text-xs overflow-hidden"
+							value={instantContent}
+							onChange={setContent}
+							height="100%"
+							theme={gqTheme}
+							extensions={extensions}
+							readOnly={!editable}
+							basicSetup={{
+								autocompletion: true,
+								lineNumbers: true,
+								lintKeymap: true,
+							}}
+						/>
+					) : (
+						<EditorTooLarge editable={editable} onClearContent={() => setContent("")} />
+					)}
+				</div>
 			</div>
 		</div>
 	);
