@@ -9,11 +9,9 @@
 	height: 100%;
 	border-radius: var(--radius);
 	transition: background-color 0.2s;
-	
 	&[data-focused="true"] {
 		background-color: var(--accent);
 	}
-	
 	&[data-focused="false"] {
 	background-color: var(--accent-background);
 	}

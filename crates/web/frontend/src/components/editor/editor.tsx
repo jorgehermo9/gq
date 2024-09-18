@@ -1,7 +1,7 @@
 import useLazyState from "@/hooks/useLazyState";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { Data, emptyContent } from "@/model/data";
+import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { type LoadingState, loading, notLoading } from "@/model/loading-state";
 import { useSettings } from "@/providers/settings-provider";
@@ -65,11 +65,7 @@ const Editor = ({
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<string>();
-	const [content, setContent, instantContent] = useLazyState(
-		emptyContent(fileTypes[0]),
-		50,
-		onChangeContent,
-	);
+	const [content, setContent, instantContent] = useLazyState("" as string, 50, onChangeContent);
 	const [type, setType] = useState<FileType>(fileTypes[0]);
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
@@ -86,7 +82,7 @@ const Editor = ({
 
 	const handleFormatCode = useCallback(
 		async (cont: string) => {
-			if (!formatWorker || loadingState.isLoading) return;
+			if (!formatWorker || loadingState.isLoading || cont === "") return;
 			setLoadingState(loading("Formatting code..."));
 			try {
 				const data = new Data(cont, type);
@@ -114,7 +110,7 @@ const Editor = ({
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
 			if (!focused) return;
-			if (event.ctrlKey && event.key === "s") {
+			if (event.ctrlKey && (event.key === "s" || event.key === "S")) {
 				event.preventDefault();
 				handleFormatCode(content);
 			}
@@ -206,8 +202,6 @@ const Editor = ({
 			<div
 				data-focused={focused}
 				data-title={defaultFileName}
-				onFocus={() => onChangeFocused(true)}
-				onBlur={() => onChangeFocused(false)}
 				className={`${styles.editor} relative h-full rounded-lg p-[1px] overflow-hidden`}
 			>
 				<div className={styles.editorBorder} data-focused={focused} />
@@ -260,13 +254,15 @@ const Editor = ({
 				/>
 				{available ? (
 					<CodeMirror
+						onFocus={() => onChangeFocused(true)}
+						onBlur={() => onChangeFocused(false)}
 						className="w-full h-full rounded-lg text-xs overflow-hidden"
 						value={instantContent}
 						onChange={setContent}
 						height="100%"
 						theme={gqTheme}
 						extensions={extensions}
-						editable={editable}
+						readOnly={!editable}
 						basicSetup={{
 							autocompletion: true,
 							lineNumbers: true,
@@ -274,10 +270,7 @@ const Editor = ({
 						}}
 					/>
 				) : (
-					<EditorTooLarge
-						editable={editable}
-						onClearContent={() => setContent(emptyContent(type))}
-					/>
+					<EditorTooLarge editable={editable} onClearContent={() => setContent("")} />
 				)}
 			</div>
 		</div>
