@@ -7,7 +7,7 @@ mod equal;
 
 #[rstest]
 fn filter_and_accessing(products: Value) {
-    let query: Query = r#"products(quantity<5).name"#.parse().unwrap();
+    let query: Query = r#"products(quantity < 5).name"#.parse().unwrap();
     let expected = json!(["Product 3"]);
 
     let result = query.apply(products).unwrap();
@@ -104,6 +104,30 @@ fn root_filtering() {
 }
 
 #[test]
+fn root_filtering_and_accessing() {
+    let value = json!([
+        {
+            "name": "Product 1",
+            "kind": "DRESS"
+        },
+        {
+            "name": "Product 2",
+            "kind": "JEANS"
+        },
+        {
+            "name": "Product 3",
+            "kind": "JACKET"
+        },
+    ]);
+    let query: Query = r#"(kind = "JACKET")name"#.parse().unwrap();
+    let expected = json!(["Product 3",]);
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn root_filtering_nested_field() {
     let value = json!([
         {
@@ -144,13 +168,55 @@ fn root_filtering_nested_field() {
     assert_eq!(result, expected);
 }
 
+#[test]
+fn root_filtering_nested_field_and_accessing() {
+    let value = json!([
+        {
+            "name": "Product 1",
+            "price": {
+                "currency":"EUR",
+                "value": 100
+            }
+        },
+        {
+            "name": "Product 2",
+            "price": {
+                "currency":"DOLLAR",
+                "value": 100
+            }
+        },
+        {
+            "name": "Product 3",
+            "price": {
+                "currency":"POUNDS",
+                "value": 100
+            }
+        }
+    ]);
+    let query: Query = r#"(price.currency = "EUR")price.value"#.parse().unwrap();
+    let expected = json!([100]);
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, expected);
+}
+
 // TODO: Assert that a warning is logged
 #[rstest]
-fn missing_field(products: Value) {
+fn missing_field() {
+    let value = json!([
+        {
+            "name": "Product 1",
+            "price": {
+                "currency":"EUR",
+                "value": 100
+            }
+        }
+    ]);
     let query: Query = r#"products(missing_field = 5)"#.parse().unwrap();
     let expected = json!([]);
 
-    let result = query.apply(products).unwrap();
+    let result = query.apply(value).unwrap();
 
     assert_eq!(result, expected);
 }
