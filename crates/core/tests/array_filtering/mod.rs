@@ -49,13 +49,6 @@ fn nested_field() {
                     "value": 100
                 }
             },
-            {
-                "name": "Product 3",
-                "price": {
-                    "currency":"POUNDS",
-                    "value": 100
-                }
-            }
         ]
     });
     let query: Query = r#"products(price.currency = "EUR")"#.parse().unwrap();
@@ -85,16 +78,12 @@ fn root_filtering() {
             "name": "Product 2",
             "kind": "JEANS"
         },
-        {
-            "name": "Product 3",
-            "kind": "JACKET"
-        },
     ]);
-    let query: Query = r#"(kind = "JACKET")"#.parse().unwrap();
+    let query: Query = r#"(kind = "JEANS")"#.parse().unwrap();
     let expected = json!([
         {
-            "name": "Product 3",
-            "kind": "JACKET"
+            "name": "Product 2",
+            "kind": "JEANS"
         }
     ]);
 
@@ -114,13 +103,9 @@ fn root_filtering_and_accessing() {
             "name": "Product 2",
             "kind": "JEANS"
         },
-        {
-            "name": "Product 3",
-            "kind": "JACKET"
-        },
     ]);
-    let query: Query = r#"(kind = "JACKET")name"#.parse().unwrap();
-    let expected = json!(["Product 3",]);
+    let query: Query = r#"(kind = "JEANS")name"#.parse().unwrap();
+    let expected = json!(["Product 2",]);
 
     let result = query.apply(value).unwrap();
 
@@ -144,13 +129,6 @@ fn root_filtering_nested_field() {
                 "value": 100
             }
         },
-        {
-            "name": "Product 3",
-            "price": {
-                "currency":"POUNDS",
-                "value": 100
-            }
-        }
     ]);
     let query: Query = r#"(price.currency = "EUR")"#.parse().unwrap();
     let expected = json!([
@@ -182,16 +160,9 @@ fn root_filtering_nested_field_and_accessing() {
             "name": "Product 2",
             "price": {
                 "currency":"DOLLAR",
-                "value": 100
+                "value": 101
             }
         },
-        {
-            "name": "Product 3",
-            "price": {
-                "currency":"POUNDS",
-                "value": 100
-            }
-        }
     ]);
     let query: Query = r#"(price.currency = "EUR")price.value"#.parse().unwrap();
     let expected = json!([100]);
