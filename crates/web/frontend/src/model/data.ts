@@ -11,17 +11,6 @@ export class Data {
 	}
 }
 
-export const emptyContent = (fileType: FileType): string => {
-	switch (fileType) {
-		case FileType.JSON:
-			return "{}";
-		case FileType.GQ:
-			return "";
-		case FileType.YAML:
-			return "";
-	}
-};
-
 export const dataToModel = (dto: JsData): Data => {
 	return new Data(dto.payload, fileTypeToModel(dto.data_type));
 };
@@ -29,7 +18,7 @@ export const dataToModel = (dto: JsData): Data => {
 export const dataToDTO = (data: Data): JsData => {
 	switch (data.type) {
 		case FileType.JSON:
-			return JsData.json(data.content);
+			return JsData.json(data.content.trim() || "{}");
 		case FileType.YAML:
 			return JsData.yaml(data.content);
 		default:

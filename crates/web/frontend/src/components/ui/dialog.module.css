@@ -1,21 +1,22 @@
 .overlay {
 	@apply fixed inset-0 z-50;
+	backdrop-filter: blur(var(--blur));
 
 	&[data-state="open"] {
-		animation: blur 0.2s forwards;
+		animation: fade-in-out 0.2s forwards;
 	}
 
 	&[data-state="closed"] {
-		animation: blur 0.2s backwards;
+		animation: fade-in-out 0.2s backwards;
 	}
 }
 
-@keyframes blur {
+@keyframes fade-in-out {
 	from {
-		backdrop-filter: blur(0);
+		opacity: 0;
 	}
 
 	to {
-		backdrop-filter: blur(var(--blur));
+		opacity: 1;
 	}
 }
