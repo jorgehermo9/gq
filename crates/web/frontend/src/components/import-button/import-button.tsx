@@ -19,6 +19,16 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { importFile, importUrl } from "./import-utils";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectLabel,
+	SelectTrigger,
+	SelectValue,
+} from "../ui/select";
+import { fromString } from "@/model/http-method";
 
 interface Props {
 	importableType: FileType;
@@ -36,6 +46,7 @@ const ImportButton = ({
 	hidden = false,
 }: Props) => {
 	const [open, setOpen] = useState(false);
+	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<File>();
 
@@ -102,16 +113,30 @@ const ImportButton = ({
 				</DialogHeader>
 				<form onSubmit={handleSubmit} autoComplete="off">
 					<div>
-						<div>
-							<Label htmlFor="url-import" variant={file !== undefined ? "disabled" : "default"}>
-								From URL
-							</Label>
+						<Label htmlFor="url-import" variant={file !== undefined ? "disabled" : "default"}>
+							From URL
+						</Label>
+						<div className="flex items-center">
+							<Select
+								value={httpMethod}
+								onValueChange={(value) => setHttpMethod(fromString(value))}
+							>
+								<SelectTrigger className="w-min rounded-r-none bg-accent-background font-semibold">
+									<SelectValue id="http-method" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="GET">GET</SelectItem>
+										<SelectItem value="POST">POST</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 							<Input
-								disabled={file !== undefined}
 								id="url-import"
+								disabled={file !== undefined}
 								type="url"
 								placeholder="Enter URL"
-								className="w-full mt-2"
+								className="w-full mt-2 rounded-l-none"
 								value={url}
 								onChange={(e) => setUrl(e.target.value)}
 							/>

@@ -41,7 +41,7 @@ const ExportButton = ({ defaultFilename, fileType, onExportFile }: Props) => {
 				</DialogHeader>
 				<form onSubmit={handleSubmit} autoComplete="off">
 					<Label htmlFor="filename">File Name</Label>
-					<div className="flex items-center relative">
+					<div className="flex items-center">
 						<Input
 							id="filename"
 							type="text"
@@ -49,11 +49,11 @@ const ExportButton = ({ defaultFilename, fileType, onExportFile }: Props) => {
 							minLength={1}
 							maxLength={255}
 							placeholder="Enter file name"
-							className="w-full mt-2"
+							className="w-full mt-2 rounded-r-none"
 							value={fileName}
 							onChange={(e) => setFileName(e.target.value)}
 						/>
-						<span className="absolute right-[1px] border border-accent-background py-2 px-4 h-9.5 rounded-r-md text-sm bg-accent-background">
+						<span className="py-2 px-4 h-10 rounded-r-md text-sm bg-accent-background">
 							.{getFileExtensions(fileType)[0]}
 						</span>
 					</div>
