@@ -22,6 +22,9 @@ import chineseQuery from '/src/examples/fields/special/chinese-query.gq?raw';
 import chineseOutputJson from '/src/examples/fields/special/chinese-output.json?raw';
 import spacesQuery from '/src/examples/fields/special/spaces-query.gq?raw';
 import spacesOutputJson from '/src/examples/fields/special/spaces-output.json?raw';
+import orderInputJson from '/src/examples/fields/order/input.json?raw';
+import orderQuery from '/src/examples/fields/order/query.gq?raw';
+import orderOutputJson from '/src/examples/fields/order/output.json?raw';
 
 You can filter JSON fields easily using a GraphQL-like syntax regardless if it is deeply nested or if it is inside an array.
 
@@ -54,6 +57,12 @@ Naturally, you can also mix both the dot operator and the simple filtering:
 
 <GqExample codes={[dotOperatorQueryComplex, dotOperatorOutputComplex]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
 
+:::note
+In this last example, you can observe that in order to get the complete `release` object with all its fields, you don't
+need to specify all of them like in GraphQL.
+:::
+
+
 ## Special key names
 
 If you have a JSON with non-standard key names, you can double-quote them to match them. This includes keys with spaces, special UTF-8 characters 
@@ -63,8 +72,21 @@ or custom language reserved words. Let's take a look at an example:
 
 In this case, we want to get the `年份` field. We can achieve it by using the following query:
 
-<GqExample codes={[chineseQuery, chineseOutputJson]} langs={['json', 'json']} titles={['chinese-query.gq', 'chinese-output.json']} height="auto" />
+<GqExample codes={[chineseQuery, chineseOutputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
 
 Or if you have a key with spaces:
 
-<GqExample codes={[spacesQuery, spacesOutputJson]} langs={['json', 'json']} titles={['spaces-query.gq', 'spaces-output.json']} height="auto" />
+<GqExample codes={[spacesQuery, spacesOutputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
+
+## Order preservation
+
+GQ preserves the same order of the fields specified in the query when generating the output JSON. This means that GQ can even be used
+to rearrange your JSONs.
+
+For example, if you have the following JSON containing objects with unordered keys:
+
+<Code code={orderInputJson} lang="json" title="input.json" />
+
+You can order them by simply using the following query:
+
+<GqExample codes={[orderQuery, orderOutputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
