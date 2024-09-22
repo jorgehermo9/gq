@@ -11,6 +11,7 @@ import {
 } from "../ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { shortcutSections } from "./shortcuts";
+import Link from "../ui/link";
 
 const ShortcutPopup = () => {
 	const [open, setOpen] = useState(false);
@@ -56,15 +57,15 @@ const ShortcutPopup = () => {
 						</Table>
 					</div>
 				))}
-				<div className="flex gap-1 justify-center items-center mt-3 text-xs">
-					<a
+				<div className="flex gap-1 justify-center items-center mt-3">
+					<Link
 						href="https://codemirror.net/5/doc/manual.html#commands"
 						target="_blank"
 						rel="noreferrer"
 						className="hover:underline"
 					>
 						More editor-related shortcuts
-					</a>
+					</Link>
 				</div>
 			</DialogContent>
 		</Dialog>

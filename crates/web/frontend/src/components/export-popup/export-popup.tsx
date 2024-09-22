@@ -15,7 +15,7 @@ interface Props {
 	onExportFile: (fileName: string) => void;
 }
 
-const ExportButton = ({ defaultFilename, fileType, onExportFile }: Props) => {
+const ExportPopup = ({ defaultFilename, fileType, onExportFile }: Props) => {
 	const [fileName, setFileName] = useState(defaultFilename);
 	const [open, setOpen] = useState(false);
 
@@ -77,4 +77,4 @@ const ExportButton = ({ defaultFilename, fileType, onExportFile }: Props) => {
 	);
 };
 
-export default ExportButton;
+export default ExportPopup;

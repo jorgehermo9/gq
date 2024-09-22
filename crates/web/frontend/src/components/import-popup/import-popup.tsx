@@ -24,11 +24,11 @@ import {
 	SelectContent,
 	SelectGroup,
 	SelectItem,
-	SelectLabel,
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
 import { fromString } from "@/model/http-method";
+import HeadersPopup from "../headers-popup/headers-popup";
 
 interface Props {
 	importableType: FileType;
@@ -38,7 +38,7 @@ interface Props {
 	hidden?: boolean;
 }
 
-const ImportButton = ({
+const ImportPopup = ({
 	importableType,
 	onImportFile,
 	onChangeLoading,
@@ -47,6 +47,7 @@ const ImportButton = ({
 }: Props) => {
 	const [open, setOpen] = useState(false);
 	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
+	const [headers, setHeaders] = useState<[string, string][]>([]);
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<File>();
 
@@ -77,7 +78,7 @@ const ImportButton = ({
 		setOpen(false);
 		setUrl("");
 		try {
-			const fileContent = await importUrl(url);
+			const fileContent = await importUrl(url, httpMethod, headers);
 			onImportFile(new Data(fileContent, importableType));
 		} catch (err) {
 			onError(err);
@@ -140,6 +141,10 @@ const ImportButton = ({
 								value={url}
 								onChange={(e) => setUrl(e.target.value)}
 							/>
+						</div>
+						<div className="flex gap-2">
+							<HeadersPopup headers={headers} setHeaders={setHeaders} />
+							{httpMethod === "POST" && <span className="text-xs cursor-pointer">+ Body</span>}
 						</div>
 
 						<Separator />
@@ -218,4 +223,4 @@ const ImportButton = ({
 	);
 };
 
-export default ImportButton;
+export default ImportPopup;
