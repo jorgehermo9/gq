@@ -39,7 +39,7 @@ export interface ButtonProps
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-	({ className, variant, size, onClick, asChild = false, ...props }, ref) => {
+	({ className, variant, size, onClick, asChild = false, disabled, ...props }, ref) => {
 		const Comp = asChild ? Slot : "button";
 		const [isHover, setIsHover] = useState(false);
 		const containerRef = useRef<HTMLDivElement | null>(null);
@@ -59,6 +59,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 		};
 
 		const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+			if (disabled) return;
 			if (variant === "ghost") return onClick?.(e);
 			const ripple = document.createElement("span");
 			const rect = e.currentTarget.getBoundingClientRect();
@@ -89,7 +90,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 		return (
 			<div ref={containerRef}>
 				<Comp
-					className={cn(buttonVariants({ variant, size, className }))}
+					className={cn(
+						buttonVariants({ variant, size, className }),
+						disabled && "cursor-default opacity-50",
+					)}
 					ref={ref}
 					onClick={handleClick}
 					onMouseEnter={() => setIsHover(true)}
@@ -97,31 +101,33 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 					onMouseMove={handleMouseMove}
 					{...props}
 				>
-					<motion.div
-						className="absolute inset-0 rounded-full pointer-events-none"
-						style={{
-							x: fillX,
-							y: fillY,
-							width: maxSize * 1.6,
-							height: maxSize * 1.6,
-						}}
-						initial={{ opacity: 0 }}
-						animate={{ opacity: isHover ? 0.1 : 0 }}
-						transition={{ duration: 0.2 }}
-					>
-						<div
-							className="absolute inset-0 -translate-x-1/2 -translate-y-1/2"
+					{!disabled && (
+						<motion.div
+							className="absolute inset-0 rounded-full pointer-events-none"
 							style={{
-								display: variant === "ghost" ? "none" : "block",
-								backgroundImage: `radial-gradient(
+								x: fillX,
+								y: fillY,
+								width: maxSize * 1.6,
+								height: maxSize * 1.6,
+							}}
+							initial={{ opacity: 0 }}
+							animate={{ opacity: isHover ? 0.1 : 0 }}
+							transition={{ duration: 0.2 }}
+						>
+							<div
+								className="absolute inset-0 -translate-x-1/2 -translate-y-1/2"
+								style={{
+									display: variant === "ghost" ? "none" : "block",
+									backgroundImage: `radial-gradient(
 								circle at 50% 50%,
 								#eeefff,
 								var(--accent) 20%,
 								var(--background) 60%
 							)`,
-							}}
-						/>
-					</motion.div>
+								}}
+							/>
+						</motion.div>
+					)}
 					{props.children}
 				</Comp>
 			</div>

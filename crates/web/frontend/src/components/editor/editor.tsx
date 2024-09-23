@@ -9,7 +9,7 @@ import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import CodeMirror, { type Extension } from "@uiw/react-codemirror";
 import { TriangleAlert } from "lucide-react";
-import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
 import EditorLoadingOverlay from "../editor-overlay/editor-loading-overlay";

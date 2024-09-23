@@ -4,7 +4,7 @@ import { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
 import { type LoadingState, notLoading } from "@/model/loading-state";
-import { File, FileUp, Trash } from "lucide-react";
+import { Brackets, Ellipsis, EllipsisVertical, File, FileUp, Settings, Trash } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import {
@@ -29,6 +29,13 @@ import {
 } from "../ui/select";
 import { fromString } from "@/model/http-method";
 import HeadersPopup from "../headers-popup/headers-popup";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import BodyPopup from "../body-popup/body-popup";
 
 interface Props {
 	importableType: FileType;
@@ -47,9 +54,11 @@ const ImportPopup = ({
 }: Props) => {
 	const [open, setOpen] = useState(false);
 	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
-	const [headers, setHeaders] = useState<[string, string][]>([]);
+	const [headers, setHeaders] = useState<[string, string][]>([["", ""]]);
+	const [body, setBody] = useState<string | null>(null);
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<File>();
+	const [openHeaders, setOpenHeaders] = useState(false);
 
 	const handleImportFile = async () => {
 		if (!file) return;
@@ -78,7 +87,7 @@ const ImportPopup = ({
 		setOpen(false);
 		setUrl("");
 		try {
-			const fileContent = await importUrl(url, httpMethod, headers);
+			const fileContent = await importUrl(url, httpMethod, headers, body);
 			onImportFile(new Data(fileContent, importableType));
 		} catch (err) {
 			onError(err);
@@ -115,7 +124,7 @@ const ImportPopup = ({
 				<form onSubmit={handleSubmit} autoComplete="off">
 					<div>
 						<Label htmlFor="url-import" variant={file !== undefined ? "disabled" : "default"}>
-							From URL
+							<span>From URL</span>
 						</Label>
 						<div className="flex items-center">
 							<Select
@@ -141,10 +150,17 @@ const ImportPopup = ({
 								value={url}
 								onChange={(e) => setUrl(e.target.value)}
 							/>
-						</div>
-						<div className="flex gap-2">
-							<HeadersPopup headers={headers} setHeaders={setHeaders} />
-							{httpMethod === "POST" && <span className="text-xs cursor-pointer">+ Body</span>}
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button className="w-9 h-10 ml-4" variant="outline" size="icon">
+										<EllipsisVertical className="w-4 h-4" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent side="bottom" sideOffset={8}>
+									<HeadersPopup headers={headers} setHeaders={setHeaders} />
+									{httpMethod === "POST" && <BodyPopup body={body} setBody={setBody} />}
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</div>
 
 						<Separator />

@@ -1,4 +1,4 @@
-import { Trash, X } from "lucide-react";
+import { Brackets, Dot, Trash, X } from "lucide-react";
 import { useState } from "react";
 import {
 	Dialog,
@@ -11,6 +11,8 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import HeadersDatalist from "../headers-datalist/headers-datalist";
+import React from "react";
+import { DropdownMenuItem } from "../ui/dropdown-menu";
 
 interface HeadersPopupProps {
 	headers: [string, string][];
@@ -23,10 +25,16 @@ const HeadersPopup = ({ headers, setHeaders }: HeadersPopupProps) => {
 	const updateHeaders = (index: number, key: string, value: string) =>
 		setHeaders(headers.map((header, i) => (i === index ? [key, value] : header)));
 
+	const countHeaders = headers.reduce((acc, [key, value]) => (key || value ? acc + 1 : acc), 0);
+
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<span className="text-xs cursor-pointer">+ Headers</span>
+				<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+					<span className="text-sm cursor-pointer">
+						{`Add headers ${countHeaders > 0 ? `(${countHeaders})` : ""}`}
+					</span>
+				</DropdownMenuItem>
 			</DialogTrigger>
 			<DialogContent className="w-[34rem] max-w-[80vw] max-h-[60vh] overflow-y-auto gap-0">
 				<X
@@ -61,18 +69,18 @@ const HeadersPopup = ({ headers, setHeaders }: HeadersPopupProps) => {
 								className="w-1/2 p-2 border rounded-md mb-0"
 							/>
 							<Trash
-								className="h-4 w-4 cursor-pointer text-error"
+								className="h-4 w-4 cursor-pointer"
 								onClick={() => setHeaders(headers.filter((_, i) => i !== index))}
 							/>
 						</div>
 					))}
 					<Button
 						onClick={() => setHeaders([...headers, ["", ""]])}
-						className="py-1 px-8"
+						className="py-1 px-4 mt-4"
 						variant="outline"
 						type="button"
 					>
-						Add Header
+						Add header
 					</Button>
 				</div>
 			</DialogContent>
