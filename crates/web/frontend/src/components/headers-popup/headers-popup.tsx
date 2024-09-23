@@ -1,5 +1,7 @@
-import { Brackets, Dot, Trash, X } from "lucide-react";
+import { Trash, X } from "lucide-react";
 import { useState } from "react";
+import HeadersDatalist from "../headers-datalist/headers-datalist";
+import { Button } from "../ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -8,11 +10,8 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import HeadersDatalist from "../headers-datalist/headers-datalist";
-import React from "react";
 import { DropdownMenuItem } from "../ui/dropdown-menu";
+import { Input } from "../ui/input";
 
 interface HeadersPopupProps {
 	headers: [string, string][];

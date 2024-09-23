@@ -1,11 +1,15 @@
 import ActionButton from "@/components/action-button/action-button";
+import useLazyState from "@/hooks/useLazyState";
 import { formatBytes } from "@/lib/utils";
 import { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
+import { fromString } from "@/model/http-method";
 import { type LoadingState, notLoading } from "@/model/loading-state";
-import { Brackets, Ellipsis, EllipsisVertical, File, FileUp, Settings, Trash } from "lucide-react";
+import { EllipsisVertical, File, FileUp, Trash } from "lucide-react";
 import { useState } from "react";
+import BodyPopup from "../body-popup/body-popup";
+import HeadersPopup from "../headers-popup/headers-popup";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -15,10 +19,9 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "../ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Separator } from "../ui/separator";
-import { importFile, importUrl } from "./import-utils";
 import {
 	Select,
 	SelectContent,
@@ -27,15 +30,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
-import { fromString } from "@/model/http-method";
-import HeadersPopup from "../headers-popup/headers-popup";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import BodyPopup from "../body-popup/body-popup";
+import { Separator } from "../ui/separator";
+import { importFile, importUrl } from "./import-utils";
 
 interface Props {
 	importableType: FileType;
@@ -55,10 +51,9 @@ const ImportPopup = ({
 	const [open, setOpen] = useState(false);
 	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
 	const [headers, setHeaders] = useState<[string, string][]>([["", ""]]);
-	const [body, setBody] = useState<string | null>(null);
+	const [body, setBody, instantBody] = useLazyState<string | null>(null, 50);
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<File>();
-	const [openHeaders, setOpenHeaders] = useState(false);
 
 	const handleImportFile = async () => {
 		if (!file) return;
@@ -152,13 +147,13 @@ const ImportPopup = ({
 							/>
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
-									<Button className="w-9 h-10 ml-4" variant="outline" size="icon">
+									<Button className="w-8 h-10 ml-4" variant="outline" size="icon">
 										<EllipsisVertical className="w-4 h-4" />
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent side="bottom" sideOffset={8}>
 									<HeadersPopup headers={headers} setHeaders={setHeaders} />
-									{httpMethod === "POST" && <BodyPopup body={body} setBody={setBody} />}
+									{httpMethod === "POST" && <BodyPopup body={instantBody} setBody={setBody} />}
 								</DropdownMenuContent>
 							</DropdownMenu>
 						</div>

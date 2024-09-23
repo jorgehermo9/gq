@@ -1,4 +1,9 @@
+import { gqTheme } from "@/lib/theme";
+import FileType from "@/model/file-type";
+import CodeMirror, { type Extension } from "@uiw/react-codemirror";
 import { X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { getCodemirrorExtensionsByFileType } from "../editor/editor-utils";
 import {
 	Dialog,
 	DialogContent,
@@ -7,11 +12,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "../ui/dialog";
-import CodeMirror, { type Extension } from "@uiw/react-codemirror";
-import { gqTheme } from "@/lib/theme";
-import { useMemo, useState } from "react";
-import { getCodemirrorExtensionsByFileType } from "../editor/editor-utils";
-import FileType from "@/model/file-type";
 import { DropdownMenuItem } from "../ui/dropdown-menu";
 
 interface BodyPopupProps {
@@ -34,7 +34,7 @@ const BodyPopup = ({ body, setBody }: BodyPopupProps) => {
 					<span className="text-sm cursor-pointer">Add body</span>
 				</DropdownMenuItem>
 			</DialogTrigger>
-			<DialogContent className="block w-[34rem] max-w-[80vw] h-[40vh] overflow-y-auto gap-0">
+			<DialogContent className="flex flex-col w-[34rem] max-w-[80vw] h-[40vh] overflow-y-auto gap-0">
 				<X
 					className="absolute top-4 right-4 h-4 w-4 cursor-pointer"
 					onClick={() => setOpen(false)}

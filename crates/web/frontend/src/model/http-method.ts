@@ -1,15 +1,15 @@
 enum HttpMethod {
-	GET = 'GET',
-	POST = 'POST',
+	GET = "GET",
+	POST = "POST",
 }
 
 export const fromString = (method: string): HttpMethod => {
 	switch (method) {
-		case 'GET':
+		case "GET":
 			return HttpMethod.GET;
-		case 'POST':
+		case "POST":
 			return HttpMethod.POST;
 		default:
-			throw new Error('Invalid http method');
+			throw new Error("Invalid http method");
 	}
-}
+};

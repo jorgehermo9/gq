@@ -1,8 +1,8 @@
 enum HttpHeader {
-	Accept = 'Accept',
-	Authorization = 'Authorization',
-	ContentType = 'Content-Type',
-	Origin = 'Origin',
-	Referer = 'Referer',
-	UserAgent = 'User-Agent',
+	Accept = "Accept",
+	Authorization = "Authorization",
+	ContentType = "Content-Type",
+	Origin = "Origin",
+	Referer = "Referer",
+	UserAgent = "User-Agent",
 }

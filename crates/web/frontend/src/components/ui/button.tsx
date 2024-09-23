@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
 import { type VariantProps, cva } from "class-variance-authority";
 import { motion, useSpring } from "framer-motion";
-import { type MouseEvent, forwardRef, useRef, useState, useEffect } from "react";
+import { type MouseEvent, forwardRef, useEffect, useRef, useState } from "react";
 import styles from "./button.module.css";
 
 const buttonVariants = cva(
