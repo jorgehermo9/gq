@@ -30,21 +30,26 @@ export default function GlobalError({
 					firaCode.variable,
 				)}
 			>
-				<h2 className="text-4xl font-bold">Something went wrong!</h2>
-				<p className="text-sm font-light mt-4">
-					Click the button below to refresh the playground state
-				</p>
-				<Button
-					className="mt-8"
-					variant="outline"
-					type="button"
-					onClick={() => {
-						localStorage.clear();
-						window.location.reload();
-					}}
+				<div
+					style={{ boxShadow: "0 60px 60px -90px var(--shadow-accent)" }}
+					className="flex flex-col items-center px-48 py-24 border border-accent-background rounded-lg bg-background"
 				>
-					Try again
-				</Button>
+					<h2 className="text-4xl font-bold">Something went wrong!</h2>
+					<p className="text-sm font-light mt-4">
+						Click the button below to refresh the playground state
+					</p>
+					<Button
+						className="mt-8"
+						variant="outline"
+						type="button"
+						onClick={() => {
+							localStorage.clear();
+							window.location.reload();
+						}}
+					>
+						Try again
+					</Button>
+				</div>
 			</body>
 		</html>
 	);

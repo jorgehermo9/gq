@@ -29,7 +29,10 @@ const config = {
 					DEFAULT: "var(--muted)",
 					transparent: "var(--muted-transparent)",
 				},
-				shadow: "var(--shadow)",
+				shadow: {
+					DEFAULT: "var(--shadow)",
+					accent: "var(--shadow-accent)",
+				},
 				error: "var(--error)",
 				warning: "var(--warning)",
 				success: "var(--success)",
@@ -55,9 +58,7 @@ const config = {
 			},
 		},
 	},
-	plugins: [
-		require("tailwindcss-animate"),
-	],
+	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
 
 export default config;
