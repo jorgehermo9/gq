@@ -271,4 +271,7 @@ mod tests {
 
         assert!(matches!(token, Err(Error::UnknownCharacter)));
     }
+
+    // TODO: Add more tests for various consecutive tokens. For example,
+    // Two consecutive strings, two consecutive floats, etc.
 }
