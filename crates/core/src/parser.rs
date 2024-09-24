@@ -457,7 +457,7 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn alias_collides_with_existant_field() {
+    fn alias_collides_with_existent_field() {
         r#"{
             id: models
             models
