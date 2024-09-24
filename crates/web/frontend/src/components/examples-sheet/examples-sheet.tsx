@@ -153,18 +153,18 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 		setDialogOpen(true);
 	}, []);
 
+	const handleCloseOnboarding = useCallback(() => {
+		setOnboardingVisible(false);
+		localStorage.setItem("onboarding", "done");
+	}, []);
+
 	const handleOpenChange = useCallback(
 		(open: boolean) => {
 			onboardingVisible && handleCloseOnboarding();
 			setSheetOpen(open);
 		},
-		[onboardingVisible],
+		[onboardingVisible, handleCloseOnboarding],
 	);
-
-	const handleCloseOnboarding = useCallback(() => {
-		setOnboardingVisible(false);
-		localStorage.setItem("onboarding", "done");
-	}, []);
 
 	const handleSubmit = useCallback(async () => {
 		if (!selectedExample || !formatWorker) return;

@@ -14,7 +14,7 @@ import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from
 import ActionButton from "../action-button/action-button";
 import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
 import EditorLoadingOverlay from "../editor-overlay/editor-loading-overlay";
-import EditorConsole from "./editor-console";
+import EditorConsole from "../editor-console/editor-console";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
 import { EditorTooLarge } from "./editor-too-large";

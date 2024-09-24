@@ -73,21 +73,3 @@
 		}
 	}
 }
-
-.consoleOverlay {
-	position: absolute;
-	z-index: 20;
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-
-	&[data-visible="true"] {
-		opacity: 1;
-		visibility: visible;
-	}
-
-	&[data-visible="false"] {
-		opacity: 0;
-		visibility: hidden;
-	}
-}

@@ -47,7 +47,7 @@ const HeadersPopup = ({ headers, setHeaders }: HeadersPopupProps) => {
 				<div className="flex flex-col gap-4 mt-8">
 					{headers.map((header, index) => (
 						<div
-							// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+							// biome-ignore lint/suspicious/noArrayIndexKey: This is a controlled list
 							key={index}
 							className="flex gap-4 items-center"
 						>

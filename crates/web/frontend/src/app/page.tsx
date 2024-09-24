@@ -48,6 +48,7 @@ const Home = () => {
 
 	const updateOutputData = useCallback(
 		async (inputContent: string, inputType: FileType, queryContent: string, silent = true) => {
+			setWarningMessages(["Test", "Test2", "Test3", "Test4", "Test5", "Test6"]);
 			if (!gqWorker || isApplying) return;
 			setIsApplying(true);
 			outputEditorLoadingCallback.current(
