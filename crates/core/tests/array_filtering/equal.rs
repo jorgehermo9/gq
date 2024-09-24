@@ -101,7 +101,8 @@ fn float_argument_value_with_null_field_value(ai_models: Value) {
         {
           "name": "LLAMA",
           "openSource": true,
-          "score": 88.7
+          "score": 88.7,
+          "tags": ["Text Generation", "Open Source"]
         }
     ]);
 

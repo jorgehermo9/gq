@@ -71,7 +71,8 @@ pub fn ai_models() -> Value {
             {
               "name": "LLAMA",
               "openSource": true,
-              "score": 88.7
+              "score": 88.7,
+              "tags": ["Text Generation","Open Source"]
             }
           ]
         }

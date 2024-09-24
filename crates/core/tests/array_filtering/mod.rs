@@ -4,6 +4,7 @@ use rstest::rstest;
 use serde_json::{json, Value};
 
 mod equal;
+mod not_equal;
 
 #[rstest]
 fn filter_and_accessing(products: Value) {

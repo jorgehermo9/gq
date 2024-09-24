@@ -369,7 +369,10 @@ fn null_values_are_not_filtered_out(ai_models: Value) {
 #[rstest]
 fn empty_objects_are_filtered_out_inside_arrays(ai_models: Value) {
     let query: Query = "models.tags".parse().unwrap();
-    let expected = json!([["NLP", "Text Generation"]]);
+    let expected = json!([
+        ["NLP", "Text Generation"],
+        ["Text Generation", "Open Source"]
+    ]);
 
     let result = query.apply(ai_models).unwrap();
 
@@ -396,7 +399,8 @@ fn missing_fields_are_ommited_inside_arrays(ai_models: Value) {
                 "name": "Claude",
             },
             {
-                "name": "LLAMA"
+                "name": "LLAMA",
+                "tags": ["Text Generation", "Open Source"]
             }
         ]
     });
