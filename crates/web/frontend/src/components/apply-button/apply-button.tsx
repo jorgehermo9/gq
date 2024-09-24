@@ -27,7 +27,7 @@ const ApplyButton = ({ autoApply, onClick }: Props) => {
 		<ActionButton
 			disabled
 			className="rounded-full p-4"
-			description="Auto applying the query to the provided JSON. You can disable this feature in the settings."
+			description="Auto applying the query. You can disable this feature in the settings."
 		>
 			<CirclePlay className="w-6 h-6" />
 		</ActionButton>

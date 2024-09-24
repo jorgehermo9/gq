@@ -1,0 +1,17 @@
+.importFileContainer {
+	@apply w-full h-full relative;
+
+	&:hover .deleteFileOverlay {
+		@apply opacity-100 visible;
+	}
+}
+
+.deleteFileOverlay {
+	@apply absolute z-20 rounded-md grid place-items-center opacity-0 invisible;
+	left: 2px;
+	top: 2px;
+	width: calc(100% - 4px);
+	height: calc(100% - 4px);
+	backdrop-filter: blur(var(--blur));
+	transition: all 0.2s;
+}

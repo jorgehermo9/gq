@@ -21,8 +21,8 @@ const Header = ({ className, onClickExample }: Props) => {
 				<StarCount className="px-3" />
 			</div>
 
-			<h1 className="relative items-end text-[2.5rem]">
-				<span className="font-semibold text-foreground">
+			<h1 className="relative">
+				<span className="font-semibold text-foreground text-[2.5rem]">
 					GQ <span className="font-medium tracking-tight">Playground</span>
 				</span>
 			</h1>

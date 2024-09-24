@@ -1,12 +1,12 @@
 "use client";
 
 import ActionButton from "@/components/action-button/action-button";
-import ExportButton from "@/components/export-button/export-button";
+import ExportButton from "@/components/export-popup/export-popup";
+import ImportPopup from "@/components/import-popup/import-popup";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import type { LoadingState } from "@/model/loading-state";
 import { Braces, Clipboard } from "lucide-react";
-import ImportButton from "../import-button/import-button";
 
 interface Props {
 	fileType: FileType;
@@ -49,7 +49,7 @@ const EditorMenu = ({
 				>
 					<Braces className="w-3.5 h-3.5" />
 				</ActionButton>
-				<ImportButton
+				<ImportPopup
 					importableType={fileType}
 					onChangeLoading={onChangeLoading}
 					onImportFile={onImportFile}

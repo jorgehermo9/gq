@@ -1,11 +1,15 @@
 import ActionButton from "@/components/action-button/action-button";
+import useLazyState from "@/hooks/useLazyState";
 import { formatBytes } from "@/lib/utils";
 import { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
+import { fromString } from "@/model/http-method";
 import { type LoadingState, notLoading } from "@/model/loading-state";
-import { File, FileUp, Trash } from "lucide-react";
+import { EllipsisVertical, File, FileUp, Trash } from "lucide-react";
 import { useState } from "react";
+import BodyPopup from "../body-popup/body-popup";
+import HeadersPopup from "../headers-popup/headers-popup";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -15,9 +19,19 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "../ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "../ui/select";
 import { Separator } from "../ui/separator";
+import styles from "./import-popup.module.css";
 import { importFile, importUrl } from "./import-utils";
 
 interface Props {
@@ -28,7 +42,7 @@ interface Props {
 	hidden?: boolean;
 }
 
-const ImportButton = ({
+const ImportPopup = ({
 	importableType,
 	onImportFile,
 	onChangeLoading,
@@ -36,6 +50,9 @@ const ImportButton = ({
 	hidden = false,
 }: Props) => {
 	const [open, setOpen] = useState(false);
+	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
+	const [headers, setHeaders] = useState<[string, string][]>([["", ""]]);
+	const [body, setBody, instantBody] = useLazyState<string | null>(null, 50);
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<File>();
 
@@ -66,7 +83,7 @@ const ImportButton = ({
 		setOpen(false);
 		setUrl("");
 		try {
-			const fileContent = await importUrl(url);
+			const fileContent = await importUrl(url, httpMethod, headers, body);
 			onImportFile(new Data(fileContent, importableType));
 		} catch (err) {
 			onError(err);
@@ -102,26 +119,51 @@ const ImportButton = ({
 				</DialogHeader>
 				<form onSubmit={handleSubmit} autoComplete="off">
 					<div>
-						<div>
-							<Label htmlFor="url-import" variant={file !== undefined ? "disabled" : "default"}>
-								From URL
-							</Label>
+						<Label htmlFor="url-import" variant={file !== undefined ? "disabled" : "default"}>
+							<span>From URL</span>
+						</Label>
+						<div className="flex items-center">
+							<Select
+								value={httpMethod}
+								onValueChange={(value) => setHttpMethod(fromString(value))}
+							>
+								<SelectTrigger className="w-min rounded-r-none bg-accent-background font-semibold">
+									<SelectValue id="http-method" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="GET">GET</SelectItem>
+										<SelectItem value="POST">POST</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 							<Input
-								disabled={file !== undefined}
 								id="url-import"
+								disabled={file !== undefined}
 								type="url"
 								placeholder="Enter URL"
-								className="w-full mt-2"
+								className="w-full mt-2 rounded-l-none"
 								value={url}
 								onChange={(e) => setUrl(e.target.value)}
 							/>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button className="w-8 h-10 ml-4" variant="outline" size="icon">
+										<EllipsisVertical className="w-4 h-4" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent side="bottom" sideOffset={8}>
+									<HeadersPopup headers={headers} setHeaders={setHeaders} />
+									{httpMethod === "POST" && <BodyPopup body={instantBody} setBody={setBody} />}
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</div>
 
 						<Separator />
 
 						<div className="w-full">
 							<span className="text-sm">From local file</span>
-							<div className="w-full h-full relative group">
+							<div className={styles.importFileContainer}>
 								<Label
 									htmlFor="file-import"
 									className="flex items-center rounded-md justify-center border-2 border-muted border-dashed w-full h-40 cursor-pointer mt-2"
@@ -153,11 +195,7 @@ const ImportButton = ({
 									)}
 								</Label>
 								{file && (
-									<div
-										className="absolute inset-0 z-20 rounded-md w-full h-full flex items-center justify-center 
-									bg-black bg-opacity-70 opacity-0 invisible group-hover:opacity-100 
-									group-hover:visible transition-all duration-200 delay-200"
-									>
+									<div className={styles.deleteFileOverlay}>
 										<ActionButton
 											className="p-2"
 											onClick={(e) => {
@@ -193,4 +231,4 @@ const ImportButton = ({
 	);
 };
 
-export default ImportButton;
+export default ImportPopup;

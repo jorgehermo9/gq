@@ -13,6 +13,7 @@ import ActionButton from "../action-button/action-button";
 import { formatCode } from "../editor/editor-utils";
 import SimpleEditor from "../editor/simple-editor";
 import OnboardingPopup from "../onboarding-popup/onboarding-popup";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -32,7 +33,6 @@ import {
 	SheetTrigger,
 } from "../ui/sheet";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import styles from "./examples-sheet.module.css";
 
 interface ExampleItemDescriptionProps {
@@ -153,18 +153,18 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 		setDialogOpen(true);
 	}, []);
 
+	const handleCloseOnboarding = useCallback(() => {
+		setOnboardingVisible(false);
+		localStorage.setItem("onboarding", "done");
+	}, []);
+
 	const handleOpenChange = useCallback(
 		(open: boolean) => {
 			onboardingVisible && handleCloseOnboarding();
 			setSheetOpen(open);
 		},
-		[onboardingVisible],
+		[onboardingVisible, handleCloseOnboarding],
 	);
-
-	const handleCloseOnboarding = useCallback(() => {
-		setOnboardingVisible(false);
-		localStorage.setItem("onboarding", "done");
-	}, []);
 
 	const handleSubmit = useCallback(async () => {
 		if (!selectedExample || !formatWorker) return;

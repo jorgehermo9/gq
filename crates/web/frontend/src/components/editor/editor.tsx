@@ -8,12 +8,13 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import CodeMirror, { type Extension } from "@uiw/react-codemirror";
+import { cubicBezier, motion } from "framer-motion";
 import { TriangleAlert } from "lucide-react";
-import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
 import EditorLoadingOverlay from "../editor-overlay/editor-loading-overlay";
-import EditorConsole from "./editor-console";
+import EditorConsole from "../editor-console/editor-console";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
 import { EditorTooLarge } from "./editor-too-large";
@@ -25,7 +26,6 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
-import { cubicBezier, motion } from "framer-motion";
 
 interface Props {
 	title: string;

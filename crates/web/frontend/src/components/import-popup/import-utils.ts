@@ -21,10 +21,20 @@ export const importFile = (file: File, silent = true): Promise<string> => {
 	});
 };
 
-export const importUrl = async (url: string, silent = true): Promise<string> => {
+export const importUrl = async (
+	url: string,
+	httpMethod: string,
+	headers: [string, string][],
+	body: string | null = null,
+	silent = true,
+): Promise<string> => {
 	const toastId = silent ? undefined : toast.loading("Importing file...");
 	try {
-		const response = await fetch(url);
+		const response = await fetch(url, {
+			method: httpMethod,
+			headers: headers,
+			body: body,
+		});
 		if (!response.ok) {
 			throw new Error(`Received ${response.status} (${statusTextMap.get(response.status)})`);
 		}
