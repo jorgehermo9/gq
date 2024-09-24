@@ -23,6 +23,7 @@ const config = {
 				foreground: "var(--foreground)",
 				accent: {
 					DEFAULT: "var(--accent)",
+					subtle: "var(--accent-subtle)",
 					background: "var(--accent-background)",
 				},
 				muted: {

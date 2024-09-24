@@ -28,6 +28,7 @@
     --background: #10151D;
     --foreground: #e1e5ec;
     --accent: #959efd;
+    --accent-subtle: #626DA7;
     --accent-background: #2E3C51;
     --muted: #222b37;
 
@@ -57,19 +58,17 @@
   html {
     @apply min-h-screen;
   }
-  
+
   body {
     @apply text-foreground min-h-screen antialiased;
   }
 }
 
 body {
-  background-image: 
-    radial-gradient(
-      circle at bottom center,
+  background-image:
+    radial-gradient(circle at bottom center,
       transparent,
-      var(--background) 60%
-    ),
+      var(--background) 60%),
     radial-gradient(var(--muted) 1px, transparent 1px);
   background-size: 100% 100%, 30px 30px;
   background-color: var(--background);

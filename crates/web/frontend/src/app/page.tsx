@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { applyGq, getQueryCompletionSource } from "./page-utils";
 import styles from "./page.module.css";
+import Footer from "@/components/footer/footer";
 
 const Home = () => {
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -192,6 +193,7 @@ const Home = () => {
 					/>
 				</aside>
 			</section>
+			<Footer />
 		</main>
 	);
 };

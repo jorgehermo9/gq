@@ -202,7 +202,7 @@ const Editor = ({
 			<div
 				data-focused={focused}
 				data-title={defaultFileName}
-				className={`${styles.editor} relative h-full rounded-lg p-[1px] overflow-hidden`}
+				className={`${styles.editor} relative h-full rounded-lg p-[1.5px] overflow-hidden`}
 			>
 				<motion.div
 					className={styles.editorBorderTop}

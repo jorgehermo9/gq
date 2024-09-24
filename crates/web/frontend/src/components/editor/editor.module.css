@@ -1,11 +1,14 @@
 .editor {
-	box-shadow: 0 60px 60px -100px var(--shadow);
-	transition: background-color 0.2s;
+	transition: box-shadow 0.2s, background-color 0.2s;
+
 	&[data-focused="true"] {
-		background-color: var(--accent);
+		background-color: var(--accent-subtle);
+		box-shadow: 0 60px 60px -100px var(--shadow-accent);
 	}
+
 	&[data-focused="false"] {
-	background-color: var(--accent-background);
+		background-color: var(--accent-background);
+		box-shadow: 0 60px 60px -100px var(--shadow);
 	}
 }
 
