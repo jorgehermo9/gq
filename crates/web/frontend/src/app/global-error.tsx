@@ -1,10 +1,10 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Fira_Mono, Montserrat } from "next/font/google";
-import "./globals.css";
-import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
+import "./globals.css";
 
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
 const firaCode = Fira_Mono({

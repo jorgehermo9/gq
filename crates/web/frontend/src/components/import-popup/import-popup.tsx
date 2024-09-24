@@ -31,6 +31,7 @@ import {
 	SelectValue,
 } from "../ui/select";
 import { Separator } from "../ui/separator";
+import styles from "./import-popup.module.css";
 import { importFile, importUrl } from "./import-utils";
 
 interface Props {
@@ -162,7 +163,7 @@ const ImportPopup = ({
 
 						<div className="w-full">
 							<span className="text-sm">From local file</span>
-							<div className="w-full h-full relative group">
+							<div className={styles.importFileContainer}>
 								<Label
 									htmlFor="file-import"
 									className="flex items-center rounded-md justify-center border-2 border-muted border-dashed w-full h-40 cursor-pointer mt-2"
@@ -194,11 +195,7 @@ const ImportPopup = ({
 									)}
 								</Label>
 								{file && (
-									<div
-										className="absolute inset-0 z-20 rounded-md w-full h-full flex items-center justify-center 
-									bg-black bg-opacity-70 opacity-0 invisible group-hover:opacity-100 
-									group-hover:visible transition-all duration-200 delay-200"
-									>
+									<div className={styles.deleteFileOverlay}>
 										<ActionButton
 											className="p-2"
 											onClick={(e) => {

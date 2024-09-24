@@ -3,6 +3,7 @@
 import ActionButton from "@/components/action-button/action-button";
 import ApplyButton from "@/components/apply-button/apply-button";
 import Editor from "@/components/editor/editor";
+import Footer from "@/components/footer/footer";
 import Header from "@/components/header/header";
 import useDebounce from "@/hooks/useDebounce";
 import { cn, i } from "@/lib/utils";
@@ -14,11 +15,10 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import { Link2, Link2Off } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { applyGq, getQueryCompletionSource } from "./page-utils";
 import styles from "./page.module.css";
-import Footer from "@/components/footer/footer";
 
 const Home = () => {
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -126,8 +126,8 @@ const Home = () => {
 	);
 
 	return (
-		<main className="flex flex-col items-center p-4 px-12 h-screen gap-8">
-			<Header className="w-full" onClickExample={handleClickExample} />
+		<main className="flex flex-col items-center pt-4 px-12 h-screen">
+			<Header className="w-full mb-8" onClickExample={handleClickExample} />
 			<section className="flex items-center justify-center w-full">
 				<aside className="flex flex-col gap-8">
 					<Editor
@@ -177,7 +177,7 @@ const Home = () => {
 				</div>
 				<aside className="flex flex-col">
 					<Editor
-						className="w-[44vw] h-[82vh]"
+						className="w-[44vw] h-[83vh]"
 						onChangeFileType={handleChangeOutputDataFileType}
 						title="Output"
 						editable={false}
@@ -193,7 +193,7 @@ const Home = () => {
 					/>
 				</aside>
 			</section>
-			<Footer />
+			<Footer className="my-auto" />
 		</main>
 	);
 };

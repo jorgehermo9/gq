@@ -18,6 +18,9 @@ const config = {
 			},
 		},
 		extend: {
+			fontSize: {
+				xxs: "0.6rem",
+			},
 			colors: {
 				background: "var(--background)",
 				foreground: "var(--foreground)",
