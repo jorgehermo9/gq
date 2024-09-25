@@ -60,7 +60,7 @@ fn float_argument_value_with_null_field_value(ai_models: Value) {
 
 // At least one of the values in the array field must be greater than the argument value
 #[rstest]
-fn array_field_value_includes_argument_value() {
+fn array_field_value_includes_greater_than_argument_value() {
     let value = json!({
         "products":[
             {
