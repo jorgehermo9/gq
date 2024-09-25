@@ -113,14 +113,37 @@ fn float_argument_value_with_null_field_value(ai_models: Value) {
 
 #[rstest]
 fn array_field_value_includes_argument_value(ai_models: Value) {
-    let query: Query = r#"models(tags = "NLP")"#.parse().unwrap();
+    let query: Query = r#"models(tags = "Text Generation")"#.parse().unwrap();
     let expected = json!([
         {
             "name": "GPT-4O",
             "openSource": false,
             "score": 71.49,
             "tags": ["NLP", "Text Generation"]
+        },
+        {
+          "name": "LLAMA",
+          "openSource": true,
+          "score": 88.7,
+          "tags": ["Text Generation", "Open Source"]
         }
+    ]);
+
+    let result = query.apply(ai_models).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[rstest]
+fn array_field_value_includes_multiple_argument_value(ai_models: Value) {
+    let query: Query = r#"models(tags = "NLP", tags = "Text Generation")"#.parse().unwrap();
+    let expected = json!([
+        {
+            "name": "GPT-4O",
+            "openSource": false,
+            "score": 71.49,
+            "tags": ["NLP", "Text Generation"]
+        },
     ]);
 
     let result = query.apply(ai_models).unwrap();
@@ -168,7 +191,7 @@ fn missing_field(programming_languages: Value) {
 
 // TODO: assert that a warning is logged
 #[rstest]
-fn incompatible_argument_type(programming_languages: Value) {
+fn incomparable_types_error(programming_languages: Value) {
     let query: Query = r#"languages(name = 1995)"#.parse().unwrap();
     let expected = json!([]);
     let result = query.apply(programming_languages).unwrap();

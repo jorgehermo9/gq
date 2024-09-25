@@ -456,6 +456,7 @@ impl QueryArguments {
 }
 
 impl<'a> QueryArgument {
+    // TODO: Maybe we should return false and not default to NULL.
     const DEFAULT_INSPECTED_VALUE: Cow<'static, Value> = Cow::Owned(Value::Null);
 
     fn satisfies(&'a self, value: &Value, context: &Context<'a>) -> Result<bool, Error<'a>> {
@@ -463,7 +464,8 @@ impl<'a> QueryArgument {
 
         let inspected_value = match argument_key.inspect(value, context) {
             Ok(value) => value,
-            // TODO: only return null value for the KeyNotFound error?
+            // TODO: only return null value for the KeyNotFound error?  Check the test with this TODO at the not_equal.rs test
+
             // TODO: the query inspection should not use InternalError, it is too generic
             Err(error @ InternalError::KeyNotFound(_)) => {
                 log::info!("{error}, using null value");
