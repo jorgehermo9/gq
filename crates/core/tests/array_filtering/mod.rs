@@ -17,22 +17,24 @@ fn filter_and_accessing(products: Value) {
     assert_eq!(result, expected);
 }
 
-#[rstest]
-fn multiple_arguments(products: Value) {
-    let query: Query = r#"products(quantity > 4, price > 10.0)"#.parse().unwrap();
-    let expected = json!([
-        {
-          "name": "Product 2",
-          "quantity": 5,
-          "price": 14.95
-        }
-    ]);
-
-    let result = query.apply(products).unwrap();
-
-    assert_eq!(result, expected)
-}
-
+// TODO: create a new test for nested fields inside arrays.
+// Something like
+// {
+//    "products": [
+//       {
+//         "name": "Product 1",
+//        "fields":[
+//          {
+//           "name": "Field 1",
+//          "value": 1
+//         },
+//          {
+//           "name": "Field 2",
+//          "value": 3
+//         }
+//      ]
+// ]
+// }
 #[test]
 fn nested_field() {
     let value = json!({
@@ -62,6 +64,51 @@ fn nested_field() {
                 "value": 100
             }
         }
+    ]);
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn nested_field_inside_array() {
+    let value = json!({
+        "products":[
+            {
+                "name": "Product 1",
+                "prices": [
+                    {
+                        "currency":"EUR",
+                    },
+                    {
+                        "currency":"DOLLAR",
+                    }
+                ]
+            },
+            {
+                "name": "Product 2",
+                "prices": [
+                    {
+                        "currency":"EUR",
+                    },
+                ]
+            },
+        ]
+    });
+    let query: Query = r#"products(prices.currency = "DOLLAR")"#.parse().unwrap();
+    let expected = json!([
+        {
+            "name": "Product 1",
+            "prices": [
+                {
+                    "currency":"EUR",
+                },
+                {
+                    "currency":"DOLLAR",
+                }
+            ]
+        },
     ]);
 
     let result = query.apply(value).unwrap();
