@@ -5,6 +5,7 @@ use serde_json::{json, Value};
 
 mod equal;
 mod greater;
+mod greater_equal;
 mod not_equal;
 
 #[rstest]
