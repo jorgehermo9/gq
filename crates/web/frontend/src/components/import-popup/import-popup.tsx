@@ -7,7 +7,7 @@ import { getFileExtensions } from "@/model/file-type";
 import { fromString } from "@/model/http-method";
 import { type LoadingState, notLoading } from "@/model/loading-state";
 import { EllipsisVertical, File, FileUp, Trash } from "lucide-react";
-import { useState } from "react";
+import { type ChangeEvent, useMemo, useState } from "react";
 import BodyPopup from "../body-popup/body-popup";
 import HeadersPopup from "../headers-popup/headers-popup";
 import { Button } from "../ui/button";
@@ -32,10 +32,11 @@ import {
 } from "../ui/select";
 import { Separator } from "../ui/separator";
 import styles from "./import-popup.module.css";
-import { importFile, importUrl } from "./import-utils";
+import { type ImportedFile, getFileContent, importUrl, validateFile } from "./import-utils";
 
 interface Props {
-	importableType: FileType;
+	currentType: FileType;
+	importableTypes: FileType[];
 	onImportFile: (data: Data) => void;
 	onChangeLoading: (loading: LoadingState) => void;
 	onError: (error: Error) => void;
@@ -43,7 +44,8 @@ interface Props {
 }
 
 const ImportPopup = ({
-	importableType,
+	currentType,
+	importableTypes,
 	onImportFile,
 	onChangeLoading,
 	onError,
@@ -54,19 +56,28 @@ const ImportPopup = ({
 	const [headers, setHeaders] = useState<[string, string][]>([["", ""]]);
 	const [body, setBody, instantBody] = useLazyState<string | null>(null, 50);
 	const [url, setUrl] = useState("");
-	const [file, setFile] = useState<File>();
+	const [file, setFile] = useState<ImportedFile>();
+
+	const importableExtensions = useMemo(
+		() =>
+			importableTypes
+				.flatMap(getFileExtensions)
+				.map((ex) => `.${ex}`)
+				.join(","),
+		[importableTypes],
+	);
 
 	const handleImportFile = async () => {
 		if (!file) return;
 		onChangeLoading({
 			isLoading: true,
-			message: `Importing ${file.name}...`,
+			message: `Importing ${file.f.name}...`,
 		});
 		setOpen(false);
 		setFile(undefined);
 		try {
-			const fileContent = await importFile(file);
-			onImportFile(new Data(fileContent, importableType));
+			const fileContent = await getFileContent(file);
+			onImportFile(new Data(fileContent, file.type));
 		} catch (err) {
 			onError(err);
 		} finally {
@@ -81,10 +92,9 @@ const ImportPopup = ({
 			message: "Importing file from url...",
 		});
 		setOpen(false);
-		setUrl("");
 		try {
-			const fileContent = await importUrl(url, httpMethod, headers, body);
-			onImportFile(new Data(fileContent, importableType));
+			const data = await importUrl(currentType, url, httpMethod, headers, body);
+			onImportFile(data);
 		} catch (err) {
 			onError(err);
 		} finally {
@@ -95,7 +105,13 @@ const ImportPopup = ({
 	const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
 		e.preventDefault();
 		const file = e.dataTransfer.files[0];
-		file && setFile(file);
+		validateFile(file, importableTypes, setFile);
+	};
+
+	const handleSelectFile = (e: ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		validateFile(file, importableTypes, setFile);
+		e.target.value = "";
 	};
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -174,19 +190,14 @@ const ImportPopup = ({
 										id="file-import"
 										hidden
 										type="file"
-										accept={getFileExtensions(importableType)
-											.map((ex) => `.${ex}`)
-											.join(",")}
-										onChange={(e) => {
-											setFile(e.target.files?.[0]);
-											e.target.value = "";
-										}}
+										accept={importableExtensions}
+										onChange={handleSelectFile}
 									/>
 									{file ? (
 										<div className="flex flex-col items-center justify-center gap-2 w-full h-full relative">
 											<File className="w-6 h-6" />
-											<span className="text-center leading-5 font-semibold">{file.name}</span>
-											<span className="text-xs">{formatBytes(file.size)}</span>
+											<span className="text-center leading-5 font-semibold">{file.f.name}</span>
+											<span className="text-xs">{formatBytes(file.f.size)}</span>
 										</div>
 									) : (
 										<span className="w-1/2 text-center leading-5">
