@@ -8,6 +8,7 @@ mod greater;
 mod greater_equal;
 mod less;
 mod less_equal;
+mod r#match;
 mod not_equal;
 
 #[rstest]
@@ -20,24 +21,6 @@ fn filter_and_accessing(products: Value) {
     assert_eq!(result, expected);
 }
 
-// TODO: create a new test for nested fields inside arrays.
-// Something like
-// {
-//    "products": [
-//       {
-//         "name": "Product 1",
-//        "fields":[
-//          {
-//           "name": "Field 1",
-//          "value": 1
-//         },
-//          {
-//           "name": "Field 2",
-//          "value": 3
-//         }
-//      ]
-// ]
-// }
 #[test]
 fn nested_field() {
     let value = json!({
