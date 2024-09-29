@@ -1,4 +1,4 @@
-use crate::fixtures::{products, programming_languages};
+use crate::fixtures::{ai_models, products, programming_languages};
 use gq_core::query::Query;
 use rstest::rstest;
 use serde_json::{json, Value};
@@ -445,4 +445,41 @@ fn incompatible_operation_error(programming_languages: Value) {
     assert_eq!(result, expected);
 }
 
-// TODO: Add tests with arrays values and satisfies_op_array
+#[rstest]
+fn array_field_value_includes_argument_value(ai_models: Value) {
+    let query: Query = r#"models(tags ~ "^Text")"#.parse().unwrap();
+    let expected = json!([
+        {
+            "name": "GPT-4O",
+            "openSource": false,
+            "score": 71.49,
+            "tags": ["NLP", "Text Generation"]
+        },
+        {
+          "name": "LLAMA",
+          "openSource": true,
+          "score": 88.7,
+          "tags": ["Text Generation", "Open Source"]
+        }
+    ]);
+
+    let result = query.apply(ai_models).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[rstest]
+fn multiple_arguments(products: Value) {
+    let query: Query = r#"products(name ~ "Product (1|2)", name ~ "1$")"#.parse().unwrap();
+    let expected = json!([
+        {
+          "name": "Product 1",
+          "quantity": 8,
+          "price": 9.95,
+        }
+    ]);
+
+    let result = query.apply(products).unwrap();
+
+    assert_eq!(result, expected);
+}
