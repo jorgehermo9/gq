@@ -125,6 +125,11 @@ fn float_argument_value_with_null_field_value(ai_models: Value) {
 
 // TODO: in this test, the null tags (Claude example) is returned due to the behaviopur of `DEFAULT_INSPECTED_VALUE`
 // defaulting to null. Maybe we shouldn't use null as default value if missing, and just return false?
+// TODO: ALso, maybe GTP-4O should be returned as well. The behaviour here should be
+// "at least one of the values in the array is not equal to the argument value",
+// but right now it's "all values in the array are not equal to the argument value"
+// because of the negation of the equality check. This is the same problem as in less_equal and
+// greater_equal tests.
 #[rstest]
 fn array_field_value_not_includes_argument_value(ai_models: Value) {
     let query: Query = r#"models(tags != "NLP")"#.parse().unwrap();
