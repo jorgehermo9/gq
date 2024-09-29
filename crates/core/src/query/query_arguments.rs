@@ -126,11 +126,21 @@ impl OperationType for QueryArgumentOperation {
     }
 }
 
-#[derive(Debug, Clone, Display)]
+#[derive(Debug, Clone)]
 pub enum Number {
     PosInteger(u64),
     NegInteger(i64),
     Float(f64),
+}
+
+impl Display for Number {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::PosInteger(value) => value.fmt(f),
+            Self::NegInteger(value) => value.fmt(f),
+            Self::Float(value) => write!(f, "{value:.2}"),
+        }
+    }
 }
 
 impl From<u64> for Number {
