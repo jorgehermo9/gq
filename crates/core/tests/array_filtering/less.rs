@@ -6,28 +6,7 @@ use crate::fixtures::{ai_models, products, programming_languages};
 
 #[rstest]
 fn integer_argument_value(products: Value) {
-    let query: Query = r#"products(quantity > 4)"#.parse().unwrap();
-    let expected = json!([
-        {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 2",
-          "quantity": 5,
-          "price": 14.95
-        },
-    ]);
-
-    let result = query.apply(products).unwrap();
-
-    assert_eq!(result, expected);
-}
-
-#[rstest]
-fn float_argument_value(products: Value) {
-    let query: Query = r#"products(price > 14.95)"#.parse().unwrap();
+    let query: Query = r#"products(quantity < 5)"#.parse().unwrap();
     let expected = json!([
         {
           "name": "Product 3",
@@ -42,14 +21,30 @@ fn float_argument_value(products: Value) {
 }
 
 #[rstest]
-fn float_argument_value_with_null_field_value(ai_models: Value) {
-    let query: Query = r#"models(score > 88.0)"#.parse().unwrap();
+fn float_argument_value(products: Value) {
+    let query: Query = r#"products(price < 14.95)"#.parse().unwrap();
     let expected = json!([
         {
-          "name": "LLAMA",
-          "openSource": true,
-          "score": 88.7,
-          "tags": ["Text Generation", "Open Source"]
+          "name": "Product 1",
+          "quantity": 8,
+          "price": 9.95,
+        }
+    ]);
+
+    let result = query.apply(products).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[rstest]
+fn float_argument_value_with_null_field_value(ai_models: Value) {
+    let query: Query = r#"models(score < 88.7)"#.parse().unwrap();
+    let expected = json!([
+        {
+          "name": "GPT-4O",
+          "openSource": false,
+          "score": 71.49,
+          "tags": ["NLP", "Text Generation"]
         }
     ]);
 
@@ -73,11 +68,11 @@ fn array_field_value_includes_greater_than_argument_value() {
             },
         ]
     });
-    let query: Query = r#"products(scores > 4)"#.parse().unwrap();
+    let query: Query = r#"products(scores < 3)"#.parse().unwrap();
     let expected = json!([
         {
-            "name": "Product 2",
-            "scores": [4, 5, 6]
+            "name": "Product 1",
+            "scores": [1, 2, 3]
         }
     ]);
 
@@ -88,7 +83,7 @@ fn array_field_value_includes_greater_than_argument_value() {
 
 #[rstest]
 fn multiple_arguments(products: Value) {
-    let query: Query = r#"products(quantity > 4, price > 10.0)"#.parse().unwrap();
+    let query: Query = r#"products(quantity < 8, price < 24.95)"#.parse().unwrap();
     let expected = json!([
         {
           "name": "Product 2",
@@ -104,7 +99,7 @@ fn multiple_arguments(products: Value) {
 
 #[rstest]
 fn query_argument_value_greather_than_all_values(programming_languages: Value) {
-    let query: Query = r#"languages(year > 2010)"#.parse().unwrap();
+    let query: Query = r#"languages(year < 1995)"#.parse().unwrap();
     let expected = json!([]);
 
     let result = query.apply(programming_languages).unwrap();
@@ -115,7 +110,7 @@ fn query_argument_value_greather_than_all_values(programming_languages: Value) {
 // TODO: Assert that a warning is logged with the proper message
 #[rstest]
 fn missing_field(programming_languages: Value) {
-    let query: Query = r#"languages(missing_field > 5)"#.parse().unwrap();
+    let query: Query = r#"languages(missing_field < 5)"#.parse().unwrap();
     let expected = json!([]);
 
     let result = query.apply(programming_languages).unwrap();
@@ -126,7 +121,7 @@ fn missing_field(programming_languages: Value) {
 // TODO: assert that a warning is logged with the proper message
 #[rstest]
 fn incompatible_operation_error(programming_languages: Value) {
-    let query: Query = r#"languages(name > 1995)"#.parse().unwrap();
+    let query: Query = r#"languages(name < 1995)"#.parse().unwrap();
     let expected = json!([]);
     let result = query.apply(programming_languages).unwrap();
 
