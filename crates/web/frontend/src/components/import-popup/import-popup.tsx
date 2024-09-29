@@ -1,15 +1,14 @@
 import ActionButton from "@/components/action-button/action-button";
 import useLazyState from "@/hooks/useLazyState";
-import { formatBytes } from "@/lib/utils";
+import { cn, formatBytes } from "@/lib/utils";
 import { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
 import { fromString } from "@/model/http-method";
 import { type LoadingState, notLoading } from "@/model/loading-state";
-import { EllipsisVertical, File, FileUp, Trash } from "lucide-react";
+import { File, FileUp, Trash } from "lucide-react";
 import { type ChangeEvent, useMemo, useState } from "react";
-import BodyPopup from "../body-popup/body-popup";
-import HeadersPopup from "../headers-popup/headers-popup";
+import BodyTab from "../body-tab/body-tab";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -19,7 +18,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "../ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
@@ -30,9 +28,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
-import { Separator } from "../ui/separator";
 import styles from "./import-popup.module.css";
 import { type ImportedFile, getFileContent, importUrl, validateFile } from "./import-utils";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import HeadersTab from "../headers-tab/headers-tab";
 
 interface Props {
 	currentType: FileType;
@@ -126,7 +125,7 @@ const ImportPopup = ({
 					<FileUp className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
-			<DialogContent className="w-[36rem] max-w-[80vw]">
+			<DialogContent className="w-[30vw] max-w-[80vw]">
 				<DialogHeader>
 					<DialogTitle>Import file</DialogTitle>
 					<DialogDescription>
@@ -134,51 +133,63 @@ const ImportPopup = ({
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} autoComplete="off">
-					<div>
-						<Label htmlFor="url-import" variant={file !== undefined ? "disabled" : "default"}>
-							<span>From URL</span>
-						</Label>
-						<div className="flex items-center">
-							<Select
-								value={httpMethod}
-								onValueChange={(value) => setHttpMethod(fromString(value))}
-							>
-								<SelectTrigger className="w-min rounded-r-none bg-accent-background font-semibold">
-									<SelectValue id="http-method" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectGroup>
-										<SelectItem value="GET">GET</SelectItem>
-										<SelectItem value="POST">POST</SelectItem>
-									</SelectGroup>
-								</SelectContent>
-							</Select>
-							<Input
-								id="url-import"
-								disabled={file !== undefined}
-								type="url"
-								placeholder="Enter URL"
-								className="w-full mt-2 rounded-l-none"
-								value={url}
-								onChange={(e) => setUrl(e.target.value)}
-							/>
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button className="w-8 h-10 ml-4" variant="outline" size="icon">
-										<EllipsisVertical className="w-4 h-4" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent side="bottom" sideOffset={8}>
-									<HeadersPopup headers={headers} setHeaders={setHeaders} />
-									{httpMethod === "POST" && <BodyPopup body={instantBody} setBody={setBody} />}
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
-
-						<Separator />
-
-						<div className="w-full">
-							<span className="text-sm">From local file</span>
+					<Tabs defaultValue="url" className="pb-8">
+						<TabsList className="flex">
+							<TabsTrigger value="url" className="w-1/2">
+								From URL
+							</TabsTrigger>
+							<TabsTrigger value="file" className="w-1/2">
+								From local file
+							</TabsTrigger>
+						</TabsList>
+						<TabsContent value="url" className="h-[35vh]">
+							<div className="flex items-center">
+								<Select
+									value={httpMethod}
+									onValueChange={(value) => setHttpMethod(fromString(value))}
+								>
+									<SelectTrigger className="w-min rounded-r-none bg-accent-background font-semibold">
+										<SelectValue id="http-method" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectGroup>
+											<SelectItem value="GET">GET</SelectItem>
+											<SelectItem value="POST">POST</SelectItem>
+										</SelectGroup>
+									</SelectContent>
+								</Select>
+								<Input
+									id="url-import"
+									disabled={file !== undefined}
+									type="url"
+									placeholder="Enter URL"
+									className="w-full mt-2 rounded-l-none"
+									value={url}
+									onChange={(e) => setUrl(e.target.value)}
+								/>
+							</div>
+							<Tabs defaultValue="headers" className="flex flex-col h-full pb-2">
+								<TabsList className="flex justify-start mt-2">
+									<TabsTrigger value="headers" className="w-32" variant="outline">
+										Headers
+									</TabsTrigger>
+									{httpMethod === "POST" && (
+										<TabsTrigger value="body" className="w-32" variant="outline">
+											Body
+										</TabsTrigger>
+									)}
+								</TabsList>
+								<TabsContent value="headers" className="overflow-y-auto">
+									<HeadersTab headers={headers} setHeaders={setHeaders} />
+								</TabsContent>
+								{httpMethod === "POST" && (
+									<TabsContent value="body" className="overflow-y-auto">
+										<BodyTab body={instantBody} setBody={setBody} />
+									</TabsContent>
+								)}
+							</Tabs>
+						</TabsContent>
+						<TabsContent value="file" className="h-[35vh]">
 							<div className={styles.importFileContainer}>
 								<Label
 									htmlFor="file-import"
@@ -220,9 +231,8 @@ const ImportPopup = ({
 									</div>
 								)}
 							</div>
-						</div>
-					</div>
-
+						</TabsContent>
+					</Tabs>
 					<div className="flex justify-between mt-12">
 						<Button
 							className="py-1 px-8"

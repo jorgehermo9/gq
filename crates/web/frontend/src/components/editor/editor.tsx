@@ -102,9 +102,10 @@ const Editor = ({
 		async (data: Data) => {
 			setContent(data.content);
 			setType(data.type);
+			onChangeFileType?.(data.type);
 			formatOnImport && (await handleFormatCode(data.content, data.type));
 		},
-		[formatOnImport, handleFormatCode, setContent],
+		[formatOnImport, handleFormatCode, setContent, onChangeFileType],
 	);
 
 	const handleKeyDown = useCallback(
@@ -126,12 +127,10 @@ const Editor = ({
 			try {
 				const convertedData = await convertCode(data, newFileType, dataTabSize, convertWorker);
 				setContent(convertedData.content);
-				setType(convertedData.type);
-				setEditorErrorMessage(undefined);
-				onChangeFileType?.(convertedData.type);
-			} catch (e) {
-				setEditorErrorMessage(e.message);
 			} finally {
+				setType(newFileType);
+				onChangeFileType?.(newFileType);
+				setEditorErrorMessage(undefined);
 				setLoadingState(notLoading);
 			}
 		},
