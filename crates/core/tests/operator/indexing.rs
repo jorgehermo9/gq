@@ -146,3 +146,20 @@ fn root_range_indexing() {
 
     assert_eq!(result, expected);
 }
+
+#[rstest]
+#[should_panic]
+fn unsupported_type(products: Value) {
+    let query: Query = "id[0]".parse().unwrap();
+    query.apply(products).unwrap();
+}
+
+#[rstest]
+fn unsupported_type_inside_array(products: Value) {
+    let query: Query = "products.name[0]".parse().unwrap();
+    let expected = json!([]);
+
+    let result = query.apply(products).unwrap();
+
+    assert_eq!(result, expected);
+}
