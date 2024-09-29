@@ -5,17 +5,12 @@ use serde_json::{json, Value};
 
 #[rstest]
 fn contains(programming_languages: Value) {
-    let query: Query = r#"languages(name ~ "Java")"#.parse().unwrap();
+    let query: Query = r#"languages(name !~ "Java")"#.parse().unwrap();
     let expected = json!([
         {
-            "name": "JavaScript",
+            "name": "Rust",
             "popular": true,
-            "year": 1995
-        },
-        {
-          "name": "Java",
-          "popular": false,
-          "year": 1995
+            "year": 2010
         }
     ]);
 
@@ -26,17 +21,12 @@ fn contains(programming_languages: Value) {
 
 #[rstest]
 fn starts_with(programming_languages: Value) {
-    let query: Query = r#"languages(name ~ "^Java")"#.parse().unwrap();
+    let query: Query = r#"languages(name !~ "^Java")"#.parse().unwrap();
     let expected = json!([
         {
-            "name": "JavaScript",
+            "name": "Rust",
             "popular": true,
-            "year": 1995
-        },
-        {
-          "name": "Java",
-          "popular": false,
-          "year": 1995
+            "year": 2010
         }
     ]);
 
@@ -47,12 +37,17 @@ fn starts_with(programming_languages: Value) {
 
 #[rstest]
 fn ends_with(programming_languages: Value) {
-    let query: Query = r#"languages(name ~ "Script$")"#.parse().unwrap();
+    let query: Query = r#"languages(name !~ "Script$")"#.parse().unwrap();
     let expected = json!([
         {
-            "name": "JavaScript",
-            "popular": true,
+            "name": "Java",
+            "popular": false,
             "year": 1995
+        },
+        {
+            "name": "Rust",
+            "popular": true,
+            "year": 2010
         }
     ]);
 
@@ -63,12 +58,17 @@ fn ends_with(programming_languages: Value) {
 
 #[rstest]
 fn starts_with_and_ends_with(programming_languages: Value) {
-    let query: Query = r#"languages(name ~ "^JavaScript$")"#.parse().unwrap();
+    let query: Query = r#"languages(name !~ "^JavaScript$")"#.parse().unwrap();
     let expected = json!([
         {
-            "name": "JavaScript",
-            "popular": true,
+            "name": "Java",
+            "popular": false,
             "year": 1995
+        },
+        {
+            "name": "Rust",
+            "popular": true,
+            "year": 2010
         }
     ]);
 
@@ -79,17 +79,12 @@ fn starts_with_and_ends_with(programming_languages: Value) {
 
 #[rstest]
 fn case_insensitive(programming_languages: Value) {
-    let query: Query = r#"languages(name ~ "(?i)jAVA")"#.parse().unwrap();
+    let query: Query = r#"languages(name !~ "(?i)jAVA")"#.parse().unwrap();
     let expected = json!([
         {
-            "name": "JavaScript",
+            "name": "Rust",
             "popular": true,
-            "year": 1995
-        },
-        {
-          "name": "Java",
-          "popular": false,
-          "year": 1995
+            "year": 2010
         }
     ]);
 
@@ -100,8 +95,24 @@ fn case_insensitive(programming_languages: Value) {
 
 #[rstest]
 fn case_sensitive(programming_languages: Value) {
-    let query: Query = r#"languages(name ~ "jAVA")"#.parse().unwrap();
-    let expected = json!([]);
+    let query: Query = r#"languages(name !~ "jAVA")"#.parse().unwrap();
+    let expected = json!([
+        {
+          "name": "JavaScript",
+          "popular": true,
+          "year": 1995
+        },
+        {
+          "name": "Java",
+          "popular": false,
+          "year": 1995
+        },
+        {
+          "name": "Rust",
+          "popular": true,
+          "year": 2010
+        }
+    ]);
 
     let result = query.apply(programming_languages).unwrap();
 
@@ -110,24 +121,8 @@ fn case_sensitive(programming_languages: Value) {
 
 #[rstest]
 fn digit(products: Value) {
-    let query: Query = r#"products(name ~ "Product \\d")"#.parse().unwrap();
-    let expected = json!([
-        {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 2",
-          "quantity": 5,
-          "price": 14.95
-        },
-        {
-          "name": "Product 3",
-          "quantity": 4,
-          "price": 24.95
-        }
-    ]);
+    let query: Query = r#"products(name !~ "Product \\d")"#.parse().unwrap();
+    let expected = json!([]);
 
     let result = query.apply(products).unwrap();
 
@@ -136,17 +131,12 @@ fn digit(products: Value) {
 
 #[rstest]
 fn character_classes(products: Value) {
-    let query: Query = r#"products(name ~ "Product [12]")"#.parse().unwrap();
+    let query: Query = r#"products(name !~ "Product [12]")"#.parse().unwrap();
     let expected = json!([
         {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 2",
-          "quantity": 5,
-          "price": 14.95
+          "name": "Product 3",
+          "quantity": 4,
+          "price": 24.95
         }
     ]);
 
@@ -157,23 +147,7 @@ fn character_classes(products: Value) {
 
 #[rstest]
 fn negated_character_classes(products: Value) {
-    let query: Query = r#"products(name ~ "Product [^12]")"#.parse().unwrap();
-    let expected = json!([
-        {
-          "name": "Product 3",
-          "quantity": 4,
-          "price": 24.95
-        }
-    ]);
-
-    let result = query.apply(products).unwrap();
-
-    assert_eq!(result, expected);
-}
-
-#[rstest]
-fn range_character_classes(products: Value) {
-    let query: Query = r#"products(name ~ "Product [1-3]")"#.parse().unwrap();
+    let query: Query = r#"products(name !~ "Product [^12]")"#.parse().unwrap();
     let expected = json!([
         {
           "name": "Product 1",
@@ -185,6 +159,17 @@ fn range_character_classes(products: Value) {
           "quantity": 5,
           "price": 14.95
         },
+    ]);
+
+    let result = query.apply(products).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[rstest]
+fn range_character_classes(products: Value) {
+    let query: Query = r#"products(name !~ "Product [1-2]")"#.parse().unwrap();
+    let expected = json!([
         {
           "name": "Product 3",
           "quantity": 4,
@@ -199,17 +184,12 @@ fn range_character_classes(products: Value) {
 
 #[rstest]
 fn or(products: Value) {
-    let query: Query = r#"products(name ~ "Product 1|Product 2")"#.parse().unwrap();
+    let query: Query = r#"products(name !~ "Product 1|Product 2")"#.parse().unwrap();
     let expected = json!([
         {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 2",
-          "quantity": 5,
-          "price": 14.95
+          "name": "Product 3",
+          "quantity": 4,
+          "price": 24.95
         }
     ]);
 
@@ -220,17 +200,12 @@ fn or(products: Value) {
 
 #[rstest]
 fn grouped_or(products: Value) {
-    let query: Query = r#"products(name ~ "Product (1|2)")"#.parse().unwrap();
+    let query: Query = r#"products(name !~ "Product (1|2)")"#.parse().unwrap();
     let expected = json!([
         {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 2",
-          "quantity": 5,
-          "price": 14.95
+          "name": "Product 3",
+          "quantity": 4,
+          "price": 24.95
         }
     ]);
 
@@ -241,24 +216,8 @@ fn grouped_or(products: Value) {
 
 #[rstest]
 fn wildcard(products: Value) {
-    let query: Query = r#"products(name ~ "Product .*")"#.parse().unwrap();
-    let expected = json!([
-        {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 2",
-          "quantity": 5,
-          "price": 14.95
-        },
-        {
-          "name": "Product 3",
-          "quantity": 4,
-          "price": 24.95
-        }
-    ]);
+    let query: Query = r#"products(name !~ "Product .*")"#.parse().unwrap();
+    let expected = json!([]);
 
     let result = query.apply(products).unwrap();
 
@@ -286,18 +245,13 @@ fn repetition_quantifier() {
             }
         ]
     });
-    let query: Query = r#"products(name ~ "Product \\d{2}")"#.parse().unwrap();
+    let query: Query = r#"products(name !~ "Product \\d{2}")"#.parse().unwrap();
     let expected = json!([
         {
-          "name": "Product 10",
-          "quantity": 8,
-          "price": 9.95,
+            "name": "Product 1",
+            "quantity": 8,
+            "price": 9.95
         },
-        {
-          "name": "Product 20",
-          "quantity": 5,
-          "price": 14.95
-        }
     ]);
 
     let result = query.apply(value).unwrap();
@@ -331,23 +285,13 @@ fn repetition_quantifier_range() {
             }
         ]
     });
-    let query: Query = r#"products(name ~ "Product \\d{1,2}")"#.parse().unwrap();
+    let query: Query = r#"products(name !~ "Product \\d{1,2}")"#.parse().unwrap();
     let expected = json!([
         {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
+            "name": "Product ",
+            "quantity": 8,
+            "price": 9.95
         },
-        {
-          "name": "Product 10",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 20",
-          "quantity": 5,
-          "price": 14.95
-        }
     ]);
 
     let result = query.apply(value).unwrap();
@@ -376,24 +320,8 @@ fn repetition_star() {
             }
         ]
     });
-    let query: Query = r#"products(name ~ "Product \\d*")"#.parse().unwrap();
-    let expected = json!([
-        {
-          "name": "Product ",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 20",
-          "quantity": 5,
-          "price": 14.95
-        }
-    ]);
+    let query: Query = r#"products(name !~ "Product \\d*")"#.parse().unwrap();
+    let expected = json!([]);
 
     let result = query.apply(value).unwrap();
 
@@ -421,17 +349,12 @@ fn repetition_plus() {
             }
         ]
     });
-    let query: Query = r#"products(name ~ "Product \\d+")"#.parse().unwrap();
+    let query: Query = r#"products(name !~ "Product \\d+")"#.parse().unwrap();
     let expected = json!([
         {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
-        },
-        {
-          "name": "Product 20",
-          "quantity": 5,
-          "price": 14.95
+            "name": "Product ",
+            "quantity": 8,
+            "price": 9.95
         }
     ]);
 
@@ -443,7 +366,7 @@ fn repetition_plus() {
 // TODO: assert that a warning is logged with the proper message
 #[rstest]
 fn incompatible_operation_error(programming_languages: Value) {
-    let query: Query = r#"languages(year ~ "year")"#.parse().unwrap();
+    let query: Query = r#"languages(year !~ "year")"#.parse().unwrap();
     let expected = json!([]);
     let result = query.apply(programming_languages).unwrap();
 
@@ -452,7 +375,7 @@ fn incompatible_operation_error(programming_languages: Value) {
 
 #[rstest]
 fn array_field_value_includes_argument_value(ai_models: Value) {
-    let query: Query = r#"models(tags ~ "^Text")"#.parse().unwrap();
+    let query: Query = r#"models(tags !~ "^Open")"#.parse().unwrap();
     let expected = json!([
         {
             "name": "GPT-4O",
@@ -460,12 +383,6 @@ fn array_field_value_includes_argument_value(ai_models: Value) {
             "score": 71.49,
             "tags": ["NLP", "Text Generation"]
         },
-        {
-          "name": "LLAMA",
-          "openSource": true,
-          "score": 88.7,
-          "tags": ["Text Generation", "Open Source"]
-        }
     ]);
 
     let result = query.apply(ai_models).unwrap();
@@ -475,14 +392,12 @@ fn array_field_value_includes_argument_value(ai_models: Value) {
 
 #[rstest]
 fn multiple_arguments(products: Value) {
-    let query: Query = r#"products(name ~ "Product (1|2)", name ~ "1|3$")"#
-        .parse()
-        .unwrap();
+    let query: Query = r#"products(name !~ "1$", name !~ "3$")"#.parse().unwrap();
     let expected = json!([
         {
-          "name": "Product 1",
-          "quantity": 8,
-          "price": 9.95,
+            "name": "Product 2",
+            "quantity": 5,
+            "price": 14.95
         }
     ]);
 

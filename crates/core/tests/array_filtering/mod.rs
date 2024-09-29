@@ -10,6 +10,7 @@ mod less;
 mod less_equal;
 mod r#match;
 mod not_equal;
+mod not_match;
 
 #[rstest]
 fn filter_and_accessing(products: Value) {
