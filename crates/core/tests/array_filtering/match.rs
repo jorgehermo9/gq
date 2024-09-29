@@ -470,7 +470,9 @@ fn array_field_value_includes_argument_value(ai_models: Value) {
 
 #[rstest]
 fn multiple_arguments(products: Value) {
-    let query: Query = r#"products(name ~ "Product (1|2)", name ~ "1$")"#.parse().unwrap();
+    let query: Query = r#"products(name ~ "Product (1|2)", name ~ "1|3$")"#
+        .parse()
+        .unwrap();
     let expected = json!([
         {
           "name": "Product 1",
