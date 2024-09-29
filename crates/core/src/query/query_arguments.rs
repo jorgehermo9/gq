@@ -9,7 +9,7 @@ use super::{
     QueryKey,
 };
 use derive_getters::Getters;
-use derive_more::{Constructor, Display};
+use derive_more::Constructor;
 use regex::Regex;
 use serde_json::Value;
 use thiserror::Error;
