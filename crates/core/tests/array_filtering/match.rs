@@ -434,3 +434,15 @@ fn repetition_plus() {
 
     assert_eq!(result, expected);
 }
+
+// TODO: assert that a warning is logged with the proper message
+#[rstest]
+fn incompatible_operation_error(programming_languages: Value) {
+    let query: Query = r#"languages(year ~ "year")"#.parse().unwrap();
+    let expected = json!([]);
+    let result = query.apply(programming_languages).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+// TODO: Add tests with arrays values and satisfies_op_array
