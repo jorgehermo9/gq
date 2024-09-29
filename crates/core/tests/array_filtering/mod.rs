@@ -206,3 +206,77 @@ fn root_filtering_nested_field_and_accessing() {
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn root_filtering_nested_field_inside_array() {
+    let value = json!([
+        {
+            "name": "Product 1",
+            "prices": [
+                {
+                    "currency":"EUR",
+                },
+                {
+                    "currency":"DOLLAR",
+                }
+            ]
+        },
+        {
+            "name": "Product 2",
+            "prices": [
+                {
+                    "currency":"EUR",
+                },
+            ]
+        },
+    ]);
+    let query: Query = r#"(prices.currency = "DOLLAR")"#.parse().unwrap();
+    let expected = json!([
+        {
+            "name": "Product 1",
+            "prices": [
+                {
+                    "currency":"EUR",
+                },
+                {
+                    "currency":"DOLLAR",
+                }
+            ]
+        },
+    ]);
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn root_filtering_nested_field_inside_array_and_accessing() {
+    let value = json!([
+        {
+            "name": "Product 1",
+            "prices": [
+                {
+                    "currency":"EUR",
+                },
+                {
+                    "currency":"DOLLAR",
+                }
+            ]
+        },
+        {
+            "name": "Product 2",
+            "prices": [
+                {
+                    "currency":"EUR",
+                },
+            ]
+        },
+    ]);
+    let query: Query = r#"(prices.currency = "DOLLAR")prices.currency"#.parse().unwrap();
+    let expected = json!([["EUR", "DOLLAR"]]);
+
+    let result = query.apply(value).unwrap();
+
+    assert_eq!(result, expected);
+}
