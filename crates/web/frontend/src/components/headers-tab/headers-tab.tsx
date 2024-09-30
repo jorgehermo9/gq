@@ -2,6 +2,8 @@ import { Trash } from "lucide-react";
 import HeadersDatalist from "../headers-datalist/headers-datalist";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { useCallback } from "react";
+import { cn } from "@/lib/utils";
 
 interface HeadersTabProps {
 	headers: [string, string][];
@@ -9,13 +11,32 @@ interface HeadersTabProps {
 }
 
 const HeadersTab = ({ headers, setHeaders }: HeadersTabProps) => {
-	const updateHeaders = (index: number, key: string, value: string) =>
-		setHeaders(headers.map((header, i) => (i === index ? [key, value] : header)));
+	const updateHeaders = useCallback(
+		(index: number, key: string, value: string) => {
+			const newHeaders: [string, string][] = headers.map((header, i) =>
+				i === index ? [key, value] : header,
+			);
+			if (index === headers.length - 1 && (key || value)) {
+				newHeaders.push(["", ""]);
+			}
+			setHeaders(newHeaders);
+		},
+		[headers, setHeaders],
+	);
 
-	const countHeaders = headers.reduce((acc, [key, value]) => (key || value ? acc + 1 : acc), 0);
+	const deleteHeaders = useCallback(
+		(index: number) => {
+			if (headers.length === 1) {
+				setHeaders([["", ""]]);
+				return;
+			}
+			setHeaders(headers.filter((_, i) => i !== index));
+		},
+		[headers, setHeaders],
+	);
 
 	return (
-		<div className="flex flex-col gap-4 pr-4">
+		<div className="flex flex-col pr-4 gap-2">
 			{headers.map((header, index) => (
 				<div
 					// biome-ignore lint/suspicious/noArrayIndexKey: This is a controlled list
@@ -39,19 +60,17 @@ const HeadersTab = ({ headers, setHeaders }: HeadersTabProps) => {
 						className="w-1/2 p-2 border rounded-md mb-0"
 					/>
 					<Trash
-						className="h-4 w-4 cursor-pointer"
-						onClick={() => setHeaders(headers.filter((_, i) => i !== index))}
+						className={cn(
+							"h-4 w-4 cursor-pointer pointer-events-auto transition-opacity opacity-100",
+							index === headers.length - 1 &&
+								!header[0] &&
+								!header[1] &&
+								"opacity-0 pointer-events-none",
+						)}
+						onClick={() => deleteHeaders(index)}
 					/>
 				</div>
 			))}
-			<Button
-				onClick={() => setHeaders([...headers, ["", ""]])}
-				className="py-1 px-4"
-				variant="outline"
-				type="button"
-			>
-				Add header
-			</Button>
 		</div>
 	);
 };

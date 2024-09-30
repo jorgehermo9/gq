@@ -15,7 +15,7 @@ const TabsList = React.forwardRef<
 	<TabsPrimitive.List
 		ref={ref}
 		className={cn(
-			"inline-flex h-10 items-center justify-center rounded-md bg-background p-1 text-muted-foreground",
+			"inline-flex  items-center justify-center rounded-md bg-background text-muted-foreground",
 			className,
 		)}
 		{...props}
@@ -24,7 +24,7 @@ const TabsList = React.forwardRef<
 TabsList.displayName = TabsPrimitive.List.displayName;
 
 const tabsTriggerVariants = cva(
-	"inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+	"inline-flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
 	{
 		variants: {
 			variant: {
@@ -61,7 +61,7 @@ const TabsContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<TabsPrimitive.Content
 		ref={ref}
-		className={cn("mt-4 focus-visible:outline-none", className)}
+		className={cn("focus-visible:outline-none", className)}
 		{...props}
 	/>
 ));

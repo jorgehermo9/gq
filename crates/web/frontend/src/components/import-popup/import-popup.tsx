@@ -53,7 +53,7 @@ const ImportPopup = ({
 	const [open, setOpen] = useState(false);
 	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
 	const [headers, setHeaders] = useState<[string, string][]>([["", ""]]);
-	const [body, setBody, instantBody] = useLazyState<string | null>(null, 50);
+	const [body, setBody, instantBody] = useLazyState<string>("", 50);
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<ImportedFile>();
 
@@ -118,6 +118,8 @@ const ImportPopup = ({
 		file ? handleImportFile() : url && handleImportUrl();
 	};
 
+	const headersCount = headers.reduce((acc, [key, value]) => (key || value ? acc + 1 : acc), 0);
+
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
@@ -134,7 +136,7 @@ const ImportPopup = ({
 				</DialogHeader>
 				<form onSubmit={handleSubmit} autoComplete="off">
 					<Tabs defaultValue="url" className="pb-8">
-						<TabsList className="flex">
+						<TabsList className="flex mb-8">
 							<TabsTrigger value="url" className="w-1/2">
 								From URL
 							</TabsTrigger>
@@ -163,15 +165,15 @@ const ImportPopup = ({
 									disabled={file !== undefined}
 									type="url"
 									placeholder="Enter URL"
-									className="w-full mt-2 rounded-l-none"
+									className="w-full m-0 rounded-l-none"
 									value={url}
 									onChange={(e) => setUrl(e.target.value)}
 								/>
 							</div>
 							<Tabs defaultValue="headers" className="flex flex-col h-full pb-2">
-								<TabsList className="flex justify-start mt-2">
+								<TabsList className="flex justify-start my-4">
 									<TabsTrigger value="headers" className="w-32" variant="outline">
-										Headers
+										Headers {headersCount > 0 && ` (${headersCount})`}
 									</TabsTrigger>
 									{httpMethod === "POST" && (
 										<TabsTrigger value="body" className="w-32" variant="outline">
@@ -183,53 +185,55 @@ const ImportPopup = ({
 									<HeadersTab headers={headers} setHeaders={setHeaders} />
 								</TabsContent>
 								{httpMethod === "POST" && (
-									<TabsContent value="body" className="overflow-y-auto">
+									<TabsContent value="body" className="pb-16 overflow-y-auto min-h-full">
 										<BodyTab body={instantBody} setBody={setBody} />
 									</TabsContent>
 								)}
 							</Tabs>
 						</TabsContent>
-						<TabsContent value="file" className="h-[35vh]">
-							<div className={styles.importFileContainer}>
-								<Label
-									htmlFor="file-import"
-									className="flex items-center rounded-md justify-center border-2 border-muted border-dashed w-full h-40 cursor-pointer mt-2"
-									onDrop={handleDrop}
-									onDragOver={(e) => e.preventDefault()}
-								>
-									<input
-										id="file-import"
-										hidden
-										type="file"
-										accept={importableExtensions}
-										onChange={handleSelectFile}
-									/>
-									{file ? (
-										<div className="flex flex-col items-center justify-center gap-2 w-full h-full relative">
-											<File className="w-6 h-6" />
-											<span className="text-center leading-5 font-semibold">{file.f.name}</span>
-											<span className="text-xs">{formatBytes(file.f.size)}</span>
+						<TabsContent value="file" className="h-[35vh] mt-8">
+							<div className="flex items-center w-full h-full">
+								<div className={styles.importFileContainer}>
+									<Label
+										htmlFor="file-import"
+										className="flex items-center rounded-md justify-center border-2 border-muted border-dashed w-full h-full cursor-pointer"
+										onDrop={handleDrop}
+										onDragOver={(e) => e.preventDefault()}
+									>
+										<input
+											id="file-import"
+											hidden
+											type="file"
+											accept={importableExtensions}
+											onChange={handleSelectFile}
+										/>
+										{file ? (
+											<div className="flex flex-col items-center justify-center gap-2 w-full h-full relative">
+												<File className="w-6 h-6" />
+												<span className="text-center leading-5 font-semibold">{file.f.name}</span>
+												<span className="text-xs">{formatBytes(file.f.size)}</span>
+											</div>
+										) : (
+											<span className="w-1/2 text-center leading-5">
+												Drag and drop a file here or click to select one
+											</span>
+										)}
+									</Label>
+									{file && (
+										<div className={styles.deleteFileOverlay}>
+											<ActionButton
+												className="p-2"
+												onClick={(e) => {
+													setFile(undefined);
+													e.stopPropagation();
+												}}
+												description="Remove file"
+											>
+												<Trash className="w-5 h-5" />
+											</ActionButton>
 										</div>
-									) : (
-										<span className="w-1/2 text-center leading-5">
-											Drag and drop a file here or click to select one
-										</span>
 									)}
-								</Label>
-								{file && (
-									<div className={styles.deleteFileOverlay}>
-										<ActionButton
-											className="p-2"
-											onClick={(e) => {
-												setFile(undefined);
-												e.stopPropagation();
-											}}
-											description="Remove file"
-										>
-											<Trash className="w-5 h-5" />
-										</ActionButton>
-									</div>
-								)}
+								</div>
 							</div>
 						</TabsContent>
 					</Tabs>

@@ -46,12 +46,12 @@ export const importUrl = async (
 	url: string,
 	httpMethod: string,
 	headers: [string, string][],
-	body: string | null = null,
+	body: string,
 ): Promise<Data> => {
 	const response = await fetch(url, {
 		method: httpMethod,
 		headers: headers.filter(([k, v]) => k && v),
-		body: body,
+		body: body || null,
 	});
 	if (!response.ok) {
 		throw new Error(`Received ${response.status} (${statusTextMap.get(response.status)})`);

@@ -1,5 +1,5 @@
 .importFileContainer {
-	@apply w-full h-full relative;
+	@apply w-full h-3/4 relative;
 
 	&:hover .deleteFileOverlay {
 		@apply opacity-100 visible;
