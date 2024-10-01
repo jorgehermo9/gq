@@ -29,6 +29,7 @@ jobs:
         uses: dtolnay/rust-toolchain@1.81
         with:
           components: rustfmt
+      - uses: Swatinem/rust-cache@v2
       - name: Run rustfmt
         run: just fmt
   clippy:
@@ -43,5 +44,6 @@ jobs:
         uses: dtolnay/rust-toolchain@1.81
         with:
           components: clippy
+      - uses: Swatinem/rust-cache@v2
       - name: Run clippy
         run: just clippy
