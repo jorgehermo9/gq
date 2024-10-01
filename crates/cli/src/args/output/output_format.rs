@@ -1,5 +1,5 @@
 use clap::{Args, ColorChoice};
-use gq_core::data::Data;
+
 #[derive(Debug, Args)]
 pub struct OutputFormat {
     #[clap(flatten)]
