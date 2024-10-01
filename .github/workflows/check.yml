@@ -41,7 +41,7 @@ jobs:
         with:
           components: clippy
       - name: Run clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy -- -Dwarnings
       - name: Run clippy
         uses: giraffate/clippy-action@v1
         with:
