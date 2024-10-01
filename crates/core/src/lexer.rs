@@ -1,6 +1,7 @@
 use core::fmt;
 use std::fmt::{Display, Formatter};
 
+use super::data::DataType;
 use logos::Logos;
 use thiserror::Error;
 

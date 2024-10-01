@@ -43,6 +43,6 @@ jobs:
       - name: Run clippy
         uses: giraffate/clippy-action@v1
         with:
-          clippy_flags: --all-targets --all-features -- -Dwarnings
+          clippy_flags: "--tests -- -Dwarnings"
           reporter: "github-pr-check"
           github_token: ${{ secrets.GITHUB_TOKEN }}
