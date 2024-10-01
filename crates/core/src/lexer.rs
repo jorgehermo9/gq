@@ -196,15 +196,15 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn pos_integer_fails_when_bigger_than_u64() {
+    fn pos_integer_fails_when_bigger_than_u64_max() {
         let input = "18446744073709551616"; // u64::MAX + 1
-        get_next_token(&input);
+        get_next_token(input);
     }
 
     #[rstest]
     #[case::neg_integer("-5", -5)]
     #[case::zero("-0", 0)]
-    #[case::neg_integer_max("-9223372036854775808", i64::MIN)]
+    #[case::i64_min("-9223372036854775808", i64::MIN)]
     fn neg_integer_parses(#[case] input: &str, #[case] expected: i64) {
         let expected = Token::NegInteger(expected);
         assert_next_token(input, expected);
@@ -212,9 +212,9 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn neg_integer_fails_when_smaller_than_i64() {
+    fn neg_integer_fails_when_smaller_than_i64_min() {
         let input = "-9223372036854775809"; // i64::MIN - 1
-        get_next_token(&input);
+        get_next_token(input);
     }
 
     #[rstest]
@@ -261,4 +261,17 @@ mod tests {
         let input = r#"'Java Script'"#;
         get_next_token(input);
     }
+
+    #[test]
+    fn unknown_character_error() {
+        let input = "$";
+
+        let mut lexer = Token::lexer(input);
+        let token = lexer.next().expect("There should be at least one token");
+
+        assert!(matches!(token, Err(Error::UnknownCharacter)));
+    }
+
+    // TODO: Add more tests for various consecutive tokens. For example,
+    // Two consecutive strings, two consecutive floats, etc.
 }
