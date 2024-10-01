@@ -1,4 +1,3 @@
-use super::ChildQuery;
 use super::{
     apply::InternalError,
     context::{Context, JsonPath},
