@@ -1,19 +1,20 @@
 import useLazyState from "@/hooks/useLazyState";
 import { gqTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import { Data, emptyContent } from "@/model/data";
+import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { type LoadingState, loading, notLoading } from "@/model/loading-state";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import CodeMirror, { type Extension } from "@uiw/react-codemirror";
+import { cubicBezier, motion } from "framer-motion";
 import { TriangleAlert } from "lucide-react";
-import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
 import EditorLoadingOverlay from "../editor-overlay/editor-loading-overlay";
-import EditorConsole from "./editor-console";
+import EditorConsole from "../editor-console/editor-console";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
 import { EditorTooLarge } from "./editor-too-large";
@@ -25,7 +26,6 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
-import { cubicBezier, motion } from "framer-motion";
 
 interface Props {
 	title: string;
@@ -65,11 +65,7 @@ const Editor = ({
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<string>();
-	const [content, setContent, instantContent] = useLazyState(
-		emptyContent(fileTypes[0]),
-		50,
-		onChangeContent,
-	);
+	const [content, setContent, instantContent] = useLazyState("" as string, 50, onChangeContent);
 	const [type, setType] = useState<FileType>(fileTypes[0]);
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
@@ -82,11 +78,11 @@ const Editor = ({
 	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = type === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = content.length < 100000000;
-	const borderRepeatDelay = Math.random() * 15 + 5;
+	// const borderRepeatDelay = Math.random() * 5 + 15;
 
 	const handleFormatCode = useCallback(
 		async (cont: string) => {
-			if (!formatWorker || loadingState.isLoading) return;
+			if (!formatWorker || loadingState.isLoading || cont === "") return;
 			setLoadingState(loading("Formatting code..."));
 			try {
 				const data = new Data(cont, type);
@@ -114,7 +110,7 @@ const Editor = ({
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
 			if (!focused) return;
-			if (event.ctrlKey && event.key === "s") {
+			if (event.ctrlKey && (event.key === "s" || event.key === "S")) {
 				event.preventDefault();
 				handleFormatCode(content);
 			}
@@ -206,21 +202,18 @@ const Editor = ({
 			<div
 				data-focused={focused}
 				data-title={defaultFileName}
-				onFocus={() => onChangeFocused(true)}
-				onBlur={() => onChangeFocused(false)}
 				className={`${styles.editor} relative h-full rounded-lg p-[1px] overflow-hidden`}
 			>
-				<div className={styles.editorBorder} data-focused={focused} />
 				<motion.div
 					className={styles.editorBorderTop}
 					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, 10, 180, 190, 360] }}
 					transition={{
 						duration: 4,
-						delay: borderRepeatDelay,
+						delay: 0,
 						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
 						// repeat: Number.POSITIVE_INFINITY,
 						// repeatType: "loop",
-						repeatDelay: borderRepeatDelay,
+						// repeatDelay: borderRepeatDelay,
 						times: [0, 0.1, 0.5, 0.6, 1],
 					}}
 				/>
@@ -229,11 +222,11 @@ const Editor = ({
 					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, -10, -180, -190, -360] }}
 					transition={{
 						duration: 4,
-						delay: borderRepeatDelay,
+						delay: 0,
 						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
 						// repeat: Number.POSITIVE_INFINITY,
 						// repeatType: "loop",
-						repeatDelay: borderRepeatDelay,
+						// repeatDelay: borderRepeatDelay,
 						times: [0, 0.1, 0.5, 0.6, 1],
 					}}
 				/>
@@ -258,27 +251,28 @@ const Editor = ({
 					visible={showConsole}
 					onClose={() => setShowConsole(false)}
 				/>
-				{available ? (
-					<CodeMirror
-						className="w-full h-full rounded-lg text-xs overflow-hidden"
-						value={instantContent}
-						onChange={setContent}
-						height="100%"
-						theme={gqTheme}
-						extensions={extensions}
-						editable={editable}
-						basicSetup={{
-							autocompletion: true,
-							lineNumbers: true,
-							lintKeymap: true,
-						}}
-					/>
-				) : (
-					<EditorTooLarge
-						editable={editable}
-						onClearContent={() => setContent(emptyContent(type))}
-					/>
-				)}
+				<div className="bg-background w-full h-full rounded-lg">
+					{available ? (
+						<CodeMirror
+							onFocus={() => onChangeFocused(true)}
+							onBlur={() => onChangeFocused(false)}
+							className="w-full h-full rounded-lg text-xs overflow-hidden"
+							value={instantContent}
+							onChange={setContent}
+							height="100%"
+							theme={gqTheme}
+							extensions={extensions}
+							readOnly={!editable}
+							basicSetup={{
+								autocompletion: true,
+								lineNumbers: true,
+								lintKeymap: true,
+							}}
+						/>
+					) : (
+						<EditorTooLarge editable={editable} onClearContent={() => setContent("")} />
+					)}
+				</div>
 			</div>
 		</div>
 	);

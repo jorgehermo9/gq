@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { capitalize } from "@/lib/utils";
 import { MoonIcon, SunIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 import ActionButton from "../action-button/action-button";
 
 const ThemeButton = () => {

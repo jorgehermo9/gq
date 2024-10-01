@@ -19,6 +19,7 @@ export function formatBytes(bytes: number, decimals = 2) {
 }
 
 export function formatNumber(number: number, decimals = 1) {
+	if (!+number) throw new Error("Invalid number");
 	const dm = decimals < 0 ? 0 : decimals;
 	const sizes = ["", "K", "M", "B", "T", "Q"];
 	const i = Math.floor(Math.log(number) / Math.log(1000));

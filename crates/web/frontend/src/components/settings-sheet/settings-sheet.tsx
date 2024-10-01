@@ -85,7 +85,6 @@ const SettingsSheet = ({ className }: Props) => {
 				<Separator />
 				<div className="flex flex-col gap-4 w-full">
 					<h2 className="text-md font-semibold">Indentation</h2>
-
 					<div className="flex gap-8 ml-4">
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="json-tab-size">Data indent</Label>

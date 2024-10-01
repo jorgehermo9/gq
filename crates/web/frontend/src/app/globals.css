@@ -28,6 +28,7 @@
     --background: #10151D;
     --foreground: #e1e5ec;
     --accent: #959efd;
+    --accent-subtle: #626DA7;
     --accent-background: #2E3C51;
     --muted: #222b37;
 
@@ -36,6 +37,7 @@
     --code-tertiary: #FFA23E;
 
     --shadow: #25A6E9;
+    --shadow-accent: #959efd;
 
     --success: #9ce99f;
     --warning: #d1c481;
@@ -52,19 +54,21 @@
     scrollbar-color: var(--accent-background) var(--muted-transparent);
     scrollbar-width: thin;
   }
-  
+
+  html {
+    @apply min-h-screen;
+  }
+
   body {
-    @apply text-foreground;
+    @apply text-foreground min-h-screen antialiased;
   }
 }
 
 body {
-  background-image: 
-    radial-gradient(
-      circle at bottom center,
+  background-image:
+    radial-gradient(circle at bottom center,
       transparent,
-      var(--background) 60%
-    ),
+      var(--background) 60%),
     radial-gradient(var(--muted) 1px, transparent 1px);
   background-size: 100% 100%, 30px 30px;
   background-color: var(--background);
@@ -81,18 +85,6 @@ code {
   padding: 0 0.4rem;
   border-radius: calc(var(--radius) - 4px);
 }
-
-/* body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background: url(https://grainy-gradients.vercel.app/noise.svg);
-  filter: blur(0.5px);
-  opacity: 0.2;
-} */
 
 [data-type="success"]>[data-icon] {
   color: var(--success);
