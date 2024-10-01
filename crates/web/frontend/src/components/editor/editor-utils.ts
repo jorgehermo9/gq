@@ -115,7 +115,8 @@ export const getCodemirrorExtensionsByFileType = (
 ): Extension[] => {
 	const language = getCodemirrorLanguageByFileType(fileType);
 	switch (fileType) {
-		case FileType.JSON || FileType.YAML:
+		case FileType.JSON:
+		case FileType.YAML:
 			return [
 				language,
 				urlPlugin,
