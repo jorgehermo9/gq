@@ -1,9 +1,8 @@
-import { Trash } from "lucide-react";
-import HeadersDatalist from "../headers-datalist/headers-datalist";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { Trash } from "lucide-react";
+import { useCallback } from "react";
+import { Input } from "../ui/input";
+import HeadersDatalist from "./headers-datalist";
 
 interface HeadersTabProps {
 	headers: [string, string][];

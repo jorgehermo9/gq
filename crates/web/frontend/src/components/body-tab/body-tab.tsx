@@ -1,20 +1,11 @@
 import { gqTheme } from "@/lib/theme";
+import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
+import { useSettings } from "@/providers/settings-provider";
+import { useWorker } from "@/providers/worker-provider";
 import CodeMirror, { type Extension } from "@uiw/react-codemirror";
-import { X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatCode, getCodemirrorExtensionsByFileType } from "../editor/editor-utils";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "../ui/dialog";
-import { useWorker } from "@/providers/worker-provider";
-import { Data } from "@/model/data";
-import { useSettings } from "@/providers/settings-provider";
 
 interface BodyTabProps {
 	body: string;

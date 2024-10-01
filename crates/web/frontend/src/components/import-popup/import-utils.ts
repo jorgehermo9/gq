@@ -51,7 +51,7 @@ export const importUrl = async (
 	const response = await fetch(url, {
 		method: httpMethod,
 		headers: headers.filter(([k, v]) => k && v),
-		body: body || null,
+		body: httpMethod === "POST" ? body || null : null,
 	});
 	if (!response.ok) {
 		throw new Error(`Received ${response.status} (${statusTextMap.get(response.status)})`);

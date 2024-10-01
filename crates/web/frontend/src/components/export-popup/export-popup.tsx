@@ -32,7 +32,7 @@ const ExportPopup = ({ defaultFilename, fileType, onExportFile }: Props) => {
 					<DownloadCloud className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
-			<DialogContent className="w-[25vw] max-w-[80vw]">
+			<DialogContent className="w-[30rem] max-w-[80vw]">
 				<DialogHeader>
 					<DialogTitle>Export to file</DialogTitle>
 					<DialogDescription>

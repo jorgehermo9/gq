@@ -116,7 +116,11 @@ export const getCodemirrorExtensionsByFileType = (
 	const language = getCodemirrorLanguageByFileType(fileType);
 	switch (fileType) {
 		case FileType.JSON:
-			return [language, urlPlugin];
+			return [
+				language,
+				urlPlugin,
+				Prec.highest(keymap.of([{ key: "Ctrl-Enter", run: () => true }])),
+			];
 		case FileType.GQ:
 			return [
 				language,
@@ -130,11 +134,16 @@ export const getCodemirrorExtensionsByFileType = (
 					keymap.of([
 						{ key: "Tab", run: acceptCompletion },
 						{ key: "Ctrl-.", run: startCompletion },
+						{ key: "Ctrl-Enter", run: () => true },
 					]),
 				),
 			];
 		case FileType.YAML:
-			return [language, urlPlugin];
+			return [
+				language,
+				urlPlugin,
+				Prec.highest(keymap.of([{ key: "Ctrl-Enter", run: () => true }])),
+			];
 		default:
 			throw new Error("Invalid file type");
 	}

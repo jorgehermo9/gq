@@ -1,6 +1,6 @@
 import ActionButton from "@/components/action-button/action-button";
 import useLazyState from "@/hooks/useLazyState";
-import { cn, formatBytes } from "@/lib/utils";
+import { formatBytes } from "@/lib/utils";
 import { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
@@ -9,6 +9,7 @@ import { type LoadingState, notLoading } from "@/model/loading-state";
 import { File, FileUp, Trash } from "lucide-react";
 import { type ChangeEvent, useMemo, useState } from "react";
 import BodyTab from "../body-tab/body-tab";
+import HeadersTab from "../headers-tab/headers-tab";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -28,10 +29,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import styles from "./import-popup.module.css";
 import { type ImportedFile, getFileContent, importUrl, validateFile } from "./import-utils";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
-import HeadersTab from "../headers-tab/headers-tab";
 
 interface Props {
 	currentType: FileType;
@@ -127,7 +127,7 @@ const ImportPopup = ({
 					<FileUp className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
-			<DialogContent className="w-[30vw] max-w-[80vw]">
+			<DialogContent className="w-[42rem] max-w-[80vw]">
 				<DialogHeader>
 					<DialogTitle>Import file</DialogTitle>
 					<DialogDescription>
@@ -144,7 +144,7 @@ const ImportPopup = ({
 								From local file
 							</TabsTrigger>
 						</TabsList>
-						<TabsContent value="url" className="h-[35vh]">
+						<TabsContent value="url" className="h-[32vh]">
 							<div className="flex items-center">
 								<Select
 									value={httpMethod}
@@ -173,11 +173,27 @@ const ImportPopup = ({
 							<Tabs defaultValue="headers" className="flex flex-col h-full pb-2">
 								<TabsList className="flex justify-start my-4">
 									<TabsTrigger value="headers" className="w-32" variant="outline">
-										Headers {headersCount > 0 && ` (${headersCount})`}
+										<span className="relative">
+											Headers
+											<span
+												data-show={headersCount > 0}
+												className="absolute -right-[14px] -top-[3px] text-lg text-success opacity-0 data-[show=true]:opacity-100 transition-opacity"
+											>
+												•
+											</span>
+										</span>
 									</TabsTrigger>
 									{httpMethod === "POST" && (
 										<TabsTrigger value="body" className="w-32" variant="outline">
-											Body
+											<span className="relative">
+												Body
+												<span
+													data-show={body !== ""}
+													className="absolute -right-[14px] -top-[3px] text-lg text-success opacity-0 data-[show=true]:opacity-100 transition-opacity"
+												>
+													•
+												</span>
+											</span>
 										</TabsTrigger>
 									)}
 								</TabsList>
@@ -191,7 +207,7 @@ const ImportPopup = ({
 								)}
 							</Tabs>
 						</TabsContent>
-						<TabsContent value="file" className="h-[35vh] mt-8">
+						<TabsContent value="file" className="h-[32vh] mt-8">
 							<div className="flex items-center w-full h-full">
 								<div className={styles.importFileContainer}>
 									<Label
@@ -210,11 +226,11 @@ const ImportPopup = ({
 										{file ? (
 											<div className="flex flex-col items-center justify-center gap-2 w-full h-full relative">
 												<File className="w-6 h-6" />
-												<span className="text-center leading-5 font-semibold">{file.f.name}</span>
+												<span className="text-center font-semibold">{file.f.name}</span>
 												<span className="text-xs">{formatBytes(file.f.size)}</span>
 											</div>
 										) : (
-											<span className="w-1/2 text-center leading-5">
+											<span className="w-2/5 text-center leading-5">
 												Drag and drop a file here or click to select one
 											</span>
 										)}

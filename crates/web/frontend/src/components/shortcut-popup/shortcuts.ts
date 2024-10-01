@@ -11,7 +11,7 @@ export type Shortcut = {
 const globalShortcuts: Shortcut[] = [
 	{
 		description: "Apply the current query",
-		shortcut: "Alt + Enter",
+		shortcut: "Ctrl + Enter",
 	},
 ];
 

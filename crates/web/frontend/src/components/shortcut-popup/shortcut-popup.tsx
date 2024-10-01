@@ -23,7 +23,7 @@ const ShortcutPopup = () => {
 					<Keyboard className="w-4 h-4" />
 				</ActionButton>
 			</DialogTrigger>
-			<DialogContent className="w-[30vw] max-w-[80vw] max-h-[80vh] overflow-y-auto gap-0">
+			<DialogContent className="w-[34rem] max-w-[80vw] max-h-[80vh] overflow-y-auto gap-0">
 				<X
 					className="absolute top-4 right-4 h-4 w-4 cursor-pointer"
 					onClick={() => setOpen(false)}
