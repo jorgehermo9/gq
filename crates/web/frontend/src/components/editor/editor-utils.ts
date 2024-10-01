@@ -115,7 +115,7 @@ export const getCodemirrorExtensionsByFileType = (
 ): Extension[] => {
 	const language = getCodemirrorLanguageByFileType(fileType);
 	switch (fileType) {
-		case FileType.JSON:
+		case FileType.JSON || FileType.YAML:
 			return [
 				language,
 				urlPlugin,
@@ -137,12 +137,6 @@ export const getCodemirrorExtensionsByFileType = (
 						{ key: "Ctrl-Enter", run: () => true },
 					]),
 				),
-			];
-		case FileType.YAML:
-			return [
-				language,
-				urlPlugin,
-				Prec.highest(keymap.of([{ key: "Ctrl-Enter", run: () => true }])),
 			];
 		default:
 			throw new Error("Invalid file type");
