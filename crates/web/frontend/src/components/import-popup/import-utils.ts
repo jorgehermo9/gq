@@ -29,7 +29,7 @@ export const validateFile = (
 	}
 };
 
-export const getFileContent = (importedFile: ImportedFile): Promise<string> => {
+export const getFileContent = (file: File): Promise<string> => {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.onload = () => {
@@ -37,7 +37,7 @@ export const getFileContent = (importedFile: ImportedFile): Promise<string> => {
 			resolve(content);
 		};
 		reader.onerror = () => reject(reader.error);
-		reader.readAsText(importedFile.f);
+		reader.readAsText(file);
 	});
 };
 

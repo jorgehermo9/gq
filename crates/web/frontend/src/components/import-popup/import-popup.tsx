@@ -7,7 +7,7 @@ import { getFileExtensions } from "@/model/file-type";
 import { fromString } from "@/model/http-method";
 import { type LoadingState, notLoading } from "@/model/loading-state";
 import { File, FileUp, Trash } from "lucide-react";
-import { type ChangeEvent, useMemo, useState } from "react";
+import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import BodyTab from "../body-tab/body-tab";
 import HeadersTab from "../headers-tab/headers-tab";
 import { Button } from "../ui/button";
@@ -66,7 +66,7 @@ const ImportPopup = ({
 		[importableTypes],
 	);
 
-	const handleImportFile = async () => {
+	const handleImportFile = useCallback(async () => {
 		if (!file) return;
 		onChangeLoading({
 			isLoading: true,
@@ -75,16 +75,16 @@ const ImportPopup = ({
 		setOpen(false);
 		setFile(undefined);
 		try {
-			const fileContent = await getFileContent(file);
+			const fileContent = await getFileContent(file.f);
 			onImportFile(new Data(fileContent, file.type));
 		} catch (err) {
 			onError(err);
 		} finally {
 			onChangeLoading(notLoading());
 		}
-	};
+	}, [file, onChangeLoading, onImportFile, onError]);
 
-	const handleImportUrl = async () => {
+	const handleImportUrl = useCallback(async () => {
 		if (!url) return;
 		onChangeLoading({
 			isLoading: true,
@@ -99,7 +99,7 @@ const ImportPopup = ({
 		} finally {
 			onChangeLoading(notLoading());
 		}
-	};
+	}, [currentType, url, httpMethod, headers, body, onChangeLoading, onImportFile, onError]);
 
 	const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
 		e.preventDefault();
