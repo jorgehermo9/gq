@@ -46,3 +46,4 @@ jobs:
           clippy_flags: "--tests -- -Dwarnings"
           reporter: "github-pr-check"
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          filter_mode: nofilter
