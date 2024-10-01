@@ -41,8 +41,6 @@ jobs:
         with:
           components: clippy
       - name: Run clippy
-        run: cargo clippy --all-targets --all-features -- -Dwarnings
-      - name: Run clippy
         uses: giraffate/clippy-action@v1
         with:
           clippy_flags: --all-targets --all-features -- -Dwarnings
