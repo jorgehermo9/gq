@@ -198,7 +198,7 @@ mod tests {
     #[should_panic]
     fn pos_integer_fails_when_bigger_than_u64_max() {
         let input = "18446744073709551616"; // u64::MAX + 1
-        get_next_token(&input);
+        get_next_token(input);
     }
 
     #[rstest]
@@ -214,7 +214,7 @@ mod tests {
     #[should_panic]
     fn neg_integer_fails_when_smaller_than_i64_min() {
         let input = "-9223372036854775809"; // i64::MIN - 1
-        get_next_token(&input);
+        get_next_token(input);
     }
 
     #[rstest]

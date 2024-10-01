@@ -1,8 +1,3 @@
-use std::{
-    borrow::Cow,
-    fmt::{self, Display, Formatter},
-};
-
 use super::{
     apply::InternalError,
     context::{Context, JsonPath},
@@ -12,6 +7,10 @@ use derive_getters::Getters;
 use derive_more::Constructor;
 use regex::Regex;
 use serde_json::Value;
+use std::{
+    borrow::Cow,
+    fmt::{self, Display, Formatter},
+};
 use thiserror::Error;
 
 #[derive(Debug, Clone, Error)]
