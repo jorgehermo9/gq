@@ -22,23 +22,26 @@ jobs:
     name: format
     steps:
       - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
       - name: Install rustfmt
         uses: dtolnay/rust-toolchain@1.81
         with:
           components: rustfmt
       - name: Run rustfmt
-        run: cargo fmt --check
+        run: just fmt
   clippy:
     runs-on: ubuntu-latest
     name: clippy
-    permissions:
-      contents: read
-      checks: write
     steps:
       - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
       - name: Install clippy
         uses: dtolnay/rust-toolchain@1.81
         with:
           components: clippy
       - name: Run clippy
-        run: cargo clippy --tests --locked
+        run: just clippy
