@@ -39,3 +39,17 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Run clippy
         run: just clippy
+  test:
+    runs-on: ubuntu-latest
+    name: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+      - uses: Swatinem/rust-cache@v2
+      - name: Run tests
+        run: just test
