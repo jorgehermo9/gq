@@ -36,10 +36,6 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: just
-      - name: Install clippy
-        uses: dtolnay/rust-toolchain@1.81
-        with:
-          components: clippy
       - uses: Swatinem/rust-cache@v2
       - name: Run clippy
         run: just clippy
