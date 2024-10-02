@@ -20,8 +20,8 @@ import { parser } from "@lezer/json";
 import { EditorView, type Extension, Prec, keymap } from "@uiw/react-codemirror";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
-import urlPlugin from "./url-plugin";
 import { validateFile } from "../import-popup/import-utils";
+import urlPlugin from "./url-plugin";
 
 export const exportFile = (data: Data, filename: string) => {
 	const blob = new Blob([data.content], { type: `application/${data.type}` });
