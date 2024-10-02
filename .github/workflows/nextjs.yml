@@ -21,7 +21,7 @@ jobs:
     name: biome ci
     steps:
       - uses: actions/checkout@v4
-      - uses: biomejs/setup-biome@v2
+      - uses: biomejs/setup-biome@v2 # Biome automatically detects the version based on the lockfile
         with:
           working-dir: crates/web/frontend
       - name: Run biome check
