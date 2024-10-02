@@ -7,7 +7,8 @@
     "build-local": "just build-wasm && npm i gq-web && next build",
     "build": "npm i gq-web && next build",
     "start": "next start",
-    "check": "biome check ./src --apply"
+    "ci": "biome ci ./src",
+    "check-apply": "biome check ./src --apply"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.1",
@@ -54,7 +55,7 @@
     "webworker-promise": "^0.5.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.3",
+    "@biomejs/biome": "^1.9.3",
     "@types/node": "^22.7.4",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",

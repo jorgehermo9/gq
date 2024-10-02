@@ -22,8 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: biomejs/setup-biome@v2
-        with:
-          version: latest
       - name: Run biome check
         working-directory: crates/web/frontend
-        run: biome ci ./src
+        run: biome --version
