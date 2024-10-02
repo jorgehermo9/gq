@@ -26,4 +26,4 @@ jobs:
           working-dir: crates/web/frontend
       - name: Run biome check
         working-directory: crates/web/frontend
-        run: biome --version
+        run: biome ci ./src
