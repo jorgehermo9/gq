@@ -134,7 +134,7 @@ const ImportPopup = ({
 						Import a valid file to the editor either from a URL or a local file.
 					</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit} autoComplete="off">
+				<form onSubmit={handleSubmit} autoComplete="off" className="overflow-x-auto">
 					<Tabs defaultValue="url" className="pb-8">
 						<TabsList className="flex mb-8">
 							<TabsTrigger value="url" className="w-1/2">

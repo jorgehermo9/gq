@@ -17,10 +17,11 @@ import {
 	indentNodeProp,
 } from "@codemirror/language";
 import { parser } from "@lezer/json";
-import { type Extension, Prec, keymap } from "@uiw/react-codemirror";
+import { EditorView, type Extension, Prec, keymap } from "@uiw/react-codemirror";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 import urlPlugin from "./url-plugin";
+import { validateFile } from "../import-popup/import-utils";
 
 export const exportFile = (data: Data, filename: string) => {
 	const blob = new Blob([data.content], { type: `application/${data.type}` });
@@ -109,6 +110,14 @@ const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport =>
 	}
 };
 
+const getDragAndDropExtension = (importableTypes: FileType[]) =>
+	EditorView.domEventHandlers({
+		drop(e, _) {
+			const file = e.dataTransfer?.files[0];
+			validateFile(file, importableTypes, undefined, () => e.preventDefault());
+		},
+	});
+
 export const getCodemirrorExtensionsByFileType = (
 	fileType: FileType,
 	completionSource?: CompletionSource,
@@ -121,6 +130,7 @@ export const getCodemirrorExtensionsByFileType = (
 				language,
 				urlPlugin,
 				Prec.highest(keymap.of([{ key: "Ctrl-Enter", run: () => true }])),
+				getDragAndDropExtension([FileType.JSON, FileType.YAML]),
 			];
 		case FileType.GQ:
 			return [
@@ -138,6 +148,7 @@ export const getCodemirrorExtensionsByFileType = (
 						{ key: "Ctrl-Enter", run: () => true },
 					]),
 				),
+				getDragAndDropExtension([FileType.GQ]),
 			];
 		default:
 			throw new Error("Invalid file type");

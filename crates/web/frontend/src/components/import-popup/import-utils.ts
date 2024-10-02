@@ -12,7 +12,8 @@ export type ImportedFile = {
 export const validateFile = (
 	file: File | undefined,
 	importableTypes: FileType[],
-	callback: (importedFile: ImportedFile) => void,
+	onSuccess?: (importedFile: ImportedFile) => void,
+	onError?: (error: Error) => void,
 ) => {
 	if (!file) {
 		toast.warning("No file was imported!");
@@ -21,11 +22,18 @@ export const validateFile = (
 	try {
 		const importedFileType = fromMimeType(file.type);
 		if (!importableTypes.includes(importedFileType)) {
-			toast.error(`Files of type ${importedFileType} cannot be imported into this editor`);
+			const error = new Error(
+				`Files of type ${importedFileType} cannot be imported into this editor`,
+			);
+			toast.error(error.message);
+			onError?.(error);
+			return;
 		}
-		callback({ f: file, type: importedFileType });
+		onSuccess?.({ f: file, type: importedFileType });
 	} catch {
-		toast.error(`Unable to import files of type ${file.type}`);
+		const error = new Error(`Unable to import files of type ${file.type}`);
+		toast.error(error.message);
+		onError?.(error);
 	}
 };
 
