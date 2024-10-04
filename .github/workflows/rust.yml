@@ -32,7 +32,7 @@ jobs:
           tool: just
       - uses: Swatinem/rust-cache@v2
       - name: Run rustfmt
-        run: just fmt
+        run: just fm
   clippy:
     runs-on: ubuntu-latest
     name: clippy
