@@ -4,7 +4,7 @@
 	width: var(--size);
 }
 
-.sonnerLoadingWrapper[data-visible='false'] {
+.sonnerLoadingWrapper[data-visible="false"] {
 	transform-origin: center;
 	animation: sonner-fade-out 0.2s ease forwards;
 }
