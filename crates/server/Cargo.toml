@@ -1,0 +1,19 @@
+[package]
+name = "gq-server"
+version = "0.1.0"
+description = "gq server"
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+
+[[bin]]
+name = "gq-server"
+path = "src/main.rs"
+
+[dependencies]
+axum = "0.7.7"
+tokio = { version = "1.40.0", features = ["full"] }
+serde.workspace = true
+uuid.workspace = true
