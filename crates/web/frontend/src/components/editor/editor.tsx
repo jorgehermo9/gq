@@ -111,7 +111,7 @@ const Editor = ({
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
 			if (!focused) return;
-			if (event.ctrlKey && (event.key === "s" || event.key === "S")) {
+			if ((event.ctrlKey || event.metaKey) && (event.key === "s" || event.key === "S")) {
 				event.preventDefault();
 				handleFormatCode(content, type);
 			}

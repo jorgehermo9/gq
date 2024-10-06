@@ -11,18 +11,18 @@ export type Shortcut = {
 const globalShortcuts: Shortcut[] = [
 	{
 		description: "Apply the current query",
-		shortcut: "Ctrl + Enter",
+		shortcut: "Ctrl | ⌘ + Enter",
 	},
 ];
 
 const editorShortcuts: Shortcut[] = [
 	{
 		description: "Show autocompletions",
-		shortcut: "Ctrl + .",
+		shortcut: "Ctrl | ⌘ + .",
 	},
 	{
 		description: "Format the content of the focused editor",
-		shortcut: "Ctrl + S",
+		shortcut: "Ctrl | ⌘ + S",
 	},
 ];
 

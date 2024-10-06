@@ -10,7 +10,7 @@ interface Props {
 const ApplyButton = ({ autoApply, onClick }: Props) => {
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
-			if (e.ctrlKey && e.key === "Enter") {
+			if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
 				e.preventDefault();
 				onClick();
 			}

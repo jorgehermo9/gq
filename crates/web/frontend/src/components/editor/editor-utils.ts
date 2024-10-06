@@ -145,7 +145,9 @@ export const getCodemirrorExtensionsByFileType = (
 					keymap.of([
 						{ key: "Tab", run: acceptCompletion },
 						{ key: "Ctrl-.", run: startCompletion },
+						{ key: "Cmd-.", run: startCompletion },
 						{ key: "Ctrl-Enter", run: () => true },
+						{ key: "Cmd-Enter", run: () => true },
 					]),
 				),
 				getDragAndDropExtension([FileType.GQ]),
