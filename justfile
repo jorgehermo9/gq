@@ -9,6 +9,8 @@ test:
     cargo nextest r --locked
 build:
     cargo build --release
+
+# https://github.com/launchbadge/sqlx/blob/main/sqlx-cli/README.md
 sqlx-check:
     cargo sqlx prepare --check --workspace
 sqlx-prepare:
