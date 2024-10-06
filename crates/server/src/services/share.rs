@@ -10,11 +10,11 @@ pub enum Error {
 }
 
 #[derive(Clone)]
-pub struct SharesService {
+pub struct ShareService {
     pub db_connection: PgPool,
 }
 
-impl SharesService {
+impl ShareService {
     pub fn new(db_connection: PgPool) -> Self {
         Self { db_connection }
     }

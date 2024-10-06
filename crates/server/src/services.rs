@@ -1,1 +1,1 @@
-pub mod shares;
+pub mod share;

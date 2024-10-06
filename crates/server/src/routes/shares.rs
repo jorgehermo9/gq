@@ -8,7 +8,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{model::share::Share, services::shares::SharesService, AppState};
+use crate::{model::share::Share, services::share::ShareService, AppState};
 
 pub const SHARES_CONTEXT: &str = "/shares";
 
@@ -19,7 +19,7 @@ struct CreateShareRequest {
 }
 
 async fn create_share(
-    State(shares_service): State<SharesService>,
+    State(shares_service): State<ShareService>,
     Json(request): Json<CreateShareRequest>,
 ) -> impl IntoResponse {
     let share_id = shares_service
@@ -38,7 +38,7 @@ async fn create_share(
 }
 
 async fn get_share(
-    State(shares_service): State<SharesService>,
+    State(shares_service): State<ShareService>,
     Path(id): Path<Uuid>,
 ) -> Json<Share> {
     // TODO: handle unwrap. Log the error and return a 500 without giving away too much info
