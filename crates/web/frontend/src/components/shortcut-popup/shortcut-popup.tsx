@@ -15,7 +15,7 @@ import { shortcutSections } from "./shortcuts";
 
 const ShortcutPopup = () => {
 	const [open, setOpen] = useState(false);
-	const isMac = navigator.platform.includes("Mac");
+	const isMac = navigator.platform.includes("Mac"); // Deprecated navigator.platform
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
