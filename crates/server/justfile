@@ -5,7 +5,7 @@ set dotenv-load
 # If there is a .env file located at `crates/server/.env`, it will be loaded automatically
 prepare-check:
     cargo sqlx prepare --check --workspace
-prepare: # To be able to build the project without database
+prepare: # To be able to build the project in offline mode
     cargo sqlx prepare --workspace
 migrate:
     cargo sqlx migrate run
