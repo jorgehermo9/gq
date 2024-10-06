@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 import { Trash } from "lucide-react";
 import { useCallback } from "react";
+import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import HeadersDatalist from "./headers-datalist";
-import { Checkbox } from "../ui/checkbox";
 
 interface HeadersTabProps {
 	headers: [string, string, boolean][];

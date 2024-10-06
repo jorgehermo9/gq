@@ -8,7 +8,7 @@
     "build": "npm i gq-web && next build",
     "start": "next start",
     "ci": "biome ci ./src",
-    "check-apply": "biome check ./src --apply"
+    "check-apply": "biome check ./src --write"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.1",
