@@ -5,18 +5,18 @@ use crate::services::share::ShareService;
 
 #[derive(Clone)]
 pub struct AppState {
-    shares_service: ShareService,
+    share_service: ShareService,
 }
 
 impl AppState {
     pub fn new(db: PgPool) -> Self {
-        let shares_service = ShareService::new(db);
-        Self { shares_service }
+        let share_service = ShareService::new(db);
+        Self { share_service }
     }
 }
 
 impl FromRef<AppState> for ShareService {
     fn from_ref(state: &AppState) -> Self {
-        state.shares_service.clone()
+        state.share_service.clone()
     }
 }
