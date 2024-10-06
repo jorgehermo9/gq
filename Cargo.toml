@@ -18,3 +18,4 @@ log = "0.4.21"
 uuid = { version = "1.8.0", features = ["v4", "v7", "serde"] }
 derive_more = "0.99.17"
 cached = "0.51.3"
+thiserror = "1.0.58"

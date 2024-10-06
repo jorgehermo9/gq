@@ -17,3 +17,5 @@ axum = "0.7.7"
 tokio = { version = "1.40.0", features = ["full"] }
 serde.workspace = true
 uuid.workspace = true
+thiserror.workspace = true
+sqlx = { version = "0.8.2", features = ["postgres", "runtime-tokio", "uuid"] }
