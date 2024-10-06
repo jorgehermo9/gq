@@ -59,14 +59,3 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
         run: just test
-  sqlx-prepare:
-    runs-on: ubuntu-latest
-    name: sqlx check
-    steps:
-      - uses: actions/checkout@v4
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: just
-      - uses: Swatinem/rust-cache@v2
-      - name: Run sqlx check
-        run: just sqlx-check

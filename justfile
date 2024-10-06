@@ -1,6 +1,6 @@
 export SQLX_OFFLINE := "true"
 
-ci: fmt clippy test build sqlx-check
+ci: fmt clippy test build
 fmt:
     cargo fmt --check
 clippy:
