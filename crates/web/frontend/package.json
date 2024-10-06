@@ -8,7 +8,7 @@
     "build": "npm i gq-web && next build",
     "start": "next start",
     "ci": "biome ci ./src",
-    "check-apply": "biome check ./src --apply"
+    "check-apply": "biome check ./src --write"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.1",
@@ -17,6 +17,7 @@
     "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-alert-dialog": "^1.1.2",
+    "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-context-menu": "^2.2.2",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
