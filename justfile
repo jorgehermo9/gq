@@ -10,6 +10,6 @@ test:
 build:
     cargo build --release
 sqlx-check:
-    sqlx prepare --check --workspace
+    cargo sqlx prepare --check --workspace
 sqlx-prepare:
-    sqlx prepare --workspace
+    cargo sqlx prepare --workspace
