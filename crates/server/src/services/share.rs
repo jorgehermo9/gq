@@ -7,6 +7,7 @@ use crate::model::share::Share;
 pub enum Error {
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
+    // TODO: Add expiry time validations here
 }
 
 #[derive(Clone)]
