@@ -15,6 +15,7 @@ import { shortcutSections } from "./shortcuts";
 
 const ShortcutPopup = () => {
 	const [open, setOpen] = useState(false);
+	const isMac = navigator.platform.includes("Mac");
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -34,7 +35,7 @@ const ShortcutPopup = () => {
 						Check all available keyboard shortcuts to improve your efficiency
 					</DialogDescription>
 				</DialogHeader>
-				{shortcutSections.map((shortcutSection) => (
+				{shortcutSections(isMac).map((shortcutSection) => (
 					<div className="mt-8" key={shortcutSection.title}>
 						<h3 className="font-semibold mb-1">{shortcutSection.title}</h3>
 						<Table>
