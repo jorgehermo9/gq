@@ -9,8 +9,8 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(db: PgPool) -> Self {
-        let share_service = ShareService::new(db);
+    pub fn new(db: PgPool, max_share_expiration_time_secs: i64) -> Self {
+        let share_service = ShareService::new(db, max_share_expiration_time_secs);
         Self { share_service }
     }
 }
