@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 import { validateFile } from "../import-popup/import-utils";
 import urlPlugin from "./url-plugin";
+import { isMac } from "@/lib/utils";
 
 export const exportFile = (data: Data, filename: string) => {
 	const blob = new Blob([data.content], { type: `application/${data.type}` });
@@ -96,6 +97,7 @@ const gqLanguageParser = LRLanguage.define({
 const jsonLanguage = json();
 const gqLanguage = new LanguageSupport(gqLanguageParser);
 const yamlLanguage = yaml();
+const modKey = isMac ? "Cmd" : "Ctrl";
 
 const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport => {
 	switch (fileType) {
@@ -129,7 +131,7 @@ export const getCodemirrorExtensionsByFileType = (
 			return [
 				language,
 				urlPlugin,
-				Prec.highest(keymap.of([{ key: "Ctrl-Enter", run: () => true }])),
+				Prec.highest(keymap.of([{ key: `${modKey}-Enter`, run: () => true }])),
 				getDragAndDropExtension([FileType.JSON, FileType.YAML]),
 			];
 		case FileType.GQ:
@@ -144,10 +146,8 @@ export const getCodemirrorExtensionsByFileType = (
 				Prec.highest(
 					keymap.of([
 						{ key: "Tab", run: acceptCompletion },
-						{ key: "Ctrl-.", run: startCompletion },
-						{ key: "Cmd-.", run: startCompletion },
-						{ key: "Ctrl-Enter", run: () => true },
-						{ key: "Cmd-Enter", run: () => true },
+						{ key: `${modKey}-.`, run: startCompletion },
+						{ key: `${modKey}-Enter`, run: () => true },
 					]),
 				),
 				getDragAndDropExtension([FileType.GQ]),

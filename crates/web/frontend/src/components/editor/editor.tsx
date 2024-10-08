@@ -1,6 +1,6 @@
 import useLazyState from "@/hooks/useLazyState";
 import { gqTheme } from "@/lib/theme";
-import { cn } from "@/lib/utils";
+import { cn, isMac } from "@/lib/utils";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { type LoadingState, loading, notLoading } from "@/model/loading-state";
@@ -111,7 +111,7 @@ const Editor = ({
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
 			if (!focused) return;
-			if ((event.ctrlKey || event.metaKey) && (event.key === "s" || event.key === "S")) {
+			if ((isMac ? event.metaKey : event.ctrlKey) && (event.key === "s" || event.key === "S")) {
 				event.preventDefault();
 				handleFormatCode(content, type);
 			}

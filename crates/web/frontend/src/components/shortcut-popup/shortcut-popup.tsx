@@ -12,10 +12,10 @@ import {
 import Link from "../ui/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { shortcutSections } from "./shortcuts";
+import { isMac } from "@/lib/utils";
 
 const ShortcutPopup = () => {
 	const [open, setOpen] = useState(false);
-	const isMac = navigator.platform.includes("Mac"); // Deprecated navigator.platform
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
