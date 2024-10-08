@@ -1,3 +1,4 @@
+import { isMac } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import {
@@ -22,7 +23,6 @@ import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 import { validateFile } from "../import-popup/import-utils";
 import urlPlugin from "./url-plugin";
-import { isMac } from "@/lib/utils";
 
 export const exportFile = (data: Data, filename: string) => {
 	const blob = new Blob([data.content], { type: `application/${data.type}` });

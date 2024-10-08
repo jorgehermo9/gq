@@ -1,3 +1,4 @@
+import { isMac } from "@/lib/utils";
 import { Keyboard, X } from "lucide-react";
 import { useState } from "react";
 import ActionButton from "../action-button/action-button";
@@ -12,7 +13,6 @@ import {
 import Link from "../ui/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { shortcutSections } from "./shortcuts";
-import { isMac } from "@/lib/utils";
 
 const ShortcutPopup = () => {
 	const [open, setOpen] = useState(false);
