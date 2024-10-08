@@ -1,4 +1,5 @@
 import ActionButton from "@/components/action-button/action-button";
+import { isMac } from "@/lib/utils";
 import { CirclePlay, Play } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
@@ -10,7 +11,7 @@ interface Props {
 const ApplyButton = ({ autoApply, onClick }: Props) => {
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
-			if (e.ctrlKey && e.key === "Enter") {
+			if ((isMac ? e.metaKey : e.ctrlKey) && e.key === "Enter") {
 				e.preventDefault();
 				onClick();
 			}

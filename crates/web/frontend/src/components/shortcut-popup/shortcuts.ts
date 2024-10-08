@@ -8,31 +8,31 @@ export type Shortcut = {
 	shortcut: string;
 };
 
-const globalShortcuts: Shortcut[] = [
+const globalShortcuts = (isMac: boolean) => [
 	{
 		description: "Apply the current query",
-		shortcut: "Ctrl + Enter",
+		shortcut: `${isMac ? "⌘" : "Ctrl"} + Enter`,
 	},
 ];
 
-const editorShortcuts: Shortcut[] = [
+const editorShortcuts = (isMac: boolean) => [
 	{
 		description: "Show autocompletions",
-		shortcut: "Ctrl + .",
+		shortcut: `${isMac ? "⌘" : "Ctrl"} + .`,
 	},
 	{
 		description: "Format the content of the focused editor",
-		shortcut: "Ctrl + S",
+		shortcut: `${isMac ? "⌘" : "Ctrl"} + S`,
 	},
 ];
 
-export const shortcutSections: ShortcutSection[] = [
+export const shortcutSections = (isMac: boolean): ShortcutSection[] => [
 	{
 		title: "Global Scope",
-		shortcuts: globalShortcuts,
+		shortcuts: globalShortcuts(isMac),
 	},
 	{
 		title: "Editor Scope",
-		shortcuts: editorShortcuts,
+		shortcuts: editorShortcuts(isMac),
 	},
 ];
