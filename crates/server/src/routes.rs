@@ -9,7 +9,6 @@ pub fn router(app_state: AppState) -> Router {
         .with_state(app_state)
 }
 
-// use macro and not a function so the logs are generated from the caller's module path
 macro_rules! build_error_response {
     ($error:expr) => {{
         let original_error = format!("{:?}", $error);
