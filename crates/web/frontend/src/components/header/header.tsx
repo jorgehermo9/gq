@@ -6,6 +6,7 @@ import { memo } from "react";
 import ExamplesSheet from "../examples-sheet/examples-sheet";
 import ShortcutPopup from "../shortcut-popup/shortcut-popup";
 import StarCount from "../star-count/star-count";
+import SharePopup from "../share-popup/share-popup";
 
 interface Props {
 	className?: string;
@@ -28,6 +29,7 @@ const Header = ({ className, onClickExample }: Props) => {
 			</h1>
 
 			<div className="flex justify-end flex-grow basis-0 gap-4">
+				<SharePopup />
 				<ThemeButton />
 				<SettingsSheet />
 			</div>
