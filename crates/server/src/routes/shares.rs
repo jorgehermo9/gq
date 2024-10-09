@@ -26,8 +26,8 @@ struct CreateShareRequest {
     expiration_time_secs: i64,
 }
 
-impl From<&CreateShareError> for ErrorObject {
-    fn from(error: &CreateShareError) -> Self {
+impl From<CreateShareError> for ErrorObject {
+    fn from(error: CreateShareError) -> Self {
         match error {
             CreateShareError::InvalidExpirationTime { .. } => {
                 ErrorObject::new(error.to_string(), StatusCode::BAD_REQUEST)
@@ -54,7 +54,7 @@ async fn create_share(
     let share_id = match create_result {
         Ok(share_id) => share_id,
         Err(create_share_error) => {
-            return routes::build_error_response!(&create_share_error);
+            return routes::build_error_response!(create_share_error);
         }
     };
 
@@ -69,8 +69,8 @@ async fn create_share(
     (StatusCode::CREATED, headers, Json(create_share_response)).into_response()
 }
 
-impl From<&GetShareError> for ErrorObject {
-    fn from(error: &GetShareError) -> Self {
+impl From<GetShareError> for ErrorObject {
+    fn from(error: GetShareError) -> Self {
         match error {
             GetShareError::DatabaseError(_) => ErrorObject::new_internal_error(),
             GetShareError::ShareNotFound(_) => {
@@ -91,7 +91,7 @@ async fn get_share(
             let share_dto = ShareDTO::from(share);
             Json(share_dto).into_response()
         }
-        Err(get_share_error) => routes::build_error_response!(&get_share_error),
+        Err(get_share_error) => routes::build_error_response!(get_share_error),
     }
 }
 
