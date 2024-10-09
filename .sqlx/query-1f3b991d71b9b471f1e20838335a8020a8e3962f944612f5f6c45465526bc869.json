@@ -17,6 +17,11 @@
         "ordinal": 2,
         "name": "query",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "expires_at",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -25,6 +30,7 @@
       ]
     },
     "nullable": [
+      false,
       false,
       false,
       false

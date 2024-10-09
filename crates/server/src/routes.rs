@@ -1,5 +1,5 @@
 use crate::AppState;
-use axum::{http::StatusCode, Router};
+use axum::Router;
 
 mod shares;
 
