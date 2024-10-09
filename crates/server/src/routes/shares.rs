@@ -44,10 +44,10 @@ struct CreateShareResponse {
 }
 
 async fn create_share(
-    State(shares_service): State<ShareService>,
+    State(share_service): State<ShareService>,
     Json(request): Json<CreateShareRequest>,
 ) -> impl IntoResponse {
-    let create_result = shares_service
+    let create_result = share_service
         .create_share(request.json, request.query, request.expiration_time_secs)
         .await;
 
@@ -81,10 +81,10 @@ impl From<GetShareError> for ErrorObject {
 }
 
 async fn get_share(
-    State(shares_service): State<ShareService>,
+    State(share_service): State<ShareService>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let get_share_result = shares_service.get_share(id).await;
+    let get_share_result = share_service.get_share(id).await;
 
     match get_share_result {
         Ok(share) => {
