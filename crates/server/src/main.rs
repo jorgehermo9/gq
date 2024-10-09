@@ -1,10 +1,21 @@
 use std::{env, net::SocketAddr};
 
 use sqlx::postgres::PgPoolOptions;
+use tracing::level_filters::LevelFilter;
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 #[tokio::main]
 async fn main() {
-    // TODO: configure tracing
+    // TODO: background vacuum job
+
+    let env_filter = EnvFilter::builder()
+        .with_default_directive(LevelFilter::INFO.into())
+        .from_env_lossy();
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(env_filter)
+        .init();
+
     let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
     let addr = SocketAddr::from(([0, 0, 0, 0], port.parse().unwrap()));
 
@@ -20,8 +31,9 @@ async fn main() {
 
     let max_share_expiration_time_secs = env::var("MAX_SHARE_EXPIRATION_TIME_SECS")
         .map(|s| s.parse().unwrap())
-        // Defaults to 1 week
-        .unwrap_or(24 * 7);
+        .unwrap_or(24 * 7)
+        * 60
+        * 60;
 
     assert!(
         max_share_expiration_time_secs > 0,

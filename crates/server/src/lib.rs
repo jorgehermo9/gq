@@ -2,7 +2,7 @@ use axum::Router;
 use sqlx::PgPool;
 use state::AppState;
 
-pub mod dto;
+pub mod dtos;
 pub mod model;
 pub mod routes;
 pub mod services;

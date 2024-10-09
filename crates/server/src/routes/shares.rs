@@ -1,3 +1,11 @@
+use crate::dtos::share_dto::ShareDTO;
+use crate::routes;
+use crate::services::share::GetShareError;
+use crate::{
+    dtos::error_object::ErrorObject,
+    services::share::{CreateShareError, ShareService},
+    AppState,
+};
 use axum::{
     extract::{Path, State},
     http::{HeaderMap, StatusCode},
@@ -5,14 +13,8 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use crate::{
-    dto::error_object::ErrorObject,
-    services::share::{CreateShareError, ShareService},
-    AppState,
-};
 
 pub const SHARES_CONTEXT: &str = "/shares";
 
@@ -30,12 +32,15 @@ impl From<&CreateShareError> for ErrorObject {
             CreateShareError::InvalidExpirationTime { .. } => {
                 ErrorObject::new(error.to_string(), StatusCode::BAD_REQUEST)
             }
-            CreateShareError::DatabaseError(_) => ErrorObject::new(
-                "Database error".to_string(),
-                StatusCode::INTERNAL_SERVER_ERROR,
-            ),
+            CreateShareError::DatabaseError(_) => ErrorObject::new_internal_error(),
         }
     }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct CreateShareResponse {
+    id: Uuid,
 }
 
 async fn create_share(
@@ -48,14 +53,8 @@ async fn create_share(
 
     let share_id = match create_result {
         Ok(share_id) => share_id,
-        Err(error) => {
-            let error_object = ErrorObject::from(&error);
-            // TODO: improve this
-            tracing::error!(
-                "Returning error response with trace id: {}. Original error: {error}",
-                error_object.trace_id
-            );
-            return error_object.into_response();
+        Err(create_share_error) => {
+            return routes::build_error_response!(&create_share_error);
         }
     };
 
@@ -65,20 +64,34 @@ async fn create_share(
         format!("{SHARES_CONTEXT}/{share_id}").parse().unwrap(),
     );
 
-    (StatusCode::CREATED, headers).into_response()
+    let create_share_response = CreateShareResponse { id: share_id };
+
+    (StatusCode::CREATED, headers, Json(create_share_response)).into_response()
+}
+
+impl From<&GetShareError> for ErrorObject {
+    fn from(error: &GetShareError) -> Self {
+        match error {
+            GetShareError::DatabaseError(_) => ErrorObject::new_internal_error(),
+            GetShareError::ShareNotFound(_) => {
+                ErrorObject::new(error.to_string(), StatusCode::NOT_FOUND)
+            }
+        }
+    }
 }
 
 async fn get_share(
     State(shares_service): State<ShareService>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    // TODO: handle unwrap. Log the error and return a 500 without giving away too much info
-    // we should return a Error Object with a trace id to trace the error in the logs
-    let share = shares_service.get_share(id).await.unwrap();
-    // TODO: create a ShareDTO and return it
-    match share {
-        Some(share) => Json(share).into_response(),
-        None => (StatusCode::NOT_FOUND).into_response(),
+    let get_share_result = shares_service.get_share(id).await;
+
+    match get_share_result {
+        Ok(share) => {
+            let share_dto = ShareDTO::from(share);
+            Json(share_dto).into_response()
+        }
+        Err(get_share_error) => routes::build_error_response!(&get_share_error),
     }
 }
 

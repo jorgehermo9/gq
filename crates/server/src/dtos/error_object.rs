@@ -21,6 +21,13 @@ impl ErrorObject {
             trace_id: Uuid::now_v7(),
         }
     }
+
+    pub fn new_internal_error() -> Self {
+        Self::new(
+            "Internal server error".to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        )
+    }
 }
 
 impl IntoResponse for ErrorObject {

@@ -8,6 +8,8 @@ use crate::model::share::Share;
 pub enum GetShareError {
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
+    #[error("Share {0} not found")]
+    ShareNotFound(Uuid),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -15,7 +17,7 @@ pub enum CreateShareError {
     #[error("Database error: {0}")]
     DatabaseError(#[from] sqlx::Error),
     #[error(
-        "Invalid expiration time: {actual} seconds. Must be greater than 0 and less than {max} seconds"
+        "Invalid expiration time: {actual} seconds. Must be greater than 0 and less than {max}"
     )]
     InvalidExpirationTime { actual: i64, max: i64 },
 }
@@ -51,7 +53,7 @@ impl ShareService {
         let now = Utc::now();
         let expires_at = now + Duration::seconds(expiration_time_secs);
 
-        let _ = sqlx::query!(
+        sqlx::query!(
             "INSERT INTO share (id, json, query, expires_at) VALUES ($1, $2, $3, $4)",
             uuid,
             json,
@@ -60,20 +62,17 @@ impl ShareService {
         )
         .execute(&self.db_connection)
         .await?;
+
         Ok(uuid)
     }
 
-    pub async fn get_share(&self, id: Uuid) -> Result<Option<Share>, GetShareError> {
+    pub async fn get_share(&self, id: Uuid) -> Result<Share, GetShareError> {
         let share = sqlx::query_as!(Share, "SELECT * FROM share WHERE id = $1", id)
             .fetch_optional(&self.db_connection)
             .await?;
 
         let now = Utc::now();
-        // TODO: should we silently filter out expired shares? or should we return
-        // a custom success enum to represent this, so a 410 Gone can be returned
-        // to the client instead of a 404
         let share = share.filter(|share| share.expires_at >= now);
-
-        Ok(share)
+        share.ok_or_else(|| GetShareError::ShareNotFound(id))
     }
 }
