@@ -52,8 +52,9 @@ const ImportPopup = ({
 }: Props) => {
 	const [open, setOpen] = useState(false);
 	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
-	const [headers, setHeaders] = useState<[string, string][]>([["", ""]]);
+	const [headers, setHeaders] = useState<[string, string, boolean][]>([["", "", true]]);
 	const [body, setBody, instantBody] = useLazyState<string>("", 50);
+	const [selectedUrlTab, setSelectedUrlTab] = useState<"headers" | "body">("headers");
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<ImportedFile>();
 
@@ -92,7 +93,10 @@ const ImportPopup = ({
 		});
 		setOpen(false);
 		try {
-			const data = await importUrl(currentType, url, httpMethod, headers, body);
+			const enabledHeaders: [string, string][] = headers
+				.filter(([, , enabled]) => enabled)
+				.map(([key, value]) => [key, value]);
+			const data = await importUrl(currentType, url, httpMethod, enabledHeaders, body);
 			onImportFile(data);
 		} catch (err) {
 			onError(err);
@@ -116,6 +120,14 @@ const ImportPopup = ({
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		file ? handleImportFile() : url && handleImportUrl();
+	};
+
+	const handleChangeHttpMethod = (value: string) => {
+		const method = fromString(value);
+		setHttpMethod(method);
+		if (method === "GET") {
+			setSelectedUrlTab("headers");
+		}
 	};
 
 	const headersCount = headers.reduce((acc, [key, value]) => (key || value ? acc + 1 : acc), 0);
@@ -146,10 +158,7 @@ const ImportPopup = ({
 						</TabsList>
 						<TabsContent value="url" className="h-[32vh]">
 							<div className="flex items-center">
-								<Select
-									value={httpMethod}
-									onValueChange={(value) => setHttpMethod(fromString(value))}
-								>
+								<Select value={httpMethod} onValueChange={handleChangeHttpMethod}>
 									<SelectTrigger className="w-min rounded-r-none bg-accent-background font-semibold">
 										<SelectValue id="http-method" />
 									</SelectTrigger>
@@ -170,7 +179,11 @@ const ImportPopup = ({
 									onChange={(e) => setUrl(e.target.value)}
 								/>
 							</div>
-							<Tabs defaultValue="headers" className="flex flex-col h-full pb-2">
+							<Tabs
+								value={selectedUrlTab}
+								onValueChange={(e) => (e === "body" || e === "headers") && setSelectedUrlTab(e)}
+								className="flex flex-col h-full pb-2"
+							>
 								<TabsList className="flex justify-start my-4">
 									<TabsTrigger value="headers" className="w-32" variant="outline">
 										<span className="relative">

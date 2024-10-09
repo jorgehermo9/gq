@@ -1,3 +1,4 @@
+import { isMac } from "@/lib/utils";
 import { Keyboard, X } from "lucide-react";
 import { useState } from "react";
 import ActionButton from "../action-button/action-button";
@@ -34,7 +35,7 @@ const ShortcutPopup = () => {
 						Check all available keyboard shortcuts to improve your efficiency
 					</DialogDescription>
 				</DialogHeader>
-				{shortcutSections.map((shortcutSection) => (
+				{shortcutSections(isMac).map((shortcutSection) => (
 					<div className="mt-8" key={shortcutSection.title}>
 						<h3 className="font-semibold mb-1">{shortcutSection.title}</h3>
 						<Table>

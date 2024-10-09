@@ -1,3 +1,4 @@
+import { isMac } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import {
@@ -96,6 +97,7 @@ const gqLanguageParser = LRLanguage.define({
 const jsonLanguage = json();
 const gqLanguage = new LanguageSupport(gqLanguageParser);
 const yamlLanguage = yaml();
+const modKey = isMac ? "Cmd" : "Ctrl";
 
 const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport => {
 	switch (fileType) {
@@ -129,7 +131,7 @@ export const getCodemirrorExtensionsByFileType = (
 			return [
 				language,
 				urlPlugin,
-				Prec.highest(keymap.of([{ key: "Ctrl-Enter", run: () => true }])),
+				Prec.highest(keymap.of([{ key: `${modKey}-Enter`, run: () => true }])),
 				getDragAndDropExtension([FileType.JSON, FileType.YAML]),
 			];
 		case FileType.GQ:
@@ -144,8 +146,8 @@ export const getCodemirrorExtensionsByFileType = (
 				Prec.highest(
 					keymap.of([
 						{ key: "Tab", run: acceptCompletion },
-						{ key: "Ctrl-.", run: startCompletion },
-						{ key: "Ctrl-Enter", run: () => true },
+						{ key: `${modKey}-.`, run: startCompletion },
+						{ key: `${modKey}-Enter`, run: () => true },
 					]),
 				),
 				getDragAndDropExtension([FileType.GQ]),
