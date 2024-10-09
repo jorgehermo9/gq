@@ -1,0 +1,34 @@
+---
+title: What is GQ?
+description: A brief introduction to GQ, its purpose and its features
+sidebar:
+  order: 1
+---
+
+import GqExample from '/src/components/GqExample.astro';
+import {Code} from '@astrojs/starlight/components';
+import inputJson from '/src/examples/introduction/introduction-input.json?raw';
+import inputQuery from '/src/examples/introduction/introduction-query.gq?raw';
+import outputJson from '/src/examples/introduction/introduction-output.json?raw';
+
+## Main goal
+
+Among the rise of Rust as a fast and reliable programming language, countless projects have born to
+improve the performance and the overall experience of users and developers. Is in this context where
+GQ comes to life, a filtering tool that aims to provide the **fastest** processing times along with a significant
+improvement in the **simplicity** of its underlying query language.
+
+## Query language
+
+Based on [GraphQL](https://graphql.org/), we wanted to extend the capabilities of an already powerful
+QL outside the realm of API development, remodeling it from the ground up to be more suitable for
+JSON filtering and accessing. let's take a look at a simple example:
+
+<Code code={inputJson} lang="json" title="output.json" />
+<GqExample codes={[inputQuery, outputJson]} langs={['json', 'json']} titles={['query.gq', 'output.json']} />
+
+As you can see, the query language has some similarities with GraphQL, including a JSON-like syntax, the argument definition or the
+field aliasing. However, it adds more funtionalites like the **dot operator** to access nested fields or the **extended comparison operators** to filter
+array elements.
+
+You can learn more about all the language capabilities in the [Concepts Section](/concepts/fields).
