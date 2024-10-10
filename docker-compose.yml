@@ -1,6 +1,25 @@
 services:
   gq-playground:
-    build: ./
+    build:
+      context: .
+      dockerfile: docker/playground.Dockerfile
     image: gq-playground
     ports:
       - 3000:3000
+  gq-server:
+    build:
+      context: .
+      dockerfile: docker/server.Dockerfile
+    image: gq-server
+    ports:
+      - 3001:3000
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/db
+    depends_on:
+      - db
+  db:
+    image: docker.io/postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db

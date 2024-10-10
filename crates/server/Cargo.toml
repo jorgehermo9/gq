@@ -1,0 +1,30 @@
+[package]
+name = "gq-server"
+version = "0.1.0"
+description = "gq server"
+edition.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+
+[[bin]]
+name = "gq-server"
+path = "src/main.rs"
+
+[dependencies]
+axum = "0.7.7"
+tokio = { version = "1.40.0", features = ["full"] }
+serde.workspace = true
+uuid.workspace = true
+thiserror.workspace = true
+sqlx = { version = "0.8.2", features = [
+    "postgres",
+    "runtime-tokio",
+    "uuid",
+    "chrono",
+] }
+chrono = { version = "0.4.38", features = ["serde"] }
+http-serde = "2.1.1"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

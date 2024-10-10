@@ -14,13 +14,13 @@ log.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 serde_yaml.workspace = true
+thiserror.workspace = true
 colored_json = "5.0.0"
 derive-getters = "0.3.0"
 derive_builder = "0.20.0"
 escape8259 = "0.5.3"
 logos = "0.14.0"
 regex = "1.10.4"
-thiserror = "1.0.58"
 
 [dev-dependencies]
 rstest = "0.21.0"

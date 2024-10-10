@@ -1,7 +1,9 @@
 **/target/
 **/node_modules/
 crates/web/frontend/pkg
-Dockerfile
+**Dockerfile
 docker-compose.yml
 LICENSE
 README.md
+# we do our own version pinning in the Dockerfile
+rust-toolchain.toml
