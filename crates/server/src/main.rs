@@ -21,7 +21,10 @@ async fn main() {
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let database_connections = env::var("DATABASE_CONNECTIONS")
-        .map(|s| s.parse().expect("DATABASE_CONNECTIONS must be a number"))
+        .map(|s| {
+            s.parse()
+                .expect(&format!("DATABASE_CONNECTIONS must be a number. Got {s}"))
+        })
         .unwrap_or(5);
     let db_connection = PgPoolOptions::new()
         .max_connections(database_connections)
@@ -31,8 +34,9 @@ async fn main() {
 
     let max_share_expiration_time_secs = env::var("MAX_SHARE_EXPIRATION_TIME_SECS")
         .map(|s| {
-            s.parse()
-                .expect("MAX_SHARE_EXPIRATION_TIME_SECS must be a number")
+            s.parse().expect(&format!(
+                "MAX_SHARE_EXPIRATION_TIME_SECS must be a number. Got {s}"
+            ))
         })
         .unwrap_or(24 * 7)
         * 60
@@ -51,7 +55,7 @@ async fn main() {
     let app = gq_server::app(db_connection, max_share_expiration_time_secs);
     let listener = tokio::net::TcpListener::bind(addr)
         .await
-        .expect("Failed to bind address {addr}");
+        .expect(&format!("Failed to bind address {addr}"));
 
     tracing::info!("Server started. Listening on {addr}");
     axum::serve(listener, app)
