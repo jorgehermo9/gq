@@ -35,11 +35,6 @@ export const exportFile = (data: Data, filename: string) => {
 	toast.success("File exported succesfully!");
 };
 
-export const copyToClipboard = (content: string) => {
-	navigator.clipboard.writeText(content);
-	toast.success("Copied to your clipboard!");
-};
-
 export const formatCode = async (
 	data: Data,
 	indent: number,

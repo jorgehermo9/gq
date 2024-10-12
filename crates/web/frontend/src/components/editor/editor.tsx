@@ -1,6 +1,6 @@
 import useLazyState from "@/hooks/useLazyState";
 import { gqTheme } from "@/lib/theme";
-import { cn, isMac } from "@/lib/utils";
+import { cn, copyToClipboard, isMac } from "@/lib/utils";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { type LoadingState, loading, notLoading } from "@/model/loading-state";
@@ -20,7 +20,6 @@ import EditorTitle from "./editor-title";
 import { EditorTooLarge } from "./editor-too-large";
 import {
 	convertCode,
-	copyToClipboard,
 	exportFile,
 	formatCode,
 	getCodemirrorExtensionsByFileType,
