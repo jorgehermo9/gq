@@ -23,6 +23,8 @@ const PopoverContent = React.forwardRef<
 				className,
 			)}
 			{...props}
+			onCloseAutoFocus={(e) => e.preventDefault()}
+			onOpenAutoFocus={(e) => e.preventDefault()}
 		/>
 	</PopoverPrimitive.Portal>
 ));

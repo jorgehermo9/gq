@@ -1,6 +1,7 @@
 import type { Completion } from "@/model/completion";
-import type { Data } from "@/model/data";
-import type FileType from "@/model/file-type";
+import { Data } from "@/model/data";
+import FileType from "@/model/file-type";
+import { getShare } from "@/service/share-service";
 import type { CompletionContext, CompletionSource } from "@codemirror/autocomplete";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
@@ -50,4 +51,19 @@ export const getQueryCompletionSource = (
 			})),
 		};
 	};
+};
+
+export const importShare = async (shareId: string): Promise<{ input: Data; query: Data }> => {
+	const toastId = toast.loading("Importing share...");
+	try {
+		const share = await getShare(shareId);
+		toast.success("Share succesfully imported", { id: toastId });
+		return Promise.resolve({
+			input: new Data(share.json, FileType.JSON),
+			query: new Data(share.query, FileType.GQ),
+		});
+	} catch (error) {
+		toast.error(`Error importing share: ${error.message}`, { id: toastId });
+		return Promise.reject(error);
+	}
 };

@@ -275,7 +275,7 @@ const ImportPopup = ({
 						>
 							Cancel
 						</Button>
-						<Button className="py-1 px-8" variant="success" type="submit">
+						<Button className="py-1 px-8" variant="success" type="submit" disabled={!(file || url)}>
 							Import
 						</Button>
 					</div>

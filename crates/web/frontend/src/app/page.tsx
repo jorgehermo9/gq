@@ -15,10 +15,11 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import { Link2, Link2Off } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { applyGq, getQueryCompletionSource } from "./page-utils";
+import { applyGq, getQueryCompletionSource, importShare } from "./page-utils";
 import styles from "./page.module.css";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 
 const Home = () => {
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -45,6 +46,7 @@ const Home = () => {
 	} = useSettings();
 	const debounce = useDebounce(debounceTime);
 	const { gqWorker, lspWorker } = useWorker();
+	const shareId = useSearchParams().get("id");
 
 	const updateOutputData = useCallback(
 		async (inputContent: string, inputType: FileType, queryContent: string, silent = true) => {
@@ -124,6 +126,15 @@ const Home = () => {
 			),
 		[autoApply, debounce, updateOutputData, debounceTime],
 	);
+
+	useEffect(() => {
+		if (!shareId) return;
+		importShare(shareId).then((data) => {
+			updateInputEditorCallback.current(data.input);
+			updateQueryEditorCallback.current(data.query);
+			// updateOutputData(data.input.content, data.input.type, data.output.content, true);
+		});
+	}, [shareId]);
 
 	return (
 		<main className="flex flex-col items-center pt-4 px-12 h-screen">
