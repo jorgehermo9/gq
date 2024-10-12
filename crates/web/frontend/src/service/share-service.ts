@@ -1,32 +1,24 @@
-import { Share, ShareSchema } from "@/model/share";
+import { type Share, ShareSchema } from "@/model/share";
 
-const endpoint = "/api";
+const sharesEndpoint = "/api/shares";
 
-export const getShare = (shareId: string): Promise<Share> => {
-	return fetch(`${endpoint}/shares/${shareId}`)
-		.then((res) => res.json())
-		.then((data) => {
-			if (data.detail) {
-				throw new Error(data.detail);
-			}
-			return ShareSchema.parse(data);
-		});
+export const getShare = async (shareId: string): Promise<Share> => {
+	const res = await fetch(`${sharesEndpoint}/${shareId}`);
+	const data = await res.json();
+	if (!res.ok) throw new Error(data.detail);
+	return ShareSchema.parse(data);
 };
 
-export const createShare = (
+export const createShare = async (
 	json: string,
 	query: string,
-	expirationTime: number,
+	expirationTimeSecs: number,
 ): Promise<string> => {
-	return fetch(`${endpoint}/shares`, {
+	const res = await fetch(sharesEndpoint, {
 		method: "POST",
-		body: JSON.stringify({ json, query, expirationTimeSecs: expirationTime }),
-	})
-		.then((res) => res.json())
-		.then((data) => {
-			if (data.detail) {
-				throw new Error(data.detail);
-			}
-			return data.id;
-		});
+		body: JSON.stringify({ json, query, expirationTimeSecs: expirationTimeSecs }),
+	});
+	const data = await res.json();
+	if (!res.ok) throw new Error(data.detail);
+	return data.id;
 };

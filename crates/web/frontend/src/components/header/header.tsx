@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import { memo } from "react";
 import ExamplesSheet from "../examples-sheet/examples-sheet";
+import SharePopup from "../share-popup/share-popup";
 import ShortcutPopup from "../shortcut-popup/shortcut-popup";
 import StarCount from "../star-count/star-count";
-import SharePopup from "../share-popup/share-popup";
 
 interface Props {
 	className?: string;

@@ -15,11 +15,11 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import { Link2, Link2Off } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { applyGq, getQueryCompletionSource, importShare } from "./page-utils";
 import styles from "./page.module.css";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
 
 const Home = () => {
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);

@@ -1,9 +1,9 @@
 "use client";
 
-import * as SliderPrimitive from "@radix-ui/react-slider";
-import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ComponentPropsWithoutRef, forwardRef, useCallback, useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import * as SliderPrimitive from "@radix-ui/react-slider";
+import { type ComponentPropsWithoutRef, forwardRef, useCallback, useEffect, useState } from "react";
 
 const SliderWithTooltip = forwardRef<
 	React.ElementRef<typeof SliderPrimitive.Root>,
