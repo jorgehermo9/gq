@@ -63,7 +63,7 @@ export const importShare = async (shareId: string): Promise<{ input: Data; query
 			query: new Data(share.query, FileType.GQ),
 		});
 	} catch (error) {
-		toast.error(`Error importing share: ${error.message}`, { id: toastId });
+		toast.error(`Error importing share: ${error.message}`, { id: toastId, duration: 5000 });
 		return Promise.reject(error);
 	}
 };

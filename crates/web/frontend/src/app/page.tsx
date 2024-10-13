@@ -40,11 +40,11 @@ const ShareLoader = ({
 			.catch(() => {});
 	}, [shareId, updateInputEditorCallback, updateQueryEditorCallback]);
 
-	return <></>;
+	return null;
 };
 
 const Home = () => {
-	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+	const [errorMessage, setErrorMessage] = useState<string>();
 	const [warningMessages, setWarningMessages] = useState<string[]>([]);
 	const inputContent = useRef<string>("");
 	const queryContent = useRef<string>("");
@@ -68,7 +68,6 @@ const Home = () => {
 	} = useSettings();
 	const debounce = useDebounce(debounceTime);
 	const { gqWorker, lspWorker } = useWorker();
-	const shareId = useSearchParams().get("id"); //Wrap this in a suspense component
 
 	const updateOutputData = useCallback(
 		async (inputContent: string, inputType: FileType, queryContent: string, silent = true) => {
