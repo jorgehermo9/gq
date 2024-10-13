@@ -4,9 +4,13 @@ const sharesEndpoint = "/api/shares";
 
 export const getShare = async (shareId: string): Promise<Share> => {
 	const res = await fetch(`${sharesEndpoint}/${shareId}`);
-	const data = await res.json();
-	if (!res.ok) throw new Error(data.detail);
-	return ShareSchema.parse(data);
+	try {
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.detail);
+		return ShareSchema.parse(data);
+	} catch (error) {
+		throw new Error("Cannot reach server");
+	}
 };
 
 export const createShare = async (
@@ -18,7 +22,11 @@ export const createShare = async (
 		method: "POST",
 		body: JSON.stringify({ json, query, expirationTimeSecs: expirationTimeSecs }),
 	});
-	const data = await res.json();
-	if (!res.ok) throw new Error(data.detail);
-	return data.id;
+	try {
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.detail);
+		return data.id;
+	} catch (error) {
+		throw new Error("Cannot reach server");
+	}
 };

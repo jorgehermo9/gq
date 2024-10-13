@@ -16,10 +16,32 @@ import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import { Link2, Link2Off } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type MutableRefObject, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { applyGq, getQueryCompletionSource, importShare } from "./page-utils";
 import styles from "./page.module.css";
+
+const ShareLoader = ({
+	updateInputEditorCallback,
+	updateQueryEditorCallback,
+}: {
+	updateInputEditorCallback: MutableRefObject<(data: Data) => void>;
+	updateQueryEditorCallback: MutableRefObject<(data: Data) => void>;
+}) => {
+	const shareId = useSearchParams().get("id");
+
+	useEffect(() => {
+		if (!shareId) return;
+		importShare(shareId)
+			.then((data) => {
+				updateInputEditorCallback?.current(data.input);
+				updateQueryEditorCallback?.current(data.query);
+			})
+			.catch(() => {});
+	}, [shareId, updateInputEditorCallback, updateQueryEditorCallback]);
+
+	return <></>;
+};
 
 const Home = () => {
 	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -46,7 +68,7 @@ const Home = () => {
 	} = useSettings();
 	const debounce = useDebounce(debounceTime);
 	const { gqWorker, lspWorker } = useWorker();
-	const shareId = useSearchParams().get("id");
+	const shareId = useSearchParams().get("id"); //Wrap this in a suspense component
 
 	const updateOutputData = useCallback(
 		async (inputContent: string, inputType: FileType, queryContent: string, silent = true) => {
@@ -127,15 +149,6 @@ const Home = () => {
 		[autoApply, debounce, updateOutputData, debounceTime],
 	);
 
-	useEffect(() => {
-		if (!shareId) return;
-		importShare(shareId).then((data) => {
-			updateInputEditorCallback.current(data.input);
-			updateQueryEditorCallback.current(data.query);
-			// updateOutputData(data.input.content, data.input.type, data.output.content, true);
-		});
-	}, [shareId]);
-
 	return (
 		<main className="flex flex-col items-center pt-4 px-12 h-screen">
 			<Header className="w-full mb-8" onClickExample={handleClickExample} />
@@ -205,6 +218,12 @@ const Home = () => {
 				</aside>
 			</section>
 			<Footer className="my-auto" />
+			<Suspense>
+				<ShareLoader
+					updateInputEditorCallback={updateInputEditorCallback}
+					updateQueryEditorCallback={updateQueryEditorCallback}
+				/>
+			</Suspense>
 		</main>
 	);
 };
