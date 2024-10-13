@@ -32,7 +32,7 @@ export const exportFile = (data: Data, filename: string) => {
 	a.download = `${filename}.${data.type}`;
 	a.click();
 	URL.revokeObjectURL(url);
-	toast.success("File exported succesfully!");
+	toast.success("File exported successfully!");
 };
 
 export const formatCode = async (

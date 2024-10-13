@@ -30,4 +30,24 @@ const PopoverContent = React.forwardRef<
 ));
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
-export { Popover, PopoverTrigger, PopoverContent };
+const PopoverHeader = ({ className, children }: React.HTMLAttributes<HTMLDivElement>) => {
+	return (
+		<div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}>
+			{children}
+		</div>
+	);
+};
+
+const PopoverTitle = ({ className, children }: React.HTMLAttributes<HTMLHeadingElement>) => {
+	return (
+		<h4 className={cn("text-md font-semibold leading-none tracking-tight", className)}>
+			{children}
+		</h4>
+	);
+};
+
+const PopoverDescription = ({ className, children }: React.HTMLAttributes<HTMLSpanElement>) => {
+	return <span className={cn("text-sm", className)}>{children}</span>;
+};
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverTitle, PopoverDescription, PopoverHeader };

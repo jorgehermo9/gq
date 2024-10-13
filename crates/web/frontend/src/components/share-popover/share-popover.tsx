@@ -1,11 +1,18 @@
 import { cn, copyToClipboard } from "@/lib/utils";
-import { Clipboard, Clock, InfoIcon, Share } from "lucide-react";
+import { Clipboard, Clock, InfoIcon, Link, Share } from "lucide-react";
 import { useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import {
+	Popover,
+	PopoverContent,
+	PopoverDescription,
+	PopoverHeader,
+	PopoverTitle,
+	PopoverTrigger,
+} from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Separator } from "../ui/separator";
 import { Loader } from "../ui/sonner";
@@ -61,10 +68,8 @@ const SharePopover = ({
 				</ActionButton>
 			</PopoverTrigger>
 			<PopoverContent className="w-[22rem] max-w-[80vw] max-h-[80vh] gap-0 relative right-2">
-				<div className="flex items-center mb-1.5">
-					<h4 className="text-md font-semibold leading-none tracking-tight">
-						Share your playground
-					</h4>
+				<PopoverHeader>
+					<PopoverTitle>Share your playground</PopoverTitle>
 					{/* TODO: Fix this */}
 					{/* <TooltipProvider>
 						<Tooltip>
@@ -82,8 +87,10 @@ const SharePopover = ({
 							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider> */}
-				</div>
-				<span className="text-sm">Create a shareable link to your current playground state</span>
+					<PopoverDescription>
+						Create a shareable link to your current playground state
+					</PopoverDescription>
+				</PopoverHeader>
 				<form onSubmit={handleSubmit} autoComplete="off" className="overflow-x-auto mt-4">
 					<div>
 						<Label htmlFor="expiration-time" variant="default">
@@ -138,8 +145,16 @@ const SharePopover = ({
 				{shareLink && (
 					<div className="animate-in slide-in-from-bottom-4 fade-in-10 duration-300">
 						<Separator />
-						<div className="w-full flex">
-							<Input readOnly className="mb-0 rounded-r-none border-r-0" value={shareLink} />
+						<Label htmlFor="generated-link" variant="default">
+							Generated link
+						</Label>
+						<div className="w-full flex mt-2">
+							<Input
+								readOnly
+								id="generated-link"
+								className="mb-0 rounded-r-none border-r-0"
+								value={shareLink}
+							/>
 							<ActionButton
 								className="px-4 py-2 h-10 rounded-l-none"
 								description="Copy to clipboard"

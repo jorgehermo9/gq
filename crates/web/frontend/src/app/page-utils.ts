@@ -57,7 +57,7 @@ export const importShare = async (shareId: string): Promise<{ input: Data; query
 	const toastId = toast.loading("Importing share...");
 	try {
 		const share = await getShare(shareId);
-		toast.success("Share succesfully imported", { id: toastId });
+		toast.success("Share successfully imported", { id: toastId });
 		return Promise.resolve({
 			input: new Data(share.json, FileType.JSON),
 			query: new Data(share.query, FileType.GQ),
