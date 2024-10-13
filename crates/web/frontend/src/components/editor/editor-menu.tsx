@@ -1,7 +1,7 @@
 "use client";
 
 import ActionButton from "@/components/action-button/action-button";
-import ExportButton from "@/components/export-popup/export-popup";
+import ExportPopover from "@/components/export-popover/export-popover";
 import ImportPopup from "@/components/import-popup/import-popup";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
@@ -58,7 +58,7 @@ const EditorMenu = ({
 				hidden={!editable}
 				onError={onError}
 			/>
-			<ExportButton
+			<ExportPopover
 				defaultFilename={defaultFilename}
 				fileType={currentType}
 				onExportFile={onExportFile}

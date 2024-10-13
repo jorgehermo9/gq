@@ -15,13 +15,36 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import { Link2, Link2Off } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { type MutableRefObject, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { applyGq, getQueryCompletionSource } from "./page-utils";
+import { applyGq, getQueryCompletionSource, importShare } from "./page-utils";
 import styles from "./page.module.css";
 
+const ShareLoader = ({
+	updateInputEditorCallback,
+	updateQueryEditorCallback,
+}: {
+	updateInputEditorCallback: MutableRefObject<(data: Data) => void>;
+	updateQueryEditorCallback: MutableRefObject<(data: Data) => void>;
+}) => {
+	const shareId = useSearchParams().get("id");
+
+	useEffect(() => {
+		if (!shareId) return;
+		importShare(shareId)
+			.then((data) => {
+				updateInputEditorCallback?.current(data.input);
+				updateQueryEditorCallback?.current(data.query);
+			})
+			.catch(() => {});
+	}, [shareId, updateInputEditorCallback, updateQueryEditorCallback]);
+
+	return null;
+};
+
 const Home = () => {
-	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+	const [errorMessage, setErrorMessage] = useState<string>();
 	const [warningMessages, setWarningMessages] = useState<string[]>([]);
 	const inputContent = useRef<string>("");
 	const queryContent = useRef<string>("");
@@ -35,6 +58,7 @@ const Home = () => {
 	const updateOutputEditorCallback = useRef<(data: Data) => void>(i);
 	const [queryCompletionSource, setQueryCompletionSource] = useState<CompletionSource>();
 	const [isApplying, setIsApplying] = useState(false);
+	const [shareLink, setShareLink] = useState<string>();
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
@@ -105,6 +129,7 @@ const Home = () => {
 
 	const handleChangeInputContent = useCallback(
 		(content: string) => {
+			setShareLink(undefined);
 			setQueryCompletionSource(() =>
 				getQueryCompletionSource(lspWorker, new Data(content, inputType.current)),
 			);
@@ -117,17 +142,26 @@ const Home = () => {
 	);
 
 	const handleChangeQueryContent = useCallback(
-		(content: string) =>
+		(content: string) => {
+			setShareLink(undefined);
 			autoApply &&
-			debounce(() =>
-				updateOutputData(inputContent.current, inputType.current, content, debounceTime < 500),
-			),
+				debounce(() =>
+					updateOutputData(inputContent.current, inputType.current, content, debounceTime < 500),
+				);
+		},
 		[autoApply, debounce, updateOutputData, debounceTime],
 	);
 
 	return (
 		<main className="flex flex-col items-center pt-4 px-12 h-screen">
-			<Header className="w-full mb-8" onClickExample={handleClickExample} />
+			<Header
+				className="w-full mb-8"
+				onClickExample={handleClickExample}
+				inputContent={inputContent.current}
+				queryContent={queryContent.current}
+				shareLink={shareLink}
+				setShareLink={setShareLink}
+			/>
 			<section className="flex items-center justify-center w-full">
 				<aside className="flex flex-col gap-8">
 					<Editor
@@ -194,6 +228,12 @@ const Home = () => {
 				</aside>
 			</section>
 			<Footer className="my-auto" />
+			<Suspense>
+				<ShareLoader
+					updateInputEditorCallback={updateInputEditorCallback}
+					updateQueryEditorCallback={updateQueryEditorCallback}
+				/>
+			</Suspense>
 		</main>
 	);
 };

@@ -32,12 +32,7 @@ export const exportFile = (data: Data, filename: string) => {
 	a.download = `${filename}.${data.type}`;
 	a.click();
 	URL.revokeObjectURL(url);
-	toast.success("File exported succesfully!");
-};
-
-export const copyToClipboard = (content: string) => {
-	navigator.clipboard.writeText(content);
-	toast.success("Copied to your clipboard!");
+	toast.success("File exported successfully!");
 };
 
 export const formatCode = async (

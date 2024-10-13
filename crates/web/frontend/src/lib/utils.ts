@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -27,6 +28,11 @@ export function formatNumber(number: number, decimals = 1) {
 }
 
 export const isMac = navigator.platform.includes("Mac"); // Deprecated navigator.platform
+
+export const copyToClipboard = (content: string) => {
+	navigator.clipboard.writeText(content);
+	toast.success("Copied to your clipboard!");
+};
 
 export const statusTextMap = new Map([
 	[200, "OK"],

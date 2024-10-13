@@ -8,12 +8,14 @@ import * as React from "react";
 
 const Slider = React.forwardRef<
 	React.ElementRef<typeof SliderPrimitive.Root>,
-	React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, step, value, max, disabled, ...props }, ref) => (
+	React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> & {
+		units?: string;
+	}
+>(({ units = "", className, step, value, max, disabled, ...props }, ref) => (
 	<div className={cn("flex flex-col gap-2", disabled && "opacity-50 pointer-events-none")}>
 		<SliderPrimitive.Root
 			ref={ref}
-			className={cn("relative flex w-full touch-none select-none items-center mt-4", className)}
+			className={cn("relative flex w-full touch-none select-none items-center", className)}
 			value={value}
 			step={step}
 			max={max}
@@ -24,7 +26,7 @@ const Slider = React.forwardRef<
 			</SliderPrimitive.Track>
 			<SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border-2 border-foreground shadow-md bg-background cursor-pointer ring-offset-background transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50" />
 		</SliderPrimitive.Root>
-		<span className="text-xs">{value?.[0]}</span>
+		<span className="text-xs">{`${value?.[0]} ${units}`}</span>
 	</div>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;

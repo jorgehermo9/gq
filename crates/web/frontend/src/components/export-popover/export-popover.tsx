@@ -1,13 +1,19 @@
 import ActionButton from "@/components/action-button/action-button";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
-import { DialogTrigger } from "@radix-ui/react-dialog";
 import { DownloadCloud } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+	Popover,
+	PopoverContent,
+	PopoverDescription,
+	PopoverHeader,
+	PopoverTitle,
+	PopoverTrigger,
+} from "../ui/popover";
 
 interface Props {
 	defaultFilename: string;
@@ -15,7 +21,7 @@ interface Props {
 	onExportFile: (fileName: string) => void;
 }
 
-const ExportPopup = ({ defaultFilename, fileType, onExportFile }: Props) => {
+const ExportPopover = ({ defaultFilename, fileType, onExportFile }: Props) => {
 	const [fileName, setFileName] = useState(defaultFilename);
 	const [open, setOpen] = useState(false);
 
@@ -26,20 +32,20 @@ const ExportPopup = ({ defaultFilename, fileType, onExportFile }: Props) => {
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger asChild>
 				<ActionButton description="Export file" className="px-4 py-2">
 					<DownloadCloud className="w-3.5 h-3.5" />
 				</ActionButton>
-			</DialogTrigger>
-			<DialogContent className="w-[30rem] max-w-[80vw]">
-				<DialogHeader>
-					<DialogTitle>Export to file</DialogTitle>
-					<DialogDescription>
+			</PopoverTrigger>
+			<PopoverContent className="w-[22rem] max-w-[80vw]">
+				<PopoverHeader>
+					<PopoverTitle>Export to file</PopoverTitle>
+					<PopoverDescription>
 						Export the content of the editor to a file with a custom name
-					</DialogDescription>
-				</DialogHeader>
-				<form onSubmit={handleSubmit} autoComplete="off">
+					</PopoverDescription>
+				</PopoverHeader>
+				<form onSubmit={handleSubmit} autoComplete="off" className="mt-4">
 					<Label htmlFor="filename">File Name</Label>
 					<div className="flex items-center">
 						<Input
@@ -58,23 +64,13 @@ const ExportPopup = ({ defaultFilename, fileType, onExportFile }: Props) => {
 						</span>
 					</div>
 
-					<div className="flex justify-between mt-12">
-						<Button
-							className="py-1 px-8"
-							variant="outline"
-							onClick={() => setOpen(false)}
-							type="button"
-						>
-							Cancel
-						</Button>
-						<Button className="py-1 px-8" variant="success" type="submit">
-							Export
-						</Button>
-					</div>
+					<Button className="px-6 w-full mt-4" variant="outline" type="submit">
+						Export
+					</Button>
 				</form>
-			</DialogContent>
-		</Dialog>
+			</PopoverContent>
+		</Popover>
 	);
 };
 
-export default ExportPopup;
+export default ExportPopover;
