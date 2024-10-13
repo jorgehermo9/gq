@@ -58,6 +58,7 @@ const Home = () => {
 	const updateOutputEditorCallback = useRef<(data: Data) => void>(i);
 	const [queryCompletionSource, setQueryCompletionSource] = useState<CompletionSource>();
 	const [isApplying, setIsApplying] = useState(false);
+	const [shareLink, setShareLink] = useState<string>();
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
@@ -128,6 +129,7 @@ const Home = () => {
 
 	const handleChangeInputContent = useCallback(
 		(content: string) => {
+			setShareLink(undefined);
 			setQueryCompletionSource(() =>
 				getQueryCompletionSource(lspWorker, new Data(content, inputType.current)),
 			);
@@ -140,17 +142,26 @@ const Home = () => {
 	);
 
 	const handleChangeQueryContent = useCallback(
-		(content: string) =>
+		(content: string) => {
+			setShareLink(undefined);
 			autoApply &&
-			debounce(() =>
-				updateOutputData(inputContent.current, inputType.current, content, debounceTime < 500),
-			),
+				debounce(() =>
+					updateOutputData(inputContent.current, inputType.current, content, debounceTime < 500),
+				);
+		},
 		[autoApply, debounce, updateOutputData, debounceTime],
 	);
 
 	return (
 		<main className="flex flex-col items-center pt-4 px-12 h-screen">
-			<Header className="w-full mb-8" onClickExample={handleClickExample} />
+			<Header
+				className="w-full mb-8"
+				onClickExample={handleClickExample}
+				inputContent={inputContent.current}
+				queryContent={queryContent.current}
+				shareLink={shareLink}
+				setShareLink={setShareLink}
+			/>
 			<section className="flex items-center justify-center w-full">
 				<aside className="flex flex-col gap-8">
 					<Editor

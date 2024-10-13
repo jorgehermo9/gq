@@ -9,13 +9,14 @@ export const getShare = async (shareId: string): Promise<Share> => {
 };
 
 export const createShare = async (
-	json: string,
-	query: string,
+	inputContent: string,
+	queryContent: string,
 	expirationTimeSecs: number,
 ): Promise<string> => {
+	console.log("createShare", inputContent, queryContent, expirationTimeSecs);
 	const res = await fetch(sharesEndpoint, {
 		method: "POST",
-		body: JSON.stringify({ json, query, expirationTimeSecs }),
+		body: JSON.stringify({ json: inputContent, query: queryContent, expirationTimeSecs }),
 		headers: {
 			"Content-Type": "application/json",
 		},

@@ -1,6 +1,6 @@
 import { cn, copyToClipboard } from "@/lib/utils";
-import { Clipboard, Clock, Share } from "lucide-react";
-import { useState } from "react";
+import { Clipboard, Clock, InfoIcon, Share } from "lucide-react";
+import { useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -9,29 +9,49 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Separator } from "../ui/separator";
 import { Loader } from "../ui/sonner";
+import { ExpirationTime } from "@/model/expiration-time";
+import { createShareLink } from "./share-popover-utils";
+import { Data } from "@/model/data";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
-const SharePopup = () => {
-	const [expirationTime, setExpirationTime] = useState<"1 hour" | "1 day" | "1 week">("1 day");
-	const [shareLink, setShareLink] = useState<string>();
+interface SharePopoverProps {
+	inputContent: string;
+	queryContent: string;
+	shareLink: string | undefined;
+	setShareLink: (shareLink?: string) => void;
+}
+
+const SharePopover = ({
+	inputContent,
+	queryContent,
+	shareLink,
+	setShareLink,
+}: SharePopoverProps) => {
+	const [expirationTime, setExpirationTime] = useState<ExpirationTime>("1 hour");
+	const [selectedExpirationTime, setSelectedExpirationTime] = useState<ExpirationTime>();
 	const [isLoading, setIsLoading] = useState(false);
-	const [selectedExpirationTime, setSelectedExpirationTime] = useState<
-		"1 hour" | "1 day" | "1 week"
-	>();
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		setIsLoading(true);
-		setTimeout(() => {
-			setIsLoading(false);
-			setShareLink("https://gq.hermo.dev/test");
-			setSelectedExpirationTime(expirationTime);
-		}, 2000);
-	};
+	const handleSubmit = useCallback(
+		(e: React.FormEvent<HTMLFormElement>) => {
+			e.preventDefault();
+			setIsLoading(true);
+			createShareLink(inputContent, queryContent, expirationTime)
+				.then((shareLink) => {
+					setShareLink(shareLink);
+					setSelectedExpirationTime(expirationTime);
+				})
+				.finally(() => setIsLoading(false));
+		},
+		[expirationTime, setShareLink, inputContent, queryContent],
+	);
 
-	const handleChangeExpirationTime = (value: string) => {
-		setShareLink(undefined);
-		setExpirationTime(value as "1 hour" | "1 day" | "1 week");
-	};
+	const handleChangeExpirationTime = useCallback(
+		(value: string) => {
+			setShareLink(undefined);
+			setExpirationTime(value as ExpirationTime);
+		},
+		[setShareLink],
+	);
 
 	return (
 		<Popover>
@@ -40,9 +60,9 @@ const SharePopup = () => {
 					<Share className="w-4 h-4" />
 				</ActionButton>
 			</PopoverTrigger>
-			<PopoverContent className="w-[24rem] max-w-[80vw] max-h-[80vh] gap-0 relative right-2">
+			<PopoverContent className="w-[22rem] max-w-[80vw] max-h-[80vh] gap-0 relative right-2">
 				<div className="flex items-center mb-1.5">
-					<h4 className="text-lg font-semibold leading-none tracking-tight">
+					<h4 className="text-md font-semibold leading-none tracking-tight">
 						Share your playground
 					</h4>
 					{/* TODO: Fix this */}
@@ -63,7 +83,7 @@ const SharePopup = () => {
 						</Tooltip>
 					</TooltipProvider> */}
 				</div>
-				{/* <span className="text-sm">Create a shareable link to your current playground state</span> */}
+				<span className="text-sm">Create a shareable link to your current playground state</span>
 				<form onSubmit={handleSubmit} autoComplete="off" className="overflow-x-auto mt-4">
 					<div>
 						<Label htmlFor="expiration-time" variant="default">
@@ -116,7 +136,7 @@ const SharePopup = () => {
 					</Button>
 				</form>
 				{shareLink && (
-					<div className="animate-in fade-in">
+					<div className="animate-in slide-in-from-bottom-4 fade-in-10 duration-300">
 						<Separator />
 						<div className="w-full flex">
 							<Input readOnly className="mb-0 rounded-r-none border-r-0" value={shareLink} />
@@ -140,4 +160,4 @@ const SharePopup = () => {
 	);
 };
 
-export default SharePopup;
+export default SharePopover;
