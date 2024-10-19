@@ -1,5 +1,3 @@
-"use client";
-
 import ActionButton from "@/components/action-button/action-button";
 import ExportPopover from "@/components/export-popover/export-popover";
 import ImportPopup from "@/components/import-popup/import-popup";
