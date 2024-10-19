@@ -1,5 +1,6 @@
 import { cn, copyToClipboard } from "@/lib/utils";
-import { Clipboard, Clock, InfoIcon, Link, Share } from "lucide-react";
+import type { ExpirationTime } from "@/model/expiration-time";
+import { Clipboard, Clock, Share } from "lucide-react";
 import { useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import { Button } from "../ui/button";
@@ -16,10 +17,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Separator } from "../ui/separator";
 import { Loader } from "../ui/sonner";
-import { ExpirationTime } from "@/model/expiration-time";
 import { createShareLink } from "./share-popover-utils";
-import { Data } from "@/model/data";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface SharePopoverProps {
 	inputContent: string;

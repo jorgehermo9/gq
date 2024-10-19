@@ -1,9 +1,9 @@
+import { notify } from "@/lib/notify";
 import type { Completion } from "@/model/completion";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { getShare } from "@/service/share-service";
 import type { CompletionContext, CompletionSource } from "@codemirror/autocomplete";
-import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 
 export const applyGq = async (
@@ -20,7 +20,7 @@ export const applyGq = async (
 		outputType: outputType,
 		indent: indent,
 	});
-	!silent && toast.success(`Query applied to ${inputData.type.toUpperCase()}`);
+	!silent && notify.success(`Query applied to ${inputData.type.toUpperCase()}`);
 	return result;
 };
 
@@ -53,17 +53,19 @@ export const getQueryCompletionSource = (
 	};
 };
 
-export const importShare = async (shareId: string): Promise<{ input: Data; query: Data }> => {
-	const toastId = toast.loading("Importing share...");
+export const importShare = async (
+	shareId: string,
+): Promise<{ input: Data; query: Data } | undefined> => {
+	const toastId = notify.loading("Importing share...");
 	try {
 		const share = await getShare(shareId);
-		toast.success("Share successfully imported", { id: toastId });
-		return Promise.resolve({
+		notify.success("Share successfully imported", { id: toastId });
+		return {
 			input: new Data(share.json, FileType.JSON),
 			query: new Data(share.query, FileType.GQ),
-		});
+		};
 	} catch (error) {
-		toast.error(`Error importing share: ${error.message}`, { id: toastId, duration: 5000 });
-		return Promise.reject(error);
+		notify.error(`Error importing share: ${error.message}`, { id: toastId });
+		return undefined;
 	}
 };

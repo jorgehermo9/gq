@@ -1,3 +1,5 @@
+import { MAX_SHARE_SIZE } from "@/lib/constants";
+import { ShareTooLargeError } from "@/model/errors/share-input-too-large-error";
 import { type Share, ShareSchema } from "@/model/share";
 import type { ZodSchema } from "zod";
 
@@ -13,7 +15,9 @@ export const createShare = async (
 	queryContent: string,
 	expirationTimeSecs: number,
 ): Promise<string> => {
-	console.log("createShare", inputContent, queryContent, expirationTimeSecs);
+	if (inputContent.length + queryContent.length > MAX_SHARE_SIZE) {
+		throw new ShareTooLargeError();
+	}
 	const res = await fetch(sharesEndpoint, {
 		method: "POST",
 		body: JSON.stringify({ json: inputContent, query: queryContent, expirationTimeSecs }),

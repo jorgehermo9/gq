@@ -6,6 +6,7 @@ import Editor from "@/components/editor/editor";
 import Footer from "@/components/footer/footer";
 import Header from "@/components/header/header";
 import useDebounce from "@/hooks/useDebounce";
+import { notify } from "@/lib/notify";
 import { cn, i } from "@/lib/utils";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
@@ -17,7 +18,6 @@ import type { CompletionSource } from "@codemirror/autocomplete";
 import { Link2, Link2Off } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { type MutableRefObject, Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { applyGq, getQueryCompletionSource, importShare } from "./page-utils";
 import styles from "./page.module.css";
 
@@ -32,12 +32,11 @@ const ShareLoader = ({
 
 	useEffect(() => {
 		if (!shareId) return;
-		importShare(shareId)
-			.then((data) => {
-				updateInputEditorCallback?.current(data.input);
-				updateQueryEditorCallback?.current(data.query);
-			})
-			.catch(() => {});
+		importShare(shareId).then((data) => {
+			if (!data) return;
+			updateInputEditorCallback?.current(data.input);
+			updateQueryEditorCallback?.current(data.query);
+		});
 	}, [shareId, updateInputEditorCallback, updateQueryEditorCallback]);
 
 	return null;
@@ -105,7 +104,7 @@ const Home = () => {
 			updateInputEditorCallback.current(json);
 			updateQueryEditorCallback.current(query);
 			updateOutputData(json.content, json.type, query.content, true);
-			toast.success("Example loaded!");
+			notify.success("Example loaded!");
 		},
 		[updateOutputData],
 	);
@@ -122,9 +121,8 @@ const Home = () => {
 
 	const handleChangeLinked = useCallback(() => {
 		setSettings((prev) => setLinkEditors(prev, !linkEditors));
-		toast.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
-		if (linkEditors) return;
-		convertOutputEditorCallback.current(inputType.current);
+		notify.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
+		if (!linkEditors) convertOutputEditorCallback.current(inputType.current);
 	}, [linkEditors, setSettings]);
 
 	const handleChangeInputContent = useCallback(

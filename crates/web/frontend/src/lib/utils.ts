@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
-import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
+import { notify } from "./notify";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -31,7 +31,7 @@ export const isMac = navigator.platform.includes("Mac"); // Deprecated navigator
 
 export const copyToClipboard = (content: string) => {
 	navigator.clipboard.writeText(content);
-	toast.success("Copied to your clipboard!");
+	notify.success("Copied to your clipboard!");
 };
 
 export const statusTextMap = new Map([
