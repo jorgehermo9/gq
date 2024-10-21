@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { Fira_Mono, Montserrat } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
 const firaCode = Fira_Mono({
@@ -55,7 +56,9 @@ export default function RootLayout({
 					disableTransitionOnChange
 				>
 					<SettingsProvider>
-						<WorkerProvider>{children}</WorkerProvider>
+						<WorkerProvider>
+							<TooltipProvider>{children}</TooltipProvider>
+						</WorkerProvider>
 					</SettingsProvider>
 				</ThemeProvider>
 			</body>

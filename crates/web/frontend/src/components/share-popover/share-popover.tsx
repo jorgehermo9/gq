@@ -1,6 +1,6 @@
 import { cn, copyToClipboard } from "@/lib/utils";
 import type { ExpirationTime } from "@/model/expiration-time";
-import { Clipboard, Clock, Share } from "lucide-react";
+import { Clipboard, Clock, InfoIcon, Share } from "lucide-react";
 import { useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import { Button } from "../ui/button";
@@ -18,6 +18,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Separator } from "../ui/separator";
 import { Loader } from "../ui/sonner";
 import { createShareLink } from "./share-popover-utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface SharePopoverProps {
 	inputContent: string;
@@ -66,24 +67,23 @@ const SharePopover = ({
 			</PopoverTrigger>
 			<PopoverContent className="w-[22rem] max-w-[80vw] max-h-[80vh] gap-0 relative right-2">
 				<PopoverHeader>
-					<PopoverTitle>Share your playground</PopoverTitle>
-					{/* TODO: Fix this */}
-					{/* <TooltipProvider>
+					<div className="flex items-center gap-2">
+						<PopoverTitle>Share your playground</PopoverTitle>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<InfoIcon className="w-3 h-3 ml-2 mt-1" />
+								<InfoIcon className="w-3 h-3" />
 							</TooltipTrigger>
-							<TooltipContent className="w-1/2 font-normal p-4">
+							<TooltipContent className="w-96 font-normal p-4" side="left">
 								<span>
 									When generating a sharable link,{" "}
 									<span className="font-semibold">
-										the content of the input json and the query will be saved in our servers
+										the content of the input json and the query will be saved in the server
 									</span>{" "}
 									until the expiration time is reached
 								</span>
 							</TooltipContent>
 						</Tooltip>
-					</TooltipProvider> */}
+					</div>
 					<PopoverDescription>
 						Create a shareable link to your current playground state
 					</PopoverDescription>
