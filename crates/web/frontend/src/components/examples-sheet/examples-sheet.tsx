@@ -1,5 +1,3 @@
-"use client";
-
 import { gqTheme } from "@/lib/theme";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";

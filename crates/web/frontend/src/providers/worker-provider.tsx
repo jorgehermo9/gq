@@ -26,10 +26,10 @@ interface Props {
 }
 
 export const WorkerProvider = ({ children }: Props) => {
-	const [formatWorker, setFormatWorker] = useState<PromiseWorker | undefined>(undefined);
-	const [gqWorker, setGqWorker] = useState<PromiseWorker | undefined>(undefined);
-	const [lspWorker, setLspWorker] = useState<PromiseWorker | undefined>(undefined);
-	const [convertWorker, setConvertWorker] = useState<PromiseWorker | undefined>(undefined);
+	const [formatWorker, setFormatWorker] = useState<PromiseWorker>();
+	const [gqWorker, setGqWorker] = useState<PromiseWorker>();
+	const [lspWorker, setLspWorker] = useState<PromiseWorker>();
+	const [convertWorker, setConvertWorker] = useState<PromiseWorker>();
 
 	useEffect(() => {
 		setFormatWorker(new PromiseWorker(new Worker(new URL("../worker/format.ts", import.meta.url))));

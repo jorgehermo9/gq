@@ -3,14 +3,14 @@ import { Trash } from "lucide-react";
 import { useCallback } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
-import HeadersDatalist from "./headers-datalist";
+import RequestHeadersDatalist from "./request-headers-datalist";
 
-interface HeadersTabProps {
+interface RequestHeadersTabProps {
 	headers: [string, string, boolean][];
 	setHeaders: (headers: [string, string, boolean][]) => void;
 }
 
-const HeadersTab = ({ headers, setHeaders }: HeadersTabProps) => {
+const RequestHeadersTab = ({ headers, setHeaders }: RequestHeadersTabProps) => {
 	const updateHeaders = useCallback(
 		(index: number, key: string, value: string, enabled: boolean) => {
 			const newHeaders: [string, string, boolean][] = headers.map((header, i) =>
@@ -58,7 +58,7 @@ const HeadersTab = ({ headers, setHeaders }: HeadersTabProps) => {
 						onChange={(e) => updateHeaders(index, e.target.value, header[1], header[2])}
 						className="w-1/2 p-2 border rounded-md mb-0 peer-data-[state=unchecked]:opacity-50 transition-opacity"
 					/>
-					<HeadersDatalist id="header-list" />
+					<RequestHeadersDatalist id="header-list" />
 					<Input
 						type="text"
 						placeholder="Value"
@@ -85,4 +85,4 @@ const HeadersTab = ({ headers, setHeaders }: HeadersTabProps) => {
 	);
 };
 
-export default HeadersTab;
+export default RequestHeadersTab;

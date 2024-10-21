@@ -1,3 +1,4 @@
+import { notify } from "@/lib/notify";
 import { isMac } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
@@ -19,7 +20,6 @@ import {
 } from "@codemirror/language";
 import { parser } from "@lezer/json";
 import { EditorView, type Extension, Prec, keymap } from "@uiw/react-codemirror";
-import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
 import { validateFile } from "../import-popup/import-utils";
 import urlPlugin from "./url-plugin";
@@ -32,12 +32,7 @@ export const exportFile = (data: Data, filename: string) => {
 	a.download = `${filename}.${data.type}`;
 	a.click();
 	URL.revokeObjectURL(url);
-	toast.success("File exported succesfully!");
-};
-
-export const copyToClipboard = (content: string) => {
-	navigator.clipboard.writeText(content);
-	toast.success("Copied to your clipboard!");
+	notify.success("File exported successfully!");
 };
 
 export const formatCode = async (
@@ -46,13 +41,13 @@ export const formatCode = async (
 	formatWorker: PromiseWorker,
 	silent = true,
 ): Promise<Data> => {
-	const toastId = silent ? undefined : toast.loading("Formatting code...");
+	const toastId = silent ? undefined : notify.loading("Formatting code...");
 	try {
 		const response: Data = await formatWorker.postMessage({ data, indent });
-		!silent && toast.success("Code formatted!", { id: toastId });
+		!silent && notify.success("Code formatted!", { id: toastId });
 		return response;
 	} catch (err) {
-		!silent && toast.error(err.message, { id: toastId, duration: 5000 });
+		!silent && notify.error(err.message, { id: toastId });
 		throw err;
 	}
 };
@@ -64,13 +59,13 @@ export const convertCode = async (
 	convertWorker: PromiseWorker,
 	silent = true,
 ): Promise<Data> => {
-	const toastId = silent ? undefined : toast.loading("Converting code...");
+	const toastId = silent ? undefined : notify.loading("Converting code...");
 	try {
 		const result: Data = await convertWorker.postMessage({ data, outputType, indent });
-		!silent && toast.success("Code converted!", { id: toastId });
+		!silent && notify.success("Code converted!", { id: toastId });
 		return result;
 	} catch (err) {
-		!silent && toast.error(err.message, { id: toastId, duration: 5000 });
+		!silent && notify.error(err.message, { id: toastId });
 		throw err;
 	}
 };
