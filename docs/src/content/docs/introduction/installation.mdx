@@ -1,0 +1,37 @@
+---
+title: Installation
+description: How to install the GQ CLI tool
+sidebar:
+  order: 2
+---
+
+## Using cargo
+
+The `gq` binary is available through `cargo` and can be installed with the following command:
+
+```sh
+cargo install gq-cli
+```
+
+:::note
+If you don't have `cargo` installed, you can check how to install the Rust toolchain [here](https://www.rust-lang.org/tools/install)
+:::
+
+## Compiling from source
+
+You can also compile `gq` from source by cloning the repository and building it with `cargo`:
+
+```sh
+git clone https://github.com/jorgehermo9/gq
+cd gq
+cargo build --release
+./target/release/gq --help
+```
+
+## From AUR package
+
+If you are using an Arch-based distribution, you can download the `gq` package directly from the AUR:
+
+```sh
+yay -S gq
+```

@@ -1,0 +1,1 @@
+products(price<300, type="B")
