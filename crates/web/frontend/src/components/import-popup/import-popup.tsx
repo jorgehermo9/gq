@@ -32,6 +32,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import styles from "./import-popup.module.css";
 import { type ImportedFile, getFileContent, importUrl, validateFile } from "./import-utils";
+import { STATE_DEBOUNCE_TIME } from "@/lib/constants";
 
 interface Props {
 	currentType: FileType;
@@ -53,7 +54,7 @@ const ImportPopup = ({
 	const [open, setOpen] = useState(false);
 	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
 	const [headers, setHeaders] = useState<[string, string, boolean][]>([["", "", true]]);
-	const [body, setBody, instantBody] = useLazyState<string>("", 50);
+	const [body, setBody, instantBody] = useLazyState<string>("", STATE_DEBOUNCE_TIME);
 	const [selectedUrlTab, setSelectedUrlTab] = useState<"headers" | "body">("headers");
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<ImportedFile>();

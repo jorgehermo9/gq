@@ -37,15 +37,14 @@ const SharePopover = ({
 	const [isLoading, setIsLoading] = useState(false);
 
 	const handleSubmit = useCallback(
-		(e: React.FormEvent<HTMLFormElement>) => {
+		async (e: React.FormEvent<HTMLFormElement>) => {
 			e.preventDefault();
 			setIsLoading(true);
-			createShareLink(inputContent, queryContent, expirationTime)
-				.then((shareLink) => {
-					setShareLink(shareLink);
-					setSelectedExpirationTime(expirationTime);
-				})
-				.finally(() => setIsLoading(false));
+			const shareLink = await createShareLink(inputContent, queryContent, expirationTime);
+			setIsLoading(false);
+			if (!shareLink) return;
+			setShareLink(shareLink);
+			setSelectedExpirationTime(expirationTime);
 		},
 		[expirationTime, setShareLink, inputContent, queryContent],
 	);

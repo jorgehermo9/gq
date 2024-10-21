@@ -7,7 +7,7 @@ export const createShareLink = async (
 	inputContent: string,
 	queryContent: string,
 	expirationTime: ExpirationTime,
-): Promise<string> => {
+): Promise<string | undefined> => {
 	try {
 		const shareId = await createShare(inputContent, queryContent, toSeconds(expirationTime));
 		notify.success("Share link created!");
@@ -19,6 +19,5 @@ export const createShareLink = async (
 		} else {
 			notify.error(`Unexpected error while creating the share link: ${err.message}`);
 		}
-		return Promise.reject(err);
 	}
 };

@@ -25,6 +25,7 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
+import { MAX_RENDER_SIZE, STATE_DEBOUNCE_TIME } from "@/lib/constants";
 
 interface Props {
 	title: string;
@@ -64,7 +65,11 @@ const Editor = ({
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<string>();
-	const [content, setContent, instantContent] = useLazyState("" as string, 50, onChangeContent);
+	const [content, setContent, instantContent] = useLazyState(
+		"" as string,
+		STATE_DEBOUNCE_TIME,
+		onChangeContent,
+	);
 	const [type, setType] = useState<FileType>(fileTypes[0]);
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
@@ -76,7 +81,7 @@ const Editor = ({
 	} = useSettings();
 	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = type === FileType.GQ ? queryTabSize : dataTabSize;
-	const available = content.length < 100000000;
+	const available = content.length < MAX_RENDER_SIZE;
 	// const borderRepeatDelay = Math.random() * 5 + 15;
 
 	const handleFormatCode = useCallback(
