@@ -1,4 +1,4 @@
-CREATE TYPE data_type AS ENUM('json','yaml');
+CREATE TYPE data_type AS ENUM('json', 'yaml');
 
 CREATE TABLE share (
     id UUID PRIMARY KEY,
