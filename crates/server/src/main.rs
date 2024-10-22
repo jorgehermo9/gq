@@ -1,5 +1,5 @@
 use apalis::{
-    cron::{CronStream, Schedule},
+    cron::CronStream,
     layers::retry::{RetryLayer, RetryPolicy},
     prelude::{Monitor, WorkerBuilder, WorkerFactoryFn},
     utils::TokioExecutor,
@@ -101,7 +101,7 @@ async fn start_background_tasks(
     cron_expression: String,
     db_connection: PgPool,
 ) -> Result<(), StartError> {
-    let schedule: Schedule = cron_expression
+    let schedule = cron_expression
         .parse()
         .map_err(|e| SchedulerError::CronExpressionError(cron_expression.to_string(), e))?;
 
@@ -109,7 +109,6 @@ async fn start_background_tasks(
 
     let worker = WorkerBuilder::new("cleanup-task-worker")
         .layer(RetryLayer::new(RetryPolicy::retries(5)))
-        // .layer(TraceLayer::new().make_span_with(ReminderSpan::new()))
         .stream(CronStream::new(schedule).into_stream())
         .data(db_connection)
         .build_fn(cleanup::execute_cleanup);
