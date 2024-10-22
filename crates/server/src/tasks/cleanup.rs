@@ -17,7 +17,16 @@ impl Job for CleanupTask {
     const NAME: &'static str = "CleanupTask";
 }
 
-pub async fn execute_cleanup(task: CleanupTask, db_connection: Data<PgPool>) {
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    // TODO
+    #[error("Cleanup task error")]
+    CleanupTaskError,
+}
+
+pub async fn execute_cleanup(task: CleanupTask, db_connection: Data<PgPool>) -> Result<(), Error> {
     let rfc3339_start_time = task.start_time.to_rfc3339();
     tracing::info!(start_time = rfc3339_start_time, "Executing cleanup task");
+
+    Err(Error::CleanupTaskError)
 }

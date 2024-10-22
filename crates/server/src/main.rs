@@ -12,8 +12,6 @@ use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, Env
 
 #[tokio::main]
 async fn main() {
-    let _ = dotenvy::dotenv();
-
     let env_filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())
         .from_env_lossy();
@@ -54,7 +52,7 @@ async fn main() {
     );
 
     let cleanup_task_cron_expression =
-        env::var("CLEANUP_TASK_CRON_EXPRESSION").unwrap_or_else(|_| "0 0 */8 * * * *".to_string());
+        env::var("CLEANUP_TASK_CRON_EXPRESSION").unwrap_or_else(|_| "0 0 0 * * * *".to_string());
 
     sqlx::migrate!("./migrations")
         .run(&db_connection)
