@@ -1,11 +1,10 @@
-use crate::dtos::share_dto::{DataTypeDTO, ShareDTO};
-use crate::routes;
-use crate::services::share::GetShareError;
-use crate::{
-    dtos::error_object::ErrorObject,
-    services::share::{CreateShareError, ShareService},
-    AppState,
-};
+use crate::api::dtos::error_object::ErrorObject;
+use crate::api::dtos::share_dto::{DataTypeDTO, ShareDTO};
+use crate::services::share::{CreateShareError, GetShareError, ShareService};
+
+use crate::api::routes;
+use crate::app_state::AppState;
+
 use axum::{
     extract::{Path, State},
     http::{HeaderMap, StatusCode},
