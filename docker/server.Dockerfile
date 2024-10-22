@@ -14,6 +14,5 @@ ENV SQLX_OFFLINE true
 RUN cargo build --package gq-server --release
 
 FROM debian:bookworm
-WORKDIR /app
 COPY --from=builder /app/target/release/gq-server .
 CMD [ "./gq-server" ]
