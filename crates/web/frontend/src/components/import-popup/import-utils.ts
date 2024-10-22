@@ -1,3 +1,4 @@
+import { notify } from "@/lib/notify";
 import { statusTextMap } from "@/lib/utils";
 import { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
@@ -25,14 +26,14 @@ export const validateFile = (
 			const error = new Error(
 				`Files of type ${importedFileType} cannot be imported into this editor`,
 			);
-			toast.error(error.message);
+			notify.error(error.message);
 			onError?.(error);
 			return;
 		}
 		onSuccess?.({ f: file, type: importedFileType });
 	} catch {
 		const error = new Error(`Unable to import files of type ${file.type}`);
-		toast.error(error.message);
+		notify.error(error.message);
 		onError?.(error);
 	}
 };
