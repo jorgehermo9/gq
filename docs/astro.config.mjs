@@ -2,11 +2,9 @@ import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import tailwind from "@astrojs/tailwind";
 
-const base_path = process.env.BASE_PATH || "/";
-
 // https://astro.build/config
 export default defineConfig({
-  base: base_path,
+  base: "/docs",
   integrations: [
     tailwind({
       // Disable the default base styles

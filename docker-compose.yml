@@ -23,8 +23,6 @@ services:
     build:
       context: .
       dockerfile: docker/docs.Dockerfile
-    environment:
-      BASE_PATH: /docs
   gq-server:
     build:
       context: .
