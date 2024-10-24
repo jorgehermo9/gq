@@ -1,4 +1,4 @@
-FROM rust:1.81 AS chef
+FROM docker.io/rust:1.81 AS chef
 WORKDIR /app
 # `wasm-pack` dependency `libz-ng-sys 1.1.15` needs cmake
 # Remember to delete this once `libz-ng-sys 1.1.17` is used, since
@@ -19,7 +19,7 @@ COPY . .
 WORKDIR /app/crates/web
 RUN wasm-pack build --out-dir ./pkg --target web
 
-FROM node:22.2-bookworm
+FROM docker.io/node:22.2-bookworm
 WORKDIR /app
 RUN npm install --global pm2@5.4.0
 COPY --from=builder /app/crates/web/pkg ./pkg

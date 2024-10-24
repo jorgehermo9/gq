@@ -1,0 +1,15 @@
+server {
+    listen 8080;
+
+    location /docs {
+        proxy_pass ${DOCS_URL};
+    }
+
+    location /api {
+        proxy_pass ${API_URL};
+    }
+
+    location / {
+        proxy_pass ${FRONTEND_URL};
+    }
+}
