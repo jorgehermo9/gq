@@ -1,6 +1,6 @@
 import useLazyState from "@/hooks/useLazyState";
 import { gqTheme } from "@/lib/theme";
-import { cn } from "@/lib/utils";
+import { cn, isMac } from "@/lib/utils";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { type LoadingState, loading, notLoading } from "@/model/loading-state";
@@ -12,9 +12,9 @@ import { cubicBezier, motion } from "framer-motion";
 import { TriangleAlert } from "lucide-react";
 import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from "react";
 import ActionButton from "../action-button/action-button";
+import EditorConsole from "../editor-console/editor-console";
 import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
 import EditorLoadingOverlay from "../editor-overlay/editor-loading-overlay";
-import EditorConsole from "../editor-console/editor-console";
 import EditorMenu from "./editor-menu";
 import EditorTitle from "./editor-title";
 import { EditorTooLarge } from "./editor-too-large";
@@ -81,7 +81,7 @@ const Editor = ({
 	// const borderRepeatDelay = Math.random() * 5 + 15;
 
 	const handleFormatCode = useCallback(
-		async (cont: string) => {
+		async (cont: string, type: FileType) => {
 			if (!formatWorker || loadingState.isLoading || cont === "") return;
 			setLoadingState(loading("Formatting code..."));
 			try {
@@ -95,27 +95,28 @@ const Editor = ({
 				setLoadingState(notLoading);
 			}
 		},
-		[indentSize, formatWorker, loadingState, type, setContent],
+		[indentSize, formatWorker, loadingState, setContent],
 	);
 
 	const handleImportFile = useCallback(
 		async (data: Data) => {
 			setContent(data.content);
 			setType(data.type);
-			formatOnImport && (await handleFormatCode(data.content));
+			onChangeFileType?.(data.type);
+			formatOnImport && (await handleFormatCode(data.content, data.type));
 		},
-		[formatOnImport, handleFormatCode, setContent],
+		[formatOnImport, handleFormatCode, setContent, onChangeFileType],
 	);
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
 			if (!focused) return;
-			if (event.ctrlKey && (event.key === "s" || event.key === "S")) {
+			if ((isMac ? event.metaKey : event.ctrlKey) && (event.key === "s" || event.key === "S")) {
 				event.preventDefault();
-				handleFormatCode(content);
+				handleFormatCode(content, type);
 			}
 		},
-		[focused, handleFormatCode, content],
+		[focused, handleFormatCode, content, type],
 	);
 
 	const handleChangeFileType = useCallback(
@@ -126,12 +127,10 @@ const Editor = ({
 			try {
 				const convertedData = await convertCode(data, newFileType, dataTabSize, convertWorker);
 				setContent(convertedData.content);
-				setType(convertedData.type);
-				setEditorErrorMessage(undefined);
-				onChangeFileType?.(convertedData.type);
-			} catch (e) {
-				setEditorErrorMessage(e.message);
 			} finally {
+				setType(newFileType);
+				onChangeFileType?.(newFileType);
+				setEditorErrorMessage(undefined);
 				setLoadingState(notLoading);
 			}
 		},
@@ -187,11 +186,12 @@ const Editor = ({
 					onChangeFileType={handleChangeFileType}
 				/>
 				<EditorMenu
-					fileType={type}
+					currentType={type}
+					fileTypes={fileTypes}
 					defaultFilename={defaultFileName}
 					editable={editable}
 					onCopyToClipboard={() => copyToClipboard(content)}
-					onFormatCode={() => handleFormatCode(content)}
+					onFormatCode={() => handleFormatCode(content, type)}
 					onImportFile={handleImportFile}
 					onExportFile={(filename) => exportFile(new Data(content, type), filename)}
 					onChangeLoading={setLoadingState}

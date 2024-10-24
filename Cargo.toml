@@ -13,7 +13,9 @@ license = "Apache-2.0"
 [workspace.dependencies]
 serde_json = { version = "1.0.117", features = ["preserve_order"] }
 serde_yaml = "0.9.34"
-serde = "1.0.203"
+serde = { version = "1.0.203", features = ["derive"] }
 log = "0.4.21"
+uuid = { version = "1.8.0", features = ["v4", "v7", "serde"] }
 derive_more = "0.99.17"
 cached = "0.51.3"
+thiserror = "1.0.58"

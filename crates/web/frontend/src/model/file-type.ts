@@ -17,6 +17,19 @@ export const getFileExtensions = (fileType: FileType): string[] => {
 	}
 };
 
+export const fromMimeType = (mime: string): FileType => {
+	if (mime.startsWith("application/json")) {
+		return FileType.JSON;
+	}
+	if (mime.startsWith("application/yaml")) {
+		return FileType.YAML;
+	}
+	if (mime === "") {
+		return FileType.GQ;
+	}
+	throw new Error(`Unexpected file type ${mime}`);
+};
+
 export const fileTypeToDTO = (fileType: FileType): JsDataType => {
 	switch (fileType) {
 		case FileType.JSON:

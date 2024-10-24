@@ -26,6 +26,8 @@ export function formatNumber(number: number, decimals = 1) {
 	return `${Number.parseFloat((number / 1000 ** i).toFixed(dm))}${sizes[i]}`;
 }
 
+export const isMac = navigator.platform.includes("Mac"); // Deprecated navigator.platform
+
 export const statusTextMap = new Map([
 	[200, "OK"],
 	[201, "Created"],

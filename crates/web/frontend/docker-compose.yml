@@ -1,0 +1,24 @@
+services:
+  gq-server:
+    build:
+      context: ../../../
+      dockerfile: docker/server.Dockerfile
+    ports:
+      - 3001:3000
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/db
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: docker.io/postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 10

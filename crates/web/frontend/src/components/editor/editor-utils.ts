@@ -1,3 +1,4 @@
+import { isMac } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import {
@@ -17,9 +18,10 @@ import {
 	indentNodeProp,
 } from "@codemirror/language";
 import { parser } from "@lezer/json";
-import { type Extension, Prec, keymap } from "@uiw/react-codemirror";
+import { EditorView, type Extension, Prec, keymap } from "@uiw/react-codemirror";
 import { toast } from "sonner";
 import type PromiseWorker from "webworker-promise";
+import { validateFile } from "../import-popup/import-utils";
 import urlPlugin from "./url-plugin";
 
 export const exportFile = (data: Data, filename: string) => {
@@ -95,6 +97,7 @@ const gqLanguageParser = LRLanguage.define({
 const jsonLanguage = json();
 const gqLanguage = new LanguageSupport(gqLanguageParser);
 const yamlLanguage = yaml();
+const modKey = isMac ? "Cmd" : "Ctrl";
 
 const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport => {
 	switch (fileType) {
@@ -109,6 +112,14 @@ const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport =>
 	}
 };
 
+const getDragAndDropExtension = (importableTypes: FileType[]) =>
+	EditorView.domEventHandlers({
+		drop(e, _) {
+			const file = e.dataTransfer?.files[0];
+			validateFile(file, importableTypes, undefined, () => e.preventDefault());
+		},
+	});
+
 export const getCodemirrorExtensionsByFileType = (
 	fileType: FileType,
 	completionSource?: CompletionSource,
@@ -116,7 +127,13 @@ export const getCodemirrorExtensionsByFileType = (
 	const language = getCodemirrorLanguageByFileType(fileType);
 	switch (fileType) {
 		case FileType.JSON:
-			return [language, urlPlugin];
+		case FileType.YAML:
+			return [
+				language,
+				urlPlugin,
+				Prec.highest(keymap.of([{ key: `${modKey}-Enter`, run: () => true }])),
+				getDragAndDropExtension([FileType.JSON, FileType.YAML]),
+			];
 		case FileType.GQ:
 			return [
 				language,
@@ -129,12 +146,12 @@ export const getCodemirrorExtensionsByFileType = (
 				Prec.highest(
 					keymap.of([
 						{ key: "Tab", run: acceptCompletion },
-						{ key: "Ctrl-.", run: startCompletion },
+						{ key: `${modKey}-.`, run: startCompletion },
+						{ key: `${modKey}-Enter`, run: () => true },
 					]),
 				),
+				getDragAndDropExtension([FileType.GQ]),
 			];
-		case FileType.YAML:
-			return [language, urlPlugin];
 		default:
 			throw new Error("Invalid file type");
 	}
