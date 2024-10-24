@@ -1,16 +1,34 @@
 services:
+  gq-gateway:
+    build:
+      context: .
+      dockerfile: docker/gateway.Dockerfile
+    ports:
+      - 3000:8080
+    environment:
+      # The trailing slash is very important so nginx rewrites the URL correctly
+      # (https://nginx.org/en/docs/http/ngx_http_proxy_module.html?&_ga=1.74997266.187384914.1443061481#proxy_pass)
+      FRONTEND_URL: http://gq-playground:3000/
+      DOCS_URL: http://gq-docs:8080/
+      API_URL: http://gq-server:3000/
+    depends_on:
+      - gq-playground
+      - gq-docs
+      - gq-server
   gq-playground:
     build:
       context: .
       dockerfile: docker/playground.Dockerfile
-    ports:
-      - 3000:3000
+  gq-docs:
+    build:
+      context: .
+      dockerfile: docker/docs.Dockerfile
+    environment:
+      BASE_PATH: /docs
   gq-server:
     build:
       context: .
       dockerfile: docker/server.Dockerfile
-    ports:
-      - 3001:3000
     environment:
       DATABASE_URL: postgres://postgres:password@db:5432/db
     depends_on:

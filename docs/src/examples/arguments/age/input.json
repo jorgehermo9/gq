@@ -1,0 +1,16 @@
+{
+  "customers": [
+    {
+      "name": "Alice",
+      "age": 16
+    },
+    {
+      "name": "Bob",
+      "age": 24
+    },
+    {
+      "name": "Charlie",
+      "age": 35
+    }
+  ]
+}

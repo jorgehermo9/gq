@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--sl-color-gray-2: #e1e5ec; /* Text color */
+	--sl-color-black: #10151D; /* Background color */
+	--sl-color-accent-low: #2E3C51;
+	--sl-color-accent: #959efd;
+	--sl-color-accent-high: #959efd;
+	--sl-color-bg-nav: transparent;
+	--sl-color-bg-sidebar: var(--sl-color-black);
+
+  --blur: 5px;
+}
+
+.hero-background {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  background-image: 
+    radial-gradient(
+      circle at top center,
+      transparent,
+      var(--sl-color-bg) 60%
+    ),
+    radial-gradient(var(--sl-color-accent-low) 1px, transparent 1px);
+  background-size: 100% 100%, 30px 30px;
+  background-color: var(--sl-color-bg);
+}
+
+.main-frame {
+	background-color: var(--sl-color-black);
+}
+
+.sidebar-pane {
+  border-right: 1px solid var(--sl-color-gray-6);
+}
+
+header.header {
+  border-bottom: 1px solid var(--sl-color-gray-6);
+  backdrop-filter: blur(var(--blur));
+}

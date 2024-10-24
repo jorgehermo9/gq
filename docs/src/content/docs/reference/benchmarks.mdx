@@ -1,0 +1,20 @@
+---
+title: Benchmarks
+description: Usage of GQ as an standalone rust library
+sidebar:
+  order: 3
+---
+
+import ComparisonChart from "/src/components/ComparisonChart.astro";
+
+GQ is **FAST** and when we say fast, we really mean it. We have run several benchmarks to compare GQ with other popular JSON filtering tools and the results are self-explanatory.
+
+<ComparisonChart title="Dot operator processing time" subtitle="Time taken to process a JSON object with 1000 keys" gq={200} jq={1500} />
+
+---
+
+<ComparisonChart title="Array filtering" subtitle="Time taken to process a JSON object with 1000 keys" gq={100} jq={850} />
+
+---
+
+<ComparisonChart title="Big JSON" subtitle="Time taken to process a JSON object with 1000 keys" gq={400} jq={1200} />

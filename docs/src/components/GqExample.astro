@@ -1,0 +1,38 @@
+---
+import { Code } from "@astrojs/starlight/components";
+
+interface Props {
+    codes: string[];
+    langs: string[];
+    titles: string[];
+    height: "fixed" | "auto";
+}
+
+const { codes, langs, titles, height = "fixed" } = Astro.props;
+---
+
+<style is:global>
+    .gq-code-fixed code {
+        height: 16rem !important;
+    }
+    .gq-code-auto figure {
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+    .gq-code-auto pre {
+        height: 100% !important;
+    }
+</style>
+
+<div class="flex gap-2">
+    {
+        codes.map((code, index) => (
+            <Code
+                class={`!mt-0 w-1/2 ${height === "fixed" ? "gq-code-fixed" : "gq-code-auto"}`}
+                code={code}
+                lang={langs[index]}
+                title={titles[index]}
+            />
+        ))
+    }
+</div>
