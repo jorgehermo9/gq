@@ -1,7 +1,8 @@
 import type { Completion } from "@/model/completion";
-import { type Data, dataToDTO } from "@/model/data";
+import type { Data } from "@/model/data";
 import init, { completions, type JsCompletionItem } from "gq-web";
 import registerWebworker from "webworker-promise/lib/register";
+import { dataToDto } from "./dtos/data-dto";
 
 interface Message {
 	query: string;
@@ -12,7 +13,7 @@ interface Message {
 
 registerWebworker(async ({ query, position, trigger, data }: Message) => {
 	await init();
-	const completion = completions(query, position, trigger, dataToDTO(data));
+	const completion = completions(query, position, trigger, dataToDto(data));
 	return completion.map((item: JsCompletionItem) => ({
 		label: item.label,
 		detail: item.detail,

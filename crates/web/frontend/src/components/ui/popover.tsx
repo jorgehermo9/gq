@@ -12,20 +12,42 @@ const PopoverTrigger = PopoverPrimitive.Trigger;
 const PopoverContent = React.forwardRef<
 	React.ElementRef<typeof PopoverPrimitive.Content>,
 	React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+>(({ className, align = "center", sideOffset = 8, ...props }, ref) => (
 	<PopoverPrimitive.Portal>
 		<PopoverPrimitive.Content
 			ref={ref}
 			align={align}
 			sideOffset={sideOffset}
 			className={cn(
-				"z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+				"z-50 w-72 rounded-md border bg-background p-4 text-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
 				className,
 			)}
 			{...props}
+			onCloseAutoFocus={(e) => e.preventDefault()}
+			onOpenAutoFocus={(e) => e.preventDefault()}
 		/>
 	</PopoverPrimitive.Portal>
 ));
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
-export { Popover, PopoverTrigger, PopoverContent };
+const PopoverHeader = ({ className, children }: React.HTMLAttributes<HTMLDivElement>) => {
+	return (
+		<div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}>
+			{children}
+		</div>
+	);
+};
+
+const PopoverTitle = ({ className, children }: React.HTMLAttributes<HTMLHeadingElement>) => {
+	return (
+		<h4 className={cn("text-md font-semibold leading-none tracking-tight", className)}>
+			{children}
+		</h4>
+	);
+};
+
+const PopoverDescription = ({ className, children }: React.HTMLAttributes<HTMLSpanElement>) => {
+	return <span className={cn("text-sm", className)}>{children}</span>;
+};
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverTitle, PopoverDescription, PopoverHeader };

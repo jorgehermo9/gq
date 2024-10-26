@@ -6,7 +6,7 @@ import { type MouseEvent, forwardRef, useEffect, useRef, useState } from "react"
 import styles from "./button.module.css";
 
 const buttonVariants = cva(
-	"relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+	"relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 transition-opacity",
 	{
 		variants: {
 			variant: {
@@ -90,16 +90,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 		return (
 			<div ref={containerRef}>
 				<Comp
-					className={cn(
-						buttonVariants({ variant, size, className }),
-						disabled && "cursor-default opacity-50",
-					)}
+					className={cn(buttonVariants({ variant, size, className }))}
 					ref={ref}
 					onClick={handleClick}
 					onMouseEnter={() => setIsHover(true)}
 					onMouseLeave={() => setIsHover(false)}
 					onMouseMove={handleMouseMove}
 					{...props}
+					disabled={disabled}
 				>
 					{!disabled && (
 						<motion.div

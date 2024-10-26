@@ -1,6 +1,7 @@
 import useLazyState from "@/hooks/useLazyState";
+import { MAX_RENDER_SIZE, STATE_DEBOUNCE_TIME } from "@/lib/constants";
 import { gqTheme } from "@/lib/theme";
-import { cn, isMac } from "@/lib/utils";
+import { cn, copyToClipboard, isMac } from "@/lib/utils";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { type LoadingState, loading, notLoading } from "@/model/loading-state";
@@ -20,7 +21,6 @@ import EditorTitle from "./editor-title";
 import { EditorTooLarge } from "./editor-too-large";
 import {
 	convertCode,
-	copyToClipboard,
 	exportFile,
 	formatCode,
 	getCodemirrorExtensionsByFileType,
@@ -65,7 +65,11 @@ const Editor = ({
 	editable = true,
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<string>();
-	const [content, setContent, instantContent] = useLazyState("" as string, 50, onChangeContent);
+	const [content, setContent, instantContent] = useLazyState(
+		"" as string,
+		STATE_DEBOUNCE_TIME,
+		onChangeContent,
+	);
 	const [type, setType] = useState<FileType>(fileTypes[0]);
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
@@ -77,7 +81,7 @@ const Editor = ({
 	} = useSettings();
 	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = type === FileType.GQ ? queryTabSize : dataTabSize;
-	const available = content.length < 100000000;
+	const available = content.length < MAX_RENDER_SIZE;
 	// const borderRepeatDelay = Math.random() * 5 + 15;
 
 	const handleFormatCode = useCallback(
@@ -156,6 +160,7 @@ const Editor = ({
 		}
 		if (updateCallback) {
 			updateCallback.current = (data: Data) => {
+				console.log("update callback", data);
 				setContent(data.content);
 				setType(data.type);
 			};

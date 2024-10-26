@@ -7,12 +7,12 @@ import CodeMirror, { type Extension } from "@uiw/react-codemirror";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatCode, getCodemirrorExtensionsByFileType } from "../editor/editor-utils";
 
-interface BodyTabProps {
+interface RequestBodyTabProps {
 	body: string;
 	setBody: (body: string) => void;
 }
 
-const BodyTab = ({ body, setBody }: BodyTabProps) => {
+const RequestBodyTab = ({ body, setBody }: RequestBodyTabProps) => {
 	const [focused, setFocused] = useState(false);
 	const {
 		settings: {
@@ -67,4 +67,4 @@ const BodyTab = ({ body, setBody }: BodyTabProps) => {
 	);
 };
 
-export default BodyTab;
+export default RequestBodyTab;

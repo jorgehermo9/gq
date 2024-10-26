@@ -26,17 +26,19 @@ interface Props {
 }
 
 export const WorkerProvider = ({ children }: Props) => {
-	const [formatWorker, setFormatWorker] = useState<PromiseWorker | undefined>(undefined);
-	const [gqWorker, setGqWorker] = useState<PromiseWorker | undefined>(undefined);
-	const [lspWorker, setLspWorker] = useState<PromiseWorker | undefined>(undefined);
-	const [convertWorker, setConvertWorker] = useState<PromiseWorker | undefined>(undefined);
+	const [formatWorker, setFormatWorker] = useState<PromiseWorker>();
+	const [gqWorker, setGqWorker] = useState<PromiseWorker>();
+	const [lspWorker, setLspWorker] = useState<PromiseWorker>();
+	const [convertWorker, setConvertWorker] = useState<PromiseWorker>();
 
 	useEffect(() => {
-		setFormatWorker(new PromiseWorker(new Worker(new URL("../worker/format.ts", import.meta.url))));
-		setGqWorker(new PromiseWorker(new Worker(new URL("../worker/gq.ts", import.meta.url))));
-		setLspWorker(new PromiseWorker(new Worker(new URL("../worker/lsp.ts", import.meta.url))));
+		setFormatWorker(
+			new PromiseWorker(new Worker(new URL("../workers/format.ts", import.meta.url))),
+		);
+		setGqWorker(new PromiseWorker(new Worker(new URL("../workers/gq.ts", import.meta.url))));
+		setLspWorker(new PromiseWorker(new Worker(new URL("../workers/lsp.ts", import.meta.url))));
 		setConvertWorker(
-			new PromiseWorker(new Worker(new URL("../worker/convert.ts", import.meta.url))),
+			new PromiseWorker(new Worker(new URL("../workers/convert.ts", import.meta.url))),
 		);
 	}, []);
 

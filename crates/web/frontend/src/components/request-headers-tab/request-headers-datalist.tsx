@@ -2,7 +2,7 @@ interface HeadersDatalistProps {
 	id: string;
 }
 
-const HeadersDatalist = ({ id }: HeadersDatalistProps) => {
+const RequestHeadersDatalist = ({ id }: HeadersDatalistProps) => {
 	return (
 		<datalist id={id}>
 			<option value="Accept" />
@@ -26,4 +26,4 @@ const HeadersDatalist = ({ id }: HeadersDatalistProps) => {
 	);
 };
 
-export default HeadersDatalist;
+export default RequestHeadersDatalist;
