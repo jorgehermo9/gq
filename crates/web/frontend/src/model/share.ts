@@ -1,13 +1,17 @@
-import { z } from "zod";
+import type FileType from "./file-type";
 
 export type Share = {
 	id: string;
-	json: string;
-	query: string;
+	inputContent: string;
+	inputType: FileType;
+	queryContent: string;
+	outputType: FileType;
 };
 
-export const ShareSchema = z.object({
-	id: z.string().uuid(),
-	json: z.string(),
-	query: z.string(),
-});
+export type ShareCreation = {
+	inputContent: string;
+	inputType: FileType;
+	queryContent: string;
+	outputType: FileType;
+	expirationTimeSecs: number;
+};

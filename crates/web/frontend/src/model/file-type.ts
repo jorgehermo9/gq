@@ -1,5 +1,3 @@
-import { JsDataType } from "gq-web";
-
 enum FileType {
 	JSON = "json",
 	GQ = "gq",
@@ -30,25 +28,16 @@ export const fromMimeType = (mime: string): FileType => {
 	throw new Error(`Unexpected file type ${mime}`);
 };
 
-export const fileTypeToDTO = (fileType: FileType): JsDataType => {
-	switch (fileType) {
+export const fromString = (fileType: string): FileType => {
+	switch (fileType.toLowerCase()) {
 		case FileType.JSON:
-			return JsDataType.Json;
-		case FileType.YAML:
-			return JsDataType.Yaml;
-		default:
-			throw new Error("Invalid data file type");
-	}
-};
-
-export const fileTypeToModel = (dto: JsDataType) => {
-	switch (dto) {
-		case JsDataType.Json:
 			return FileType.JSON;
-		case JsDataType.Yaml:
+		case FileType.GQ:
+			return FileType.GQ;
+		case FileType.YAML:
 			return FileType.YAML;
 		default:
-			throw new Error("Invalid dto file type");
+			throw new Error(`Unexpected file type ${fileType}`);
 	}
 };
 

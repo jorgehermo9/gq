@@ -1,7 +1,8 @@
 import { cn, copyToClipboard } from "@/lib/utils";
 import type { ExpirationTime } from "@/model/expiration-time";
+import type FileType from "@/model/file-type";
 import { Clipboard, Clock, InfoIcon, Share } from "lucide-react";
-import { useCallback, useState } from "react";
+import { type MutableRefObject, useCallback, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -21,15 +22,19 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { createShareLink } from "./share-popover-utils";
 
 interface SharePopoverProps {
-	inputContent: string;
-	queryContent: string;
+	inputContent: MutableRefObject<string>;
+	inputType: MutableRefObject<FileType>;
+	queryContent: MutableRefObject<string>;
+	outputType: MutableRefObject<FileType>;
 	shareLink: string | undefined;
 	setShareLink: (shareLink?: string) => void;
 }
 
 const SharePopover = ({
 	inputContent,
+	inputType,
 	queryContent,
+	outputType,
 	shareLink,
 	setShareLink,
 }: SharePopoverProps) => {
@@ -41,13 +46,19 @@ const SharePopover = ({
 		async (e: React.FormEvent<HTMLFormElement>) => {
 			e.preventDefault();
 			setIsLoading(true);
-			const shareLink = await createShareLink(inputContent, queryContent, expirationTime);
+			const shareLink = await createShareLink(
+				inputContent.current,
+				inputType.current,
+				queryContent.current,
+				outputType.current,
+				expirationTime,
+			);
 			setIsLoading(false);
 			if (!shareLink) return;
 			setShareLink(shareLink);
 			setSelectedExpirationTime(expirationTime);
 		},
-		[expirationTime, setShareLink, inputContent, queryContent],
+		[expirationTime, setShareLink, inputContent, inputType, queryContent, outputType],
 	);
 
 	const handleChangeExpirationTime = useCallback(

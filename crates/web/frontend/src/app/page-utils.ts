@@ -2,7 +2,7 @@ import { notify } from "@/lib/notify";
 import type { Completion } from "@/model/completion";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
-import { getShare } from "@/service/share-service";
+import { getShare } from "@/services/shares/share-service";
 import type { CompletionContext, CompletionSource } from "@codemirror/autocomplete";
 import type PromiseWorker from "webworker-promise";
 
@@ -55,14 +55,15 @@ export const getQueryCompletionSource = (
 
 export const importShare = async (
 	shareId: string,
-): Promise<{ input: Data; query: Data } | undefined> => {
+): Promise<{ input: Data; query: Data; outputType: FileType } | undefined> => {
 	const toastId = notify.loading("Importing share...");
 	try {
 		const share = await getShare(shareId);
 		notify.success("Share successfully imported", { id: toastId });
 		return {
-			input: new Data(share.json, FileType.JSON),
-			query: new Data(share.query, FileType.GQ),
+			input: new Data(share.inputContent, share.inputType),
+			query: new Data(share.queryContent, FileType.GQ),
+			outputType: share.outputType,
 		};
 	} catch (error) {
 		notify.error(`Error importing share: ${error.message}`, { id: toastId });

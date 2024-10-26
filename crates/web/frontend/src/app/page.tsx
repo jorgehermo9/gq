@@ -18,26 +18,48 @@ import type { CompletionSource } from "@codemirror/autocomplete";
 import { Link2, Link2Off } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { type MutableRefObject, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import type PromiseWorker from "webworker-promise";
 import { applyGq, getQueryCompletionSource, importShare } from "./page-utils";
 import styles from "./page.module.css";
 
 const ShareLoader = ({
 	updateInputEditorCallback,
 	updateQueryEditorCallback,
+	updateOutputData,
+	gqWorker,
+	setLinkEditors,
 }: {
 	updateInputEditorCallback: MutableRefObject<(data: Data) => void>;
 	updateQueryEditorCallback: MutableRefObject<(data: Data) => void>;
+	updateOutputData: (
+		inputContent: string,
+		inputType: FileType,
+		queryContent: string,
+		silent?: boolean,
+		outputTypeOverride?: FileType,
+	) => void;
+	gqWorker: PromiseWorker | undefined;
+	setLinkEditors: (value: boolean) => void;
 }) => {
 	const shareId = useSearchParams().get("id");
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: One time load when gqWorker is ready
 	useEffect(() => {
-		if (!shareId) return;
+		if (!shareId || !gqWorker) return;
 		importShare(shareId).then((data) => {
 			if (!data) return;
 			updateInputEditorCallback?.current(data.input);
 			updateQueryEditorCallback?.current(data.query);
+			if (data.input.type !== data.outputType) setLinkEditors(false);
+			updateOutputData(
+				data.input.content,
+				data.input.type,
+				data.query.content,
+				true,
+				data.outputType,
+			);
 		});
-	}, [shareId, updateInputEditorCallback, updateQueryEditorCallback]);
+	}, [gqWorker]);
 
 	return null;
 };
@@ -70,7 +92,13 @@ const Home = () => {
 	const { gqWorker, lspWorker } = useWorker();
 
 	const updateOutputData = useCallback(
-		async (inputContent: string, inputType: FileType, queryContent: string, silent = true) => {
+		async (
+			inputContent: string,
+			inputType: FileType,
+			queryContent: string,
+			silent = true,
+			outputTypeOverride?: FileType,
+		) => {
 			if (!gqWorker || isApplying) return;
 			setIsApplying(true);
 			outputEditorLoadingCallback.current(
@@ -81,7 +109,7 @@ const Home = () => {
 				const result = await applyGq(
 					data,
 					queryContent,
-					outputType.current,
+					outputTypeOverride || outputType.current,
 					dataTabSize,
 					gqWorker,
 					silent,
@@ -110,12 +138,18 @@ const Home = () => {
 	);
 
 	const handleChangeInputDataFileType = useCallback(
-		(fileType: FileType) => linkEditors && convertOutputEditorCallback.current(fileType),
+		(fileType: FileType) => {
+			setShareLink(undefined);
+			linkEditors && convertOutputEditorCallback.current(fileType);
+		},
 		[linkEditors],
 	);
 
 	const handleChangeOutputDataFileType = useCallback(
-		(fileType: FileType) => linkEditors && convertInputEditorCallback.current(fileType),
+		(fileType: FileType) => {
+			setShareLink(undefined);
+			linkEditors && convertInputEditorCallback.current(fileType);
+		},
 		[linkEditors],
 	);
 
@@ -155,8 +189,10 @@ const Home = () => {
 			<Header
 				className="w-full mb-8"
 				onClickExample={handleClickExample}
-				inputContent={inputContent.current}
-				queryContent={queryContent.current}
+				inputContent={inputContent}
+				inputType={inputType}
+				queryContent={queryContent}
+				outputType={outputType}
 				shareLink={shareLink}
 				setShareLink={setShareLink}
 			/>
@@ -230,6 +266,9 @@ const Home = () => {
 				<ShareLoader
 					updateInputEditorCallback={updateInputEditorCallback}
 					updateQueryEditorCallback={updateQueryEditorCallback}
+					updateOutputData={updateOutputData}
+					gqWorker={gqWorker}
+					setLinkEditors={(value) => setSettings((prev) => setLinkEditors(prev, value))}
 				/>
 			</Suspense>
 		</main>

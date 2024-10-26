@@ -160,6 +160,7 @@ const Editor = ({
 		}
 		if (updateCallback) {
 			updateCallback.current = (data: Data) => {
+				console.log("update callback", data);
 				setContent(data.content);
 				setType(data.type);
 			};

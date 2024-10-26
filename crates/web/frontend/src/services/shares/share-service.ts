@@ -1,26 +1,24 @@
 import { MAX_SHARE_SIZE } from "@/lib/constants";
 import { ShareTooLargeError } from "@/model/errors/share-input-too-large-error";
-import { type Share, ShareSchema } from "@/model/share";
+import type { Share, ShareCreation } from "@/model/share";
 import type { ZodSchema } from "zod";
+import { ShareDtoSchema, shareCreationToDto, shareDtoToModel } from "./share-dto";
 
 const sharesEndpoint = "/api/shares";
 
 export const getShare = async (shareId: string): Promise<Share> => {
 	const res = await fetch(`${sharesEndpoint}/${shareId}`);
-	return getBody(res, ShareSchema);
+	const shareDto = await getBody(res, ShareDtoSchema);
+	return shareDtoToModel(shareDto);
 };
 
-export const createShare = async (
-	inputContent: string,
-	queryContent: string,
-	expirationTimeSecs: number,
-): Promise<string> => {
-	if (inputContent.length + queryContent.length > MAX_SHARE_SIZE) {
+export const createShare = async (shareCreation: ShareCreation): Promise<string> => {
+	if (shareCreation.inputContent.length + shareCreation.queryContent.length > MAX_SHARE_SIZE) {
 		throw new ShareTooLargeError();
 	}
 	const res = await fetch(sharesEndpoint, {
 		method: "POST",
-		body: JSON.stringify({ json: inputContent, query: queryContent, expirationTimeSecs }),
+		body: JSON.stringify(shareCreationToDto(shareCreation)),
 		headers: {
 			"Content-Type": "application/json",
 		},
