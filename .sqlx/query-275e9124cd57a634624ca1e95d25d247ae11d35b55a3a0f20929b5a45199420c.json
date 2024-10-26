@@ -1,0 +1,72 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, input_data, input_type as \"input_type: DataType\",\n            output_type as \"output_type: DataType\", query, expires_at\n            FROM share WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "input_data",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "input_type: DataType",
+        "type_info": {
+          "Custom": {
+            "name": "data_type",
+            "kind": {
+              "Enum": [
+                "json",
+                "yaml"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "output_type: DataType",
+        "type_info": {
+          "Custom": {
+            "name": "data_type",
+            "kind": {
+              "Enum": [
+                "json",
+                "yaml"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "query",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "expires_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "275e9124cd57a634624ca1e95d25d247ae11d35b55a3a0f20929b5a45199420c"
+}

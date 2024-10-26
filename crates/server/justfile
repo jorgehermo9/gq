@@ -1,11 +1,13 @@
+# If there is a .env file located at `crates/server/.env`, it will be loaded automatically
 set dotenv-load
 
 # https://github.com/launchbadge/sqlx/blob/main/sqlx-cli/README.md
 # The DATABASE_URL env var must be set to run those commands
-# If there is a .env file located at `crates/server/.env`, it will be loaded automatically
 prepare-check:
     cargo sqlx prepare --check --workspace
 prepare: # To be able to build the project in offline mode
     cargo sqlx prepare --workspace
 migrate:
     cargo sqlx migrate run
+run:
+    cargo run -p gq-server

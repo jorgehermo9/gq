@@ -1,4 +1,4 @@
-FROM rust:1.81 AS chef
+FROM docker.io/rust:1.81 AS chef
 WORKDIR /app
 RUN cargo install cargo-chef --version 0.1.67 --locked
 
@@ -13,7 +13,6 @@ COPY . .
 ENV SQLX_OFFLINE true
 RUN cargo build --package gq-server --release
 
-FROM debian:bookworm
-WORKDIR /app
+FROM docker.io/debian:bookworm
 COPY --from=builder /app/target/release/gq-server .
 CMD [ "./gq-server" ]

@@ -2,7 +2,7 @@ use chrono::{Duration, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::model::share::Share;
+use crate::model::share::{DataType, Share};
 
 #[derive(Debug, thiserror::Error)]
 pub enum GetShareError {
@@ -38,10 +38,14 @@ impl ShareService {
 
     pub async fn create_share(
         &self,
-        json: String,
+        input_data: String,
+        input_type: DataType,
+        output_type: DataType,
         query: String,
         expiration_time_secs: i64,
     ) -> Result<Uuid, CreateShareError> {
+        // TODO: accept a CreateShare as input and validate it with a validate_create_response internal
+        // function to split the validation logic
         if expiration_time_secs <= 0 || expiration_time_secs > self.max_expiration_time_secs {
             return Err(CreateShareError::InvalidExpirationTime {
                 actual: expiration_time_secs,
@@ -54,9 +58,13 @@ impl ShareService {
         let expires_at = now + Duration::seconds(expiration_time_secs);
 
         sqlx::query!(
-            "INSERT INTO share (id, json, query, expires_at) VALUES ($1, $2, $3, $4)",
+            "INSERT INTO share
+            (id, input_data, input_type, output_type, query, expires_at)
+            VALUES ($1, $2, $3, $4, $5, $6)",
             uuid,
-            json,
+            input_data,
+            input_type as DataType,
+            output_type as DataType,
             query,
             expires_at
         )
@@ -67,9 +75,18 @@ impl ShareService {
     }
 
     pub async fn get_share(&self, id: Uuid) -> Result<Share, GetShareError> {
-        let share = sqlx::query_as!(Share, "SELECT * FROM share WHERE id = $1", id)
-            .fetch_optional(&self.db_connection)
-            .await?;
+        // See https://docs.rs/sqlx/0.4.2/sqlx/macro.query.html#force-a-differentcustom-type
+        // and https://github.com/launchbadge/sqlx/issues/1004#issuecomment-764921020 for
+        // more information about the custom type syntax
+        let share = sqlx::query_as!(
+            Share,
+            r#"SELECT id, input_data, input_type as "input_type: DataType",
+            output_type as "output_type: DataType", query, expires_at
+            FROM share WHERE id = $1"#,
+            id
+        )
+        .fetch_optional(&self.db_connection)
+        .await?;
 
         let now = Utc::now();
         let share = share.filter(|share| share.expires_at >= now);

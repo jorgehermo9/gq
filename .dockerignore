@@ -1,5 +1,6 @@
 **/target/
 **/node_modules/
+**/.astro
 crates/web/frontend/pkg
 **Dockerfile
 docker-compose.yml

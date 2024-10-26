@@ -1,11 +1,10 @@
-use crate::dtos::share_dto::ShareDTO;
-use crate::routes;
-use crate::services::share::GetShareError;
-use crate::{
-    dtos::error_object::ErrorObject,
-    services::share::{CreateShareError, ShareService},
-    AppState,
-};
+use crate::api::dtos::error_object::ErrorObject;
+use crate::api::dtos::share_dto::{DataTypeDTO, ShareDTO};
+use crate::services::share::{CreateShareError, GetShareError, ShareService};
+
+use crate::api::routes;
+use crate::app_state::AppState;
+
 use axum::{
     extract::{Path, State},
     http::{HeaderMap, StatusCode},
@@ -21,7 +20,9 @@ pub const SHARES_CONTEXT: &str = "/shares";
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CreateShareRequest {
-    json: String,
+    input_data: String,
+    input_type: DataTypeDTO,
+    output_type: DataTypeDTO,
     query: String,
     expiration_time_secs: i64,
 }
@@ -47,8 +48,16 @@ async fn create_share(
     State(share_service): State<ShareService>,
     Json(request): Json<CreateShareRequest>,
 ) -> impl IntoResponse {
+    // TODO: refactor CreateShareRequest into a model CreateShareRequest and a CreateShareRequestDTO
+    // so the create_share method does not contain that much attributes
     let create_result = share_service
-        .create_share(request.json, request.query, request.expiration_time_secs)
+        .create_share(
+            request.input_data,
+            request.input_type.into(),
+            request.output_type.into(),
+            request.query,
+            request.expiration_time_secs,
+        )
         .await;
 
     let share_id = match create_result {

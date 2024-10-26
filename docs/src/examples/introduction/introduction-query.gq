@@ -1,0 +1,4 @@
+{
+  customer.firstName
+  products(price<=100): cheap
+}
