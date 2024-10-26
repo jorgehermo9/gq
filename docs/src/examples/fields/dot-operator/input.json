@@ -1,0 +1,21 @@
+{
+  "title": "Countries",
+  "release": {
+    "year": 2021,
+    "month": "September"
+  },
+  "countries": [
+    {
+      "name": "United States",
+      "capital": "Washington, D.C."
+    },
+    {
+      "name": "Canada",
+      "capital": "Ottawa"
+    },
+    {
+      "name": "Australia",
+      "capital": "Canberra"
+    }
+  ]
+}

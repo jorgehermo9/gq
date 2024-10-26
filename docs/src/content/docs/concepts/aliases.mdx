@@ -1,0 +1,28 @@
+---
+title: Aliases
+description: First steps to get started with GQ and its query language
+sidebar:
+  order: 3
+---
+import GqExample from '/src/components/GqExample.astro';
+import { Code } from '@astrojs/starlight/components';
+import aliasInput from '/src/examples/aliases/models/input.json?raw';
+import aliasQuery from '/src/examples/aliases/models/alias-query.gq?raw';
+import aliasOutput from '/src/examples/aliases/models/alias-output.json?raw';
+import quotedAliasQuery from '/src/examples/aliases/models/quoted-alias-query.gq?raw';
+import quotedAliasOutput from '/src/examples/aliases/models/quoted-alias-output.json?raw';
+
+With aliases you can rename the output fields of a query. They are defined by a colon `:` after the field name (or after the arguments if they are present)
+and can be double quoted if they contain special characters or spaces.
+
+To clarify, let's see an example:
+
+<Code code={aliasInput} lang="json" title="input.json" />
+
+If we want to obtain the top scoring model names but renaming the field to `topScores`, we can use the following query:
+
+<GqExample codes={[aliasQuery, aliasOutput]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />
+
+Or if we want to name the output field using spaces, we can double-quote it:
+
+<GqExample codes={[quotedAliasQuery, quotedAliasOutput]} langs={['json', 'json']} titles={['query.gq', 'output.json']} height="auto" />

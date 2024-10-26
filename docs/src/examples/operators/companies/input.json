@@ -1,0 +1,16 @@
+{
+  "companies": [
+    {
+      "name": "Apple",
+      "marketCap": 3.286
+    },
+    {
+      "name": "Microsoft",
+      "marketCap": 3.206
+    },
+    {
+      "name": "Nvidia",
+      "marketCap": 2.866
+    }
+  ]
+}
