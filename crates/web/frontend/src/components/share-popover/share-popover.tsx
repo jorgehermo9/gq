@@ -17,8 +17,8 @@ import {
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Separator } from "../ui/separator";
 import { Loader } from "../ui/sonner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { createShareLink } from "./share-popover-utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface SharePopoverProps {
 	inputContent: string;

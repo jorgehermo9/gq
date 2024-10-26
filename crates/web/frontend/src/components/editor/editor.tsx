@@ -1,4 +1,5 @@
 import useLazyState from "@/hooks/useLazyState";
+import { MAX_RENDER_SIZE, STATE_DEBOUNCE_TIME } from "@/lib/constants";
 import { gqTheme } from "@/lib/theme";
 import { cn, copyToClipboard, isMac } from "@/lib/utils";
 import { Data } from "@/model/data";
@@ -25,7 +26,6 @@ import {
 	getCodemirrorExtensionsByFileType,
 } from "./editor-utils";
 import styles from "./editor.module.css";
-import { MAX_RENDER_SIZE, STATE_DEBOUNCE_TIME } from "@/lib/constants";
 
 interface Props {
 	title: string;

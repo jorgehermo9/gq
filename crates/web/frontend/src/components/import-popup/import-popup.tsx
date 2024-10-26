@@ -1,5 +1,6 @@
 import ActionButton from "@/components/action-button/action-button";
 import useLazyState from "@/hooks/useLazyState";
+import { STATE_DEBOUNCE_TIME } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
@@ -32,7 +33,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import styles from "./import-popup.module.css";
 import { type ImportedFile, getFileContent, importUrl, validateFile } from "./import-utils";
-import { STATE_DEBOUNCE_TIME } from "@/lib/constants";
 
 interface Props {
 	currentType: FileType;
