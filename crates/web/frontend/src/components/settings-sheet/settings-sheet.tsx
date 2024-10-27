@@ -53,8 +53,8 @@ const SettingsSheet = ({ className }: Props) => {
 					<SheetDescription>Configure the playground settings to your liking.</SheetDescription>
 				</SheetHeader>
 				<Separator />
-				<div className="flex flex-col gap-4">
-					<div className="flex gap-4 items-center">
+				<div className="flex flex-col">
+					<div className="flex gap-4 items-center mb-4">
 						<Label htmlFor="auto-apply" className="text-md font-semibold cursor-pointer">
 							Auto apply
 						</Label>
@@ -64,28 +64,28 @@ const SettingsSheet = ({ className }: Props) => {
 							onCheckedChange={(checked) => setSettings((prev) => setAutoApply(prev, checked))}
 						/>
 					</div>
-					<div className="ml-4">
-						<Label
-							htmlFor="debounce-time"
-							variant={autoApplySettings.autoApply ? "default" : "disabled"}
-						>
-							Debounce time (ms)
-						</Label>
-						<Slider
-							id="debounce-time"
-							disabled={!autoApplySettings.autoApply}
-							onValueChange={(value) => setSettings((prev) => setDebounceTime(prev, value[0]))}
-							value={[autoApplySettings.debounceTime]}
-							max={5000}
-							min={0}
-							step={250}
-						/>
-					</div>
+					<Label
+						htmlFor="debounce-time"
+						variant={autoApplySettings.autoApply ? "default" : "disabled"}
+						className="mb-4"
+					>
+						Debounce time
+					</Label>
+					<Slider
+						id="debounce-time"
+						disabled={!autoApplySettings.autoApply}
+						onValueChange={(value) => setSettings((prev) => setDebounceTime(prev, value[0]))}
+						value={[autoApplySettings.debounceTime]}
+						max={5000}
+						min={0}
+						step={250}
+						units="ms"
+					/>
 				</div>
 				<Separator />
 				<div className="flex flex-col gap-4 w-full">
 					<h2 className="text-md font-semibold">Indentation</h2>
-					<div className="flex gap-8 ml-4">
+					<div className="flex gap-8">
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="json-tab-size">Data indent</Label>
 							<Select

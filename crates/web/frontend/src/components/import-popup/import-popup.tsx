@@ -1,5 +1,6 @@
 import ActionButton from "@/components/action-button/action-button";
 import useLazyState from "@/hooks/useLazyState";
+import { STATE_DEBOUNCE_TIME } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
@@ -8,8 +9,8 @@ import { fromString } from "@/model/http-method";
 import { type LoadingState, notLoading } from "@/model/loading-state";
 import { File, FileUp, Trash } from "lucide-react";
 import { type ChangeEvent, useCallback, useMemo, useState } from "react";
-import BodyTab from "../body-tab/body-tab";
-import HeadersTab from "../headers-tab/headers-tab";
+import RequestBodyTab from "../request-body-tab/request-body-tab";
+import RequestHeadersTab from "../request-headers-tab/request-headers-tab";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -53,7 +54,7 @@ const ImportPopup = ({
 	const [open, setOpen] = useState(false);
 	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
 	const [headers, setHeaders] = useState<[string, string, boolean][]>([["", "", true]]);
-	const [body, setBody, instantBody] = useLazyState<string>("", 50);
+	const [body, setBody, instantBody] = useLazyState<string>("", STATE_DEBOUNCE_TIME);
 	const [selectedUrlTab, setSelectedUrlTab] = useState<"headers" | "body">("headers");
 	const [url, setUrl] = useState("");
 	const [file, setFile] = useState<ImportedFile>();
@@ -211,11 +212,11 @@ const ImportPopup = ({
 									)}
 								</TabsList>
 								<TabsContent value="headers" className="overflow-y-auto">
-									<HeadersTab headers={headers} setHeaders={setHeaders} />
+									<RequestHeadersTab headers={headers} setHeaders={setHeaders} />
 								</TabsContent>
 								{httpMethod === "POST" && (
 									<TabsContent value="body" className="pb-16 overflow-y-auto min-h-full">
-										<BodyTab body={instantBody} setBody={setBody} />
+										<RequestBodyTab body={instantBody} setBody={setBody} />
 									</TabsContent>
 								)}
 							</Tabs>
@@ -275,7 +276,7 @@ const ImportPopup = ({
 						>
 							Cancel
 						</Button>
-						<Button className="py-1 px-8" variant="success" type="submit">
+						<Button className="py-1 px-8" variant="success" type="submit" disabled={!(file || url)}>
 							Import
 						</Button>
 					</div>

@@ -1,7 +1,7 @@
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import React from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 interface Props extends ButtonProps {
 	description: string;
@@ -27,25 +27,23 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
 	) => {
 		return (
 			!hidden && (
-				<TooltipProvider>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								className={cn("w-fit h-fit", className)}
-								variant={variant}
-								size="icon"
-								disabled={disabled}
-								{...props}
-								ref={ref}
-							>
-								{children}
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent side={side} className="max-w-96 w-fit text-sm p-2">
-							{description}
-						</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							className={cn("w-fit h-fit", className)}
+							variant={variant}
+							size="icon"
+							disabled={disabled}
+							{...props}
+							ref={ref}
+						>
+							{children}
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side={side} className="max-w-96 w-fit text-sm p-2">
+						{description}
+					</TooltipContent>
+				</Tooltip>
 			)
 		);
 	},

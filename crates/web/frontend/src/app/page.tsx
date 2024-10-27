@@ -6,6 +6,7 @@ import Editor from "@/components/editor/editor";
 import Footer from "@/components/footer/footer";
 import Header from "@/components/header/header";
 import useDebounce from "@/hooks/useDebounce";
+import { notify } from "@/lib/notify";
 import { cn, i } from "@/lib/utils";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
@@ -15,13 +16,56 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import { Link2, Link2Off } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
-import { toast } from "sonner";
-import { applyGq, getQueryCompletionSource } from "./page-utils";
+import { useSearchParams } from "next/navigation";
+import { type MutableRefObject, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import type PromiseWorker from "webworker-promise";
+import { applyGq, getQueryCompletionSource, importShare } from "./page-utils";
 import styles from "./page.module.css";
 
+const ShareLoader = ({
+	updateInputEditorCallback,
+	updateQueryEditorCallback,
+	updateOutputData,
+	gqWorker,
+	setLinkEditors,
+}: {
+	updateInputEditorCallback: MutableRefObject<(data: Data) => void>;
+	updateQueryEditorCallback: MutableRefObject<(data: Data) => void>;
+	updateOutputData: (
+		inputContent: string,
+		inputType: FileType,
+		queryContent: string,
+		silent?: boolean,
+		outputTypeOverride?: FileType,
+	) => void;
+	gqWorker: PromiseWorker | undefined;
+	setLinkEditors: (value: boolean) => void;
+}) => {
+	const shareId = useSearchParams().get("id");
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: One time load when gqWorker is ready
+	useEffect(() => {
+		if (!shareId || !gqWorker) return;
+		importShare(shareId).then((data) => {
+			if (!data) return;
+			updateInputEditorCallback?.current(data.input);
+			updateQueryEditorCallback?.current(data.query);
+			if (data.input.type !== data.outputType) setLinkEditors(false);
+			updateOutputData(
+				data.input.content,
+				data.input.type,
+				data.query.content,
+				true,
+				data.outputType,
+			);
+		});
+	}, [gqWorker]);
+
+	return null;
+};
+
 const Home = () => {
-	const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+	const [errorMessage, setErrorMessage] = useState<string>();
 	const [warningMessages, setWarningMessages] = useState<string[]>([]);
 	const inputContent = useRef<string>("");
 	const queryContent = useRef<string>("");
@@ -35,6 +79,7 @@ const Home = () => {
 	const updateOutputEditorCallback = useRef<(data: Data) => void>(i);
 	const [queryCompletionSource, setQueryCompletionSource] = useState<CompletionSource>();
 	const [isApplying, setIsApplying] = useState(false);
+	const [shareLink, setShareLink] = useState<string>();
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
@@ -47,7 +92,13 @@ const Home = () => {
 	const { gqWorker, lspWorker } = useWorker();
 
 	const updateOutputData = useCallback(
-		async (inputContent: string, inputType: FileType, queryContent: string, silent = true) => {
+		async (
+			inputContent: string,
+			inputType: FileType,
+			queryContent: string,
+			silent = true,
+			outputTypeOverride?: FileType,
+		) => {
 			if (!gqWorker || isApplying) return;
 			setIsApplying(true);
 			outputEditorLoadingCallback.current(
@@ -58,7 +109,7 @@ const Home = () => {
 				const result = await applyGq(
 					data,
 					queryContent,
-					outputType.current,
+					outputTypeOverride || outputType.current,
 					dataTabSize,
 					gqWorker,
 					silent,
@@ -81,30 +132,36 @@ const Home = () => {
 			updateInputEditorCallback.current(json);
 			updateQueryEditorCallback.current(query);
 			updateOutputData(json.content, json.type, query.content, true);
-			toast.success("Example loaded!");
+			notify.success("Example loaded!");
 		},
 		[updateOutputData],
 	);
 
 	const handleChangeInputDataFileType = useCallback(
-		(fileType: FileType) => linkEditors && convertOutputEditorCallback.current(fileType),
+		(fileType: FileType) => {
+			setShareLink(undefined);
+			linkEditors && convertOutputEditorCallback.current(fileType);
+		},
 		[linkEditors],
 	);
 
 	const handleChangeOutputDataFileType = useCallback(
-		(fileType: FileType) => linkEditors && convertInputEditorCallback.current(fileType),
+		(fileType: FileType) => {
+			setShareLink(undefined);
+			linkEditors && convertInputEditorCallback.current(fileType);
+		},
 		[linkEditors],
 	);
 
 	const handleChangeLinked = useCallback(() => {
 		setSettings((prev) => setLinkEditors(prev, !linkEditors));
-		toast.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
-		if (linkEditors) return;
-		convertOutputEditorCallback.current(inputType.current);
+		notify.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
+		if (!linkEditors) convertOutputEditorCallback.current(inputType.current);
 	}, [linkEditors, setSettings]);
 
 	const handleChangeInputContent = useCallback(
 		(content: string) => {
+			setShareLink(undefined);
 			setQueryCompletionSource(() =>
 				getQueryCompletionSource(lspWorker, new Data(content, inputType.current)),
 			);
@@ -117,17 +174,28 @@ const Home = () => {
 	);
 
 	const handleChangeQueryContent = useCallback(
-		(content: string) =>
+		(content: string) => {
+			setShareLink(undefined);
 			autoApply &&
-			debounce(() =>
-				updateOutputData(inputContent.current, inputType.current, content, debounceTime < 500),
-			),
+				debounce(() =>
+					updateOutputData(inputContent.current, inputType.current, content, debounceTime < 500),
+				);
+		},
 		[autoApply, debounce, updateOutputData, debounceTime],
 	);
 
 	return (
 		<main className="flex flex-col items-center pt-4 px-12 h-screen">
-			<Header className="w-full mb-8" onClickExample={handleClickExample} />
+			<Header
+				className="w-full mb-8"
+				onClickExample={handleClickExample}
+				inputContent={inputContent}
+				inputType={inputType}
+				queryContent={queryContent}
+				outputType={outputType}
+				shareLink={shareLink}
+				setShareLink={setShareLink}
+			/>
 			<section className="flex items-center justify-center w-full">
 				<aside className="flex flex-col gap-8">
 					<Editor
@@ -194,6 +262,15 @@ const Home = () => {
 				</aside>
 			</section>
 			<Footer className="my-auto" />
+			<Suspense>
+				<ShareLoader
+					updateInputEditorCallback={updateInputEditorCallback}
+					updateQueryEditorCallback={updateQueryEditorCallback}
+					updateOutputData={updateOutputData}
+					gqWorker={gqWorker}
+					setLinkEditors={(value) => setSettings((prev) => setLinkEditors(prev, value))}
+				/>
+			</Suspense>
 		</main>
 	);
 };
