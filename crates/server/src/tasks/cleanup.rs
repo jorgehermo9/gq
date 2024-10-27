@@ -60,7 +60,7 @@ impl CleanupTask {
 pub async fn execute_cleanup(task: CleanupTask, db_connection: Data<PgPool>) -> Result<(), Error> {
     match task.cleanup(db_connection).await {
         Ok(rows_affected) => {
-            tracing::info!(deleted_shares = rows_affected, "Cleanup task completed",);
+            tracing::info!(deleted_shares = rows_affected, "Cleanup task completed");
             Ok(())
         }
         Err(e) => {
