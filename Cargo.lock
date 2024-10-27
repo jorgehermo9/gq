@@ -1164,6 +1164,7 @@ dependencies = [
  "chrono",
  "cron",
  "http-serde",
+ "lazy_static",
  "serde",
  "sqlx",
  "thiserror",

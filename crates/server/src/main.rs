@@ -52,7 +52,7 @@ async fn main() {
     );
 
     let cleanup_task_cron_expression =
-        env::var("CLEANUP_TASK_CRON_EXPRESSION").unwrap_or_else(|_| "0 0 0 * * * *".to_string());
+        env::var("CLEANUP_TASK_CRON_EXPRESSION").unwrap_or_else(|_| "0 0 */4 * * * *".to_string());
 
     sqlx::migrate!("./migrations")
         .run(&db_connection)
@@ -105,10 +105,10 @@ async fn start_background_tasks(
         .parse()
         .map_err(|e| SchedulerError::CronExpressionError(cron_expression.to_string(), e))?;
 
-    tracing::info!(schedule = %schedule, "Starting cleanup task worker");
+    tracing::info!(schedule = %schedule, "Started cleanup worker");
 
-    let worker = WorkerBuilder::new("cleanup-task-worker")
-        .layer(RetryLayer::new(RetryPolicy::retries(5)))
+    let worker = WorkerBuilder::new("cleanup-worker")
+        .layer(RetryLayer::new(RetryPolicy::retries(3)))
         .stream(CronStream::new(schedule).into_stream())
         .data(db_connection)
         .build_fn(cleanup::execute_cleanup);
