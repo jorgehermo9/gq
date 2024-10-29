@@ -9,7 +9,6 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import CodeMirror, { type Extension } from "@uiw/react-codemirror";
-import { cubicBezier, motion } from "framer-motion";
 import { TriangleAlert } from "lucide-react";
 import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from "react";
 import ActionButton from "../action-button/action-button";
@@ -27,12 +26,13 @@ import {
 } from "./editor-utils";
 import styles from "./editor.module.css";
 
-interface Props {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
 	title: string;
 	defaultFileName: string;
 	fileTypes: FileType[];
 	onChangeFileType?: (fileType: FileType) => void;
 	onChangeContent?: (content: string) => void;
+	onApply?: () => void;
 	className?: string;
 	errorMessage?: string;
 	onDismissError?: () => void;
@@ -44,6 +44,8 @@ interface Props {
 	completionSource?: CompletionSource;
 	contentRef?: MutableRefObject<string>;
 	typeRef?: MutableRefObject<FileType>;
+	width: string;
+	height: string;
 }
 
 const Editor = ({
@@ -52,6 +54,7 @@ const Editor = ({
 	fileTypes,
 	onChangeFileType,
 	onChangeContent,
+	onApply,
 	className,
 	errorMessage,
 	onDismissError,
@@ -62,7 +65,10 @@ const Editor = ({
 	completionSource,
 	contentRef,
 	typeRef,
+	width,
+	height,
 	editable = true,
+	...props
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<string>();
 	const [content, setContent, instantContent] = useLazyState(
@@ -160,7 +166,6 @@ const Editor = ({
 		}
 		if (updateCallback) {
 			updateCallback.current = (data: Data) => {
-				console.log("update callback", data);
 				setContent(data.content);
 				setType(data.type);
 			};
@@ -182,8 +187,12 @@ const Editor = ({
 	);
 
 	return (
-		<div className={cn("flex flex-col gap-2", className)}>
-			<div className="flex gap-4 items-center pr-2">
+		<div
+			className={cn("flex flex-col gap-2 border-accent-background bg-background", className)}
+			style={{ height, width }}
+			{...props}
+		>
+			<div className="flex min-h-12 max-h-12 justify-between gap-4 border-b">
 				<EditorTitle
 					title={title}
 					fileTypes={fileTypes}
@@ -201,40 +210,11 @@ const Editor = ({
 					onExportFile={(filename) => exportFile(new Data(content, type), filename)}
 					onChangeLoading={setLoadingState}
 					onError={(err) => setEditorErrorMessage(err.message)}
+					onApply={onApply}
 				/>
 			</div>
 
-			<div
-				data-focused={focused}
-				data-title={defaultFileName}
-				className={`${styles.editor} relative h-full rounded-lg p-[1px] overflow-hidden`}
-			>
-				<motion.div
-					className={styles.editorBorderTop}
-					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, 10, 180, 190, 360] }}
-					transition={{
-						duration: 4,
-						delay: 0,
-						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
-						// repeat: Number.POSITIVE_INFINITY,
-						// repeatType: "loop",
-						// repeatDelay: borderRepeatDelay,
-						times: [0, 0.1, 0.5, 0.6, 1],
-					}}
-				/>
-				<motion.div
-					className={styles.editorBorderBottom}
-					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, -10, -180, -190, -360] }}
-					transition={{
-						duration: 4,
-						delay: 0,
-						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
-						// repeat: Number.POSITIVE_INFINITY,
-						// repeatType: "loop",
-						// repeatDelay: borderRepeatDelay,
-						times: [0, 0.1, 0.5, 0.6, 1],
-					}}
-				/>
+			<div data-title={defaultFileName} className="relative h-full">
 				<EditorLoadingOverlay loadingState={loadingState} />
 				<EditorErrorOverlay
 					visibleBackdrop={!editable && (!!errorMessage || !!editorErrorMessage)}
@@ -256,12 +236,17 @@ const Editor = ({
 					visible={showConsole}
 					onClose={() => setShowConsole(false)}
 				/>
-				<div className="bg-background w-full h-full rounded-lg">
+				<div
+					className="bg-background w-full"
+					style={{
+						height: `calc(${height} - 60px)`,
+					}}
+				>
 					{available ? (
 						<CodeMirror
 							onFocus={() => onChangeFocused(true)}
 							onBlur={() => onChangeFocused(false)}
-							className="w-full h-full rounded-lg text-xs overflow-hidden"
+							className="w-full h-full text-xs overflow-hidden"
 							value={instantContent}
 							onChange={setContent}
 							height="100%"

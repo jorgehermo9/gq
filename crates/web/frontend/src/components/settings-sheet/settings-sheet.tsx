@@ -9,7 +9,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import {
 	Sheet,
 	SheetContent,
@@ -29,12 +28,9 @@ import {
 } from "@/model/settings";
 import { useSettings } from "@/providers/settings-provider";
 import { Settings } from "lucide-react";
+import type { HTMLAttributes } from "react";
 
-interface Props {
-	className?: string;
-}
-
-const SettingsSheet = ({ className }: Props) => {
+const SettingsSheet = ({ className }: HTMLAttributes<HTMLButtonElement>) => {
 	const {
 		settings: { autoApplySettings, formattingSettings },
 		setSettings,
@@ -42,20 +38,24 @@ const SettingsSheet = ({ className }: Props) => {
 
 	return (
 		<Sheet>
-			<SheetTrigger className={className} asChild>
-				<ActionButton description="Show playground settings" className="p-3">
+			<SheetTrigger asChild>
+				<ActionButton
+					className={className}
+					description="Show playground settings"
+					variant="subtle"
+					side="right"
+				>
 					<Settings className="w-4 h-4" />
 				</ActionButton>
 			</SheetTrigger>
-			<SheetContent>
-				<SheetHeader>
+			<SheetContent side="left">
+				<SheetHeader className="border-b">
 					<SheetTitle>Settings</SheetTitle>
-					<SheetDescription>Configure the playground settings to your liking.</SheetDescription>
+					<SheetDescription>Configure the playground settings to your liking</SheetDescription>
 				</SheetHeader>
-				<Separator />
-				<div className="flex flex-col">
+				<div className="flex flex-col p-6 border-b">
 					<div className="flex gap-4 items-center mb-4">
-						<Label htmlFor="auto-apply" className="text-md font-semibold cursor-pointer">
+						<Label htmlFor="auto-apply" className="text-sm font-semibold cursor-pointer">
 							Auto apply
 						</Label>
 						<Switch
@@ -67,7 +67,7 @@ const SettingsSheet = ({ className }: Props) => {
 					<Label
 						htmlFor="debounce-time"
 						variant={autoApplySettings.autoApply ? "default" : "disabled"}
-						className="mb-4"
+						className="mb-3 text-xs"
 					>
 						Debounce time
 					</Label>
@@ -82,19 +82,20 @@ const SettingsSheet = ({ className }: Props) => {
 						units="ms"
 					/>
 				</div>
-				<Separator />
-				<div className="flex flex-col gap-4 w-full">
-					<h2 className="text-md font-semibold">Indentation</h2>
+				<div className="flex flex-col gap-4 w-full p-6">
+					<h2 className="text-sm font-semibold">Indentation</h2>
 					<div className="flex gap-8">
 						<div className="flex flex-col gap-2">
-							<Label htmlFor="json-tab-size">Data indent</Label>
+							<Label className="text-xs" htmlFor="json-tab-size">
+								Data indent
+							</Label>
 							<Select
 								value={formattingSettings.dataTabSize.toString()}
 								onValueChange={(value) =>
 									setSettings((prev) => setDataTabSize(prev, Number(value)))
 								}
 							>
-								<SelectTrigger className="w-24">
+								<SelectTrigger className="w-24 h-8">
 									<SelectValue id="json-tab-size" />
 								</SelectTrigger>
 								<SelectContent>
@@ -108,14 +109,16 @@ const SettingsSheet = ({ className }: Props) => {
 							</Select>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor="query-tab-size">Query indent</Label>
+							<Label className="text-xs" htmlFor="query-tab-size">
+								Query indent
+							</Label>
 							<Select
 								value={formattingSettings.queryTabSize.toString()}
 								onValueChange={(value) =>
 									setSettings((prev) => setQueryTabSize(prev, Number(value)))
 								}
 							>
-								<SelectTrigger className="w-24">
+								<SelectTrigger className="w-24 h-8">
 									<SelectValue id="query-tab-size" />
 								</SelectTrigger>
 								<SelectContent>
@@ -130,9 +133,9 @@ const SettingsSheet = ({ className }: Props) => {
 						</div>
 					</div>
 				</div>
-				<div className="mt-8 flex flex-col gap-4 w-full">
+				<div className="flex flex-col gap-4 w-full p-6">
 					<div className="flex gap-4 items-center">
-						<Label htmlFor="format-on-import" className="text-md font-semibold cursor-pointer">
+						<Label htmlFor="format-on-import" className="text-sm font-semibold cursor-pointer">
 							Format on import
 						</Label>
 						<Switch

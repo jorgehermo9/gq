@@ -6,7 +6,7 @@ import { type MouseEvent, forwardRef, useEffect, useRef, useState } from "react"
 import styles from "./button.module.css";
 
 const buttonVariants = cva(
-	"relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 transition-opacity",
+	"relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap text-sm font-medium focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 transition-all",
 	{
 		variants: {
 			variant: {
@@ -16,12 +16,13 @@ const buttonVariants = cva(
 				outline: "border border-accent-background bg-background",
 				secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				ghost: "",
+				subtle: "hover:bg-muted-transparent",
 				link: "text-primary underline-offset-4 hover:underline",
 			},
 			size: {
 				default: "h-10 px-4 py-2",
-				sm: "h-9 rounded-md px-3",
-				lg: "h-11 rounded-md px-8",
+				sm: "h-9 px-3",
+				lg: "h-11 px-8",
 				icon: "h-10 w-10",
 			},
 		},
@@ -36,10 +37,14 @@ export interface ButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement>,
 		VariantProps<typeof buttonVariants> {
 	asChild?: boolean;
+	containerClassName?: string;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-	({ className, variant, size, onClick, asChild = false, disabled, ...props }, ref) => {
+	(
+		{ containerClassName, className, variant, size, onClick, asChild = false, disabled, ...props },
+		ref,
+	) => {
 		const Comp = asChild ? Slot : "button";
 		const [isHover, setIsHover] = useState(false);
 		const containerRef = useRef<HTMLDivElement | null>(null);
@@ -60,7 +65,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 		const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 			if (disabled) return;
-			if (variant === "ghost") return onClick?.(e);
+			if (variant === "ghost" || variant === "subtle") return onClick?.(e);
 			const ripple = document.createElement("span");
 			const rect = e.currentTarget.getBoundingClientRect();
 			const size = Math.max(rect.width, rect.height);
@@ -88,7 +93,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 		}, [fillX, fillY]);
 
 		return (
-			<div ref={containerRef}>
+			<div ref={containerRef} className={containerClassName}>
 				<Comp
 					className={cn(buttonVariants({ variant, size, className }))}
 					ref={ref}

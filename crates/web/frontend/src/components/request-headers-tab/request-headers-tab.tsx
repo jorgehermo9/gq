@@ -41,14 +41,14 @@ const RequestHeadersTab = ({ headers, setHeaders }: RequestHeadersTabProps) => {
 				<div
 					// biome-ignore lint/suspicious/noArrayIndexKey: This is a controlled list
 					key={index}
-					className="flex gap-4 items-center"
+					className="flex items-center"
 				>
 					<Checkbox
 						checked={header[2]}
 						onCheckedChange={(checked) =>
 							checked !== "indeterminate" && updateHeaders(index, header[0], header[1], checked)
 						}
-						className="peer"
+						className="peer mr-4"
 					/>
 					<Input
 						type="text"
@@ -56,7 +56,7 @@ const RequestHeadersTab = ({ headers, setHeaders }: RequestHeadersTabProps) => {
 						value={header[0]}
 						list="header-list"
 						onChange={(e) => updateHeaders(index, e.target.value, header[1], header[2])}
-						className="w-1/2 p-2 border rounded-md mb-0 peer-data-[state=unchecked]:opacity-50 transition-opacity"
+						className="w-1/2 p-2 border mb-0 peer-data-[state=unchecked]:opacity-50 transition-opacity"
 					/>
 					<RequestHeadersDatalist id="header-list" />
 					<Input
@@ -64,11 +64,11 @@ const RequestHeadersTab = ({ headers, setHeaders }: RequestHeadersTabProps) => {
 						placeholder="Value"
 						value={header[1]}
 						onChange={(e) => updateHeaders(index, header[0], e.target.value, header[2])}
-						className="w-1/2 p-2 border rounded-md mb-0 peer-data-[state=unchecked]:opacity-50 transition-opacity"
+						className="w-1/2 p-2 border mb-0 peer-data-[state=unchecked]:opacity-50 transition-opacity"
 					/>
 					<Trash
 						className={cn(
-							"h-4 w-4 cursor-pointer pointer-events-auto transition-opacity opacity-100",
+							"h-4 w-4 ml-4 cursor-pointer pointer-events-auto transition-opacity opacity-100",
 							index === headers.length - 1 &&
 								!header[0] &&
 								!header[1] &&

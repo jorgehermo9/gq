@@ -32,7 +32,7 @@ export default function GlobalError({
 			>
 				<div
 					style={{ boxShadow: "0 60px 60px -90px var(--shadow-accent)" }}
-					className="flex flex-col items-center px-48 py-24 border border-accent-background rounded-lg bg-background"
+					className="flex flex-col items-center px-48 py-24 border rounded-lg bg-background"
 				>
 					<h2 className="text-4xl font-bold">Something went wrong!</h2>
 					<p className="text-sm font-light mt-4">

@@ -13,6 +13,10 @@ const globalShortcuts = (isMac: boolean) => [
 		description: "Apply the current query",
 		shortcut: `${isMac ? "⌘" : "Ctrl"} + Enter`,
 	},
+	{
+		description: "Toggle the left sidebar",
+		shortcut: `${isMac ? "⌘" : "Ctrl"} + B`,
+	},
 ];
 
 const editorShortcuts = (isMac: boolean) => [

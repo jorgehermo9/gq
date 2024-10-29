@@ -1,10 +1,12 @@
 import ActionButton from "@/components/action-button/action-button";
 import ExportPopover from "@/components/export-popover/export-popover";
 import ImportPopup from "@/components/import-popup/import-popup";
+import { cn } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
 import type { LoadingState } from "@/model/loading-state";
 import { Braces, Clipboard } from "lucide-react";
+import ApplyButton from "../apply-button/apply-button";
 
 interface Props {
 	currentType: FileType;
@@ -17,6 +19,7 @@ interface Props {
 	onExportFile: (filename: string) => void;
 	onChangeLoading: (loading: LoadingState) => void;
 	onError: (error: Error) => void;
+	onApply?: () => void;
 }
 
 const EditorMenu = ({
@@ -30,18 +33,19 @@ const EditorMenu = ({
 	onExportFile,
 	onChangeLoading,
 	onError,
+	onApply,
 }: Props) => {
 	return (
-		<div className="hidden sm:flex ml-auto items-center gap-4">
+		<div className="hidden sm:flex h-full">
 			<ActionButton
-				className="px-4 py-2"
+				className="px-4 h-full border-0 border-l"
 				description="Copy to clipboard"
 				onClick={onCopyToClipboard}
 			>
 				<Clipboard className="w-3.5 h-3.5" />
 			</ActionButton>
 			<ActionButton
-				className="px-4 py-2"
+				className="px-4 h-full border-0 border-l"
 				description="Format code"
 				onClick={onFormatCode}
 				hidden={!editable}
@@ -60,7 +64,9 @@ const EditorMenu = ({
 				defaultFilename={defaultFilename}
 				fileType={currentType}
 				onExportFile={onExportFile}
+				className={cn(onApply && "border-r")}
 			/>
+			<ApplyButton onClick={onApply} />
 		</div>
 	);
 };

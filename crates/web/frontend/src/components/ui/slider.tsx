@@ -26,7 +26,7 @@ const Slider = React.forwardRef<
 			</SliderPrimitive.Track>
 			<SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border-2 border-foreground shadow-md bg-background cursor-pointer ring-offset-background transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50" />
 		</SliderPrimitive.Root>
-		<span className="text-xs">{`${value?.[0]} ${units}`}</span>
+		<span className="text-xxs">{`${value?.[0]} ${units}`}</span>
 	</div>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;

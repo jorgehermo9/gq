@@ -20,8 +20,13 @@ const ShortcutPopup = () => {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<ActionButton description="Show keyboard shortcuts" className="p-3">
-					<Keyboard className="w-4 h-4" />
+				<ActionButton
+					className="h-full px-4"
+					description="Show keyboard shortcuts"
+					side="top"
+					variant="subtle"
+				>
+					<Keyboard className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
 			<DialogContent className="w-[34rem] max-w-[80vw] max-h-[80vh] overflow-y-auto gap-0">

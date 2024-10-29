@@ -1,14 +1,23 @@
 import ActionButton from "@/components/action-button/action-button";
-import { isMac } from "@/lib/utils";
+import { cn, isMac } from "@/lib/utils";
+import { useSettings } from "@/providers/settings-provider";
 import { CirclePlay, Play } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
 interface Props {
-	autoApply: boolean;
-	onClick: () => void;
+	onClick?: () => void;
+	className?: string;
 }
 
-const ApplyButton = ({ autoApply, onClick }: Props) => {
+const ApplyButton = ({ className, onClick }: Props) => {
+	if (!onClick) return null;
+
+	const {
+		settings: {
+			autoApplySettings: { autoApply },
+		},
+	} = useSettings();
+
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			if ((isMac ? e.metaKey : e.ctrlKey) && e.key === "Enter") {
@@ -27,18 +36,18 @@ const ApplyButton = ({ autoApply, onClick }: Props) => {
 	return autoApply ? (
 		<ActionButton
 			disabled
-			className="rounded-full p-4"
+			className={cn("h-full px-4 border-0", className)}
 			description="Auto applying the query. You can disable this feature in the settings."
 		>
-			<CirclePlay className="w-6 h-6" />
+			<CirclePlay className="w-4 h-4" />
 		</ActionButton>
 	) : (
 		<ActionButton
-			className="rounded-full p-4"
+			className={cn("h-full px-4 border-0", className)}
 			onClick={onClick}
 			description="Apply the query to the provided JSON"
 		>
-			<Play className="w-6 h-6" />
+			<Play className="w-4 h-4 text-accent" />
 		</ActionButton>
 	);
 };
