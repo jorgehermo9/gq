@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Fira_Mono, Montserrat } from "next/font/google";
 import { useEffect } from "react";
 import "./globals.css";
+import { deleteDatabase } from "@/services/queries/queries";
 
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
 const firaCode = Fira_Mono({
@@ -44,6 +45,7 @@ export default function GlobalError({
 						type="button"
 						onClick={() => {
 							localStorage.clear();
+							deleteDatabase();
 							window.location.reload();
 						}}
 					>

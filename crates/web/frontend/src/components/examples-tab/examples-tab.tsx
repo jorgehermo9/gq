@@ -72,7 +72,7 @@ const ExampleItem = ({ example, onClick }: ExampleItemProps) => {
 				description={example.description}
 			/>
 			<SimpleEditor
-				className="cursor-auto overflow-hidden"
+				className="cursor-auto overflow-hidden p-1"
 				onClick={(event) => event.stopPropagation()}
 				content={example.query}
 			/>
@@ -192,7 +192,7 @@ const ExamplesTab = ({ onClickExample, className }: Props) => {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-			<SidebarContent>
+			<SidebarContent className={className}>
 				<SidebarHeader>
 					<SidebarTitle>Query Examples</SidebarTitle>
 					<SidebarDescription>

@@ -8,6 +8,7 @@ import ExamplesTab from "../examples-tab/examples-tab";
 import SettingsSheet from "../settings-sheet/settings-sheet";
 import ShareTab from "../share-tab/share-tab";
 import ThemeButton from "../theme-button/theme-button";
+import HistoryTab from "../history-tab/history-tab";
 
 type Tab = "examples" | "share" | "history";
 
@@ -16,6 +17,8 @@ interface Props {
 	setOpen: (open: boolean) => void;
 	className?: string;
 	onClickExample: (json: Data, query: Data) => void;
+	onClickQuery: (queryContent: string) => void;
+	addNewQueryCallback: MutableRefObject<(queryContent: string) => void>;
 	inputContent: MutableRefObject<string>;
 	inputType: MutableRefObject<FileType>;
 	queryContent: MutableRefObject<string>;
@@ -28,6 +31,8 @@ export const LeftSidebar = ({
 	open,
 	setOpen,
 	onClickExample,
+	onClickQuery,
+	addNewQueryCallback,
 	inputContent,
 	inputType,
 	queryContent,
@@ -65,7 +70,7 @@ export const LeftSidebar = ({
 			<div className="h-full w-16 flex flex-col items-center justify-between border-r">
 				<div className="flex flex-col w-full">
 					<ActionButton
-						className={cn("w-full h-12", selectedTab === "share" && "bg-muted-transparent")}
+						className={cn("w-full h-12", selectedTab === "share" && "bg-muted")}
 						description="Share your playground"
 						variant="subtle"
 						side="right"
@@ -76,10 +81,11 @@ export const LeftSidebar = ({
 						/>
 					</ActionButton>
 					<ActionButton
-						className={cn("w-full h-12", selectedTab === "history" && "bg-muted-transparent")}
+						className={cn("w-full h-12", selectedTab === "history" && "bg-muted")}
 						description="Show query history"
 						variant="subtle"
 						side="right"
+						onClick={() => handleClick("history")}
 					>
 						<History
 							className={cn(
@@ -89,7 +95,7 @@ export const LeftSidebar = ({
 						/>
 					</ActionButton>
 					<ActionButton
-						className={cn("w-full h-12", selectedTab === "examples" && "bg-muted-transparent")}
+						className={cn("w-full h-12", selectedTab === "examples" && "bg-muted")}
 						side="right"
 						description="Show query examples"
 						variant="subtle"
@@ -112,18 +118,24 @@ export const LeftSidebar = ({
 				className={`${open ? "max-w-96 border-r" : "max-w-0 border-0"} transition-all overflow-y-auto overflow-x-hidden`}
 			>
 				<div className="w-96 h-full">
-					{selectedTab === "examples" && <ExamplesTab onClickExample={onClickExample} />}
-					{selectedTab === "share" && (
-						<ShareTab
-							inputContent={inputContent}
-							inputType={inputType}
-							queryContent={queryContent}
-							outputType={outputType}
-							shareLink={shareLink}
-							setShareLink={setShareLink}
-						/>
-					)}
-					{selectedTab === "settings" && <SettingsSheet />}
+					<ExamplesTab
+						className={cn(selectedTab === "examples" ? "block" : "hidden")}
+						onClickExample={onClickExample}
+					/>
+					<ShareTab
+						className={cn(selectedTab === "share" ? "block" : "hidden")}
+						inputContent={inputContent}
+						inputType={inputType}
+						queryContent={queryContent}
+						outputType={outputType}
+						shareLink={shareLink}
+						setShareLink={setShareLink}
+					/>
+					<HistoryTab
+						className={cn(selectedTab === "history" ? "block" : "hidden")}
+						onClickQuery={onClickQuery}
+						addNewQueryCallback={addNewQueryCallback}
+					/>
 				</div>
 			</div>
 		</div>

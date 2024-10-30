@@ -20,6 +20,7 @@ interface ShareTabProps {
 	outputType: MutableRefObject<FileType>;
 	shareLink: string | undefined;
 	setShareLink: (shareLink?: string) => void;
+	className?: string;
 }
 
 const ShareTab = ({
@@ -29,6 +30,7 @@ const ShareTab = ({
 	outputType,
 	shareLink,
 	setShareLink,
+	className,
 }: ShareTabProps) => {
 	const [expirationTime, setExpirationTime] = useState<ExpirationTime>("1 hour");
 	const [selectedExpirationTime, setSelectedExpirationTime] = useState<ExpirationTime>();
@@ -62,7 +64,7 @@ const ShareTab = ({
 	);
 
 	return (
-		<SidebarContent>
+		<SidebarContent className={className}>
 			<SidebarHeader>
 				<div className="flex items-center gap-2">
 					<SidebarTitle>Share your playground</SidebarTitle>
@@ -73,9 +75,9 @@ const ShareTab = ({
 						<TooltipContent className="w-96 font-normal p-4" side="bottom">
 							<span>
 								When generating a sharable link,{" "}
-								<span className="font-semibold">
+								<strong>
 									the content of the input json and the query will be saved in the server
-								</span>{" "}
+								</strong>{" "}
 								until the expiration time is reached
 							</span>
 						</TooltipContent>
@@ -99,19 +101,19 @@ const ShareTab = ({
 					>
 						<div className="flex items-center">
 							<RadioGroupItem value="1 hour" id="1-hour" />
-							<Label className="pl-2" htmlFor="1-hour">
+							<Label className="pl-2 cursor-pointer" htmlFor="1-hour">
 								1 hour
 							</Label>
 						</div>
 						<div className="flex items-center">
 							<RadioGroupItem value="1 day" id="1-day" />
-							<Label className="pl-2" htmlFor="1-day">
+							<Label className="pl-2 cursor-pointer" htmlFor="1-day">
 								1 day
 							</Label>
 						</div>
 						<div className="flex items-center">
 							<RadioGroupItem value="1 week" id="1-week" />
-							<Label className="pl-2" htmlFor="1-week">
+							<Label className="pl-2 cursor-pointer" htmlFor="1-week">
 								1 week
 							</Label>
 						</div>

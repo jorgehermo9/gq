@@ -10,7 +10,7 @@ import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import CodeMirror, { type Extension } from "@uiw/react-codemirror";
 import { TriangleAlert } from "lucide-react";
-import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from "react";
+import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorConsole from "../editor-console/editor-console";
 import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
@@ -79,7 +79,7 @@ const Editor = ({
 	const [type, setType] = useState<FileType>(fileTypes[0]);
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
-	const [focused, onChangeFocused] = useState(false);
+	const focused = useRef(false); // Ref to avoid rerendering
 	const {
 		settings: {
 			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },
@@ -126,7 +126,7 @@ const Editor = ({
 				handleFormatCode(content, type);
 			}
 		},
-		[focused, handleFormatCode, content, type],
+		[handleFormatCode, content, type],
 	);
 
 	const handleChangeFileType = useCallback(
@@ -185,6 +185,10 @@ const Editor = ({
 		() => getCodemirrorExtensionsByFileType(type, completionSource),
 		[type, completionSource],
 	);
+
+	const onChangeFocused = useCallback((value: boolean) => {
+		focused.current = value;
+	}, []);
 
 	return (
 		<div

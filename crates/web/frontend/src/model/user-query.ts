@@ -1,5 +1,5 @@
 export type UserQuery = {
-	id: number;
+	id?: number;
 	timestamp: number;
 	content: string;
 };

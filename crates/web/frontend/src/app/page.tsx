@@ -76,6 +76,7 @@ const Home = () => {
 	const [isApplying, setIsApplying] = useState(false);
 	const [shareLink, setShareLink] = useState<string>();
 	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const addNewQueryCallback = useRef<(queryContent: string) => void>(i);
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
@@ -95,6 +96,7 @@ const Home = () => {
 			silent = true,
 			outputTypeOverride?: FileType,
 		) => {
+			addNewQueryCallback.current(queryContent);
 			if (!gqWorker || isApplying) return;
 			setIsApplying(true);
 			outputEditorLoadingCallback.current(
@@ -132,6 +134,10 @@ const Home = () => {
 		},
 		[updateOutputData],
 	);
+
+	const handleClickQuery = useCallback((queryContent: string) => {
+		updateQueryEditorCallback.current(new Data(queryContent, FileType.GQ));
+	}, []);
 
 	const handleChangeInputDataFileType = useCallback(
 		(fileType: FileType) => {
@@ -186,6 +192,8 @@ const Home = () => {
 				open={sidebarOpen}
 				setOpen={setSidebarOpen}
 				onClickExample={handleClickExample}
+				onClickQuery={handleClickQuery}
+				addNewQueryCallback={addNewQueryCallback}
 				inputContent={inputContent}
 				inputType={inputType}
 				queryContent={queryContent}

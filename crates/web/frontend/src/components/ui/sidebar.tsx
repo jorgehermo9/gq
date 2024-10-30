@@ -19,7 +19,7 @@ export const SidebarHeader = ({
 }: React.HTMLProps<HTMLDivElement>) => {
 	return (
 		<div
-			className={cn("p-6 flex flex-col space-y-1.5 text-center sm:text-left", className)}
+			className={cn("p-4 flex flex-col space-y-1.5 text-center sm:text-left", className)}
 			{...props}
 		>
 			{children}

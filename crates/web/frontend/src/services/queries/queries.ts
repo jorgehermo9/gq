@@ -1,7 +1,7 @@
 import type { UserQuery } from "@/model/user-query";
-import { type IDBPDatabase, openDB } from "idb";
+import { deleteDB, type IDBPDatabase, openDB } from "idb";
 
-const DB_NAME = "gqDB";
+const DB_NAME = "gq";
 const DB_VERSION = 1;
 const STORE_NAME = "queries";
 
@@ -22,17 +22,20 @@ export const getDatabase = (): Promise<IDBPDatabase> => {
 	return dbConnection;
 };
 
-export const addQuery = async (content: string) => {
+export const addQuery = async (content: string): Promise<UserQuery> => {
 	const database = await getDatabase();
 	const tx = database.transaction(STORE_NAME, "readwrite");
 	const store = tx.objectStore(STORE_NAME);
-	await store.add({ timestamp: Date.now(), content });
+	const userQuery: UserQuery = { timestamp: Date.now(), content };
+	await store.add(userQuery);
 	await tx.done;
+	return userQuery;
 };
 
 export const getPaginatedQueries = async (page = 0, limit = 10): Promise<UserQuery[]> => {
 	const database = await getDatabase();
-	const store = database.transaction(STORE_NAME, "readonly").store;
+	const tx = database.transaction(STORE_NAME, "readonly");
+	const store = tx.store;
 	const index = store.index("timestamp");
 
 	const items: UserQuery[] = [];
@@ -47,6 +50,7 @@ export const getPaginatedQueries = async (page = 0, limit = 10): Promise<UserQue
 		skipped++;
 	}
 
+	await tx.done;
 	return items;
 };
 
@@ -73,4 +77,8 @@ export const deleteQuery = async (id: number) => {
 	const store = tx.objectStore(STORE_NAME);
 	await store.delete(id);
 	await tx.done;
+};
+
+export const deleteDatabase = async () => {
+	await deleteDB(DB_NAME);
 };
