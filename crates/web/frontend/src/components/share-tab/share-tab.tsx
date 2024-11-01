@@ -151,7 +151,7 @@ const ShareTab = ({
 							value={shareLink}
 						/>
 						<ActionButton
-							className="px-4 py-2 h-10 rounded-l-none"
+							className="px-4 py-2 h-10 border-r-0"
 							description="Copy to clipboard"
 							variant="outline"
 							onClick={() => copyToClipboard(shareLink)}

@@ -85,7 +85,7 @@ const Home = () => {
 		},
 		setSettings,
 	} = useSettings();
-	const debounce = useDebounce(debounceTime);
+	const debounce = useDebounce();
 	const { gqWorker, lspWorker } = useWorker();
 
 	const updateOutputData = useCallback(
@@ -96,7 +96,6 @@ const Home = () => {
 			silent = true,
 			outputTypeOverride?: FileType,
 		) => {
-			addNewQueryCallback.current(queryContent);
 			if (!gqWorker || isApplying) return;
 			setIsApplying(true);
 			outputEditorLoadingCallback.current(
@@ -112,6 +111,7 @@ const Home = () => {
 					gqWorker,
 					silent,
 				);
+				addNewQueryCallback.current(queryContent);
 				setErrorMessage(undefined);
 				updateOutputEditorCallback.current(result);
 			} catch (err) {
@@ -155,6 +155,7 @@ const Home = () => {
 		[linkEditors],
 	);
 
+	// TODO: Handle linked editors
 	const handleChangeLinked = useCallback(() => {
 		setSettings((prev) => setLinkEditors(prev, !linkEditors));
 		notify.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
@@ -168,7 +169,7 @@ const Home = () => {
 				getQueryCompletionSource(lspWorker, new Data(content, inputType.current)),
 			);
 			autoApply &&
-				debounce(() =>
+				debounce(debounceTime, () =>
 					updateOutputData(content, inputType.current, queryContent.current, debounceTime < 500),
 				);
 		},
@@ -179,7 +180,7 @@ const Home = () => {
 		(content: string) => {
 			setShareLink(undefined);
 			autoApply &&
-				debounce(() =>
+				debounce(debounceTime, () =>
 					updateOutputData(inputContent.current, inputType.current, content, debounceTime < 500),
 				);
 		},

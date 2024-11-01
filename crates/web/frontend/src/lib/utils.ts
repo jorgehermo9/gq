@@ -34,6 +34,10 @@ export const copyToClipboard = (content: string) => {
 	notify.success("Copied to your clipboard!");
 };
 
+export const countLines = (text: string) => {
+	return text.split("\n").length;
+};
+
 export const statusTextMap = new Map([
 	[200, "OK"],
 	[201, "Created"],

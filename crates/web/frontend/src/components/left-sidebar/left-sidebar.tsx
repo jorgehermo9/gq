@@ -115,9 +115,9 @@ export const LeftSidebar = ({
 				</div>
 			</div>
 			<div
-				className={`${open ? "max-w-96 border-r" : "max-w-0 border-0"} transition-all overflow-y-auto overflow-x-hidden`}
+				className={`${open ? "max-w-96 border-r" : "max-w-0 border-0"} transition-all overflow-hidden`}
 			>
-				<div className="w-96 h-full">
+				<div className="w-96 h-full overflow-y-auto overflow-x-hidden">
 					<ExamplesTab
 						className={cn(selectedTab === "examples" ? "block" : "hidden")}
 						onClickExample={onClickExample}

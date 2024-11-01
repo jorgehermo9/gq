@@ -1,12 +1,12 @@
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 
-const useDebounce = (delay: number) => {
+const useDebounce = () => {
 	const timer = useRef<NodeJS.Timeout>();
 
-	const debounce = (callback: () => void) => {
+	const debounce = useCallback((delay: number, callback: () => void) => {
 		timer.current && clearTimeout(timer.current);
 		timer.current = setTimeout(() => callback(), delay);
-	};
+	}, []);
 
 	return debounce;
 };

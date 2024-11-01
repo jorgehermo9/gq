@@ -146,6 +146,7 @@ const ExamplesTab = ({ onClickExample, className }: Props) => {
 		localStorage.setItem("onboarding", "done");
 	}, []);
 
+	// TODO: Handle onboarding
 	// const handleOpenChange = useCallback(
 	// 	(open: boolean) => {
 	// 		onboardingVisible && handleCloseOnboarding();

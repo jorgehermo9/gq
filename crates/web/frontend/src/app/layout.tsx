@@ -29,7 +29,6 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={cn("min-h-screen antialiased", montserrat.variable, firaCode.variable)}>
 				<Toaster
-					offset="32px"
 					duration={2000}
 					visibleToasts={4}
 					expand={false}

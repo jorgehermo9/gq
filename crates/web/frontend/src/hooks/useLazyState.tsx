@@ -8,17 +8,17 @@ function useLazyState<S>(
 ): [S, (newState: S) => void, S] {
 	const [state, setState] = useState<S>(initialState);
 	const stateRef = useRef<S>(initialState);
-	const debounce = useDebounce(delay);
+	const debounce = useDebounce();
 
 	const setLazyState = useCallback(
 		(newState: S) => {
 			stateRef.current = newState;
-			debounce(() => {
+			debounce(delay, () => {
 				setState(newState);
 				onChangeCallback?.(newState);
 			});
 		},
-		[debounce, onChangeCallback],
+		[delay, debounce, onChangeCallback],
 	);
 
 	return [state, setLazyState, stateRef.current];
