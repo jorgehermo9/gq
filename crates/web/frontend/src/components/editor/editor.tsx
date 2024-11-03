@@ -79,7 +79,7 @@ const Editor = ({
 	const [type, setType] = useState<FileType>(fileTypes[0]);
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
-	const focused = useRef(false); // Ref to avoid rerendering TODO: This is not working
+	const focused = useRef(false); // Ref to avoid rerendering
 	const {
 		settings: {
 			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },
@@ -88,7 +88,6 @@ const Editor = ({
 	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = type === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = content.length < MAX_RENDER_SIZE;
-	// const borderRepeatDelay = Math.random() * 5 + 15;
 
 	const handleFormatCode = useCallback(
 		async (cont: string, type: FileType) => {
@@ -120,7 +119,7 @@ const Editor = ({
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
-			if (!focused) return;
+			if (!focused.current) return;
 			if ((isMac ? event.metaKey : event.ctrlKey) && (event.key === "s" || event.key === "S")) {
 				event.preventDefault();
 				handleFormatCode(content, type);
@@ -186,7 +185,7 @@ const Editor = ({
 		[type, completionSource],
 	);
 
-	const onChangeFocused = useCallback((value: boolean) => {
+	const handleChangeFocused = useCallback((value: boolean) => {
 		focused.current = value;
 	}, []);
 
@@ -248,8 +247,8 @@ const Editor = ({
 				>
 					{available ? (
 						<CodeMirror
-							onFocus={() => onChangeFocused(true)}
-							onBlur={() => onChangeFocused(false)}
+							onFocus={() => handleChangeFocused(true)}
+							onBlur={() => handleChangeFocused(false)}
 							className="w-full h-full text-xs overflow-hidden"
 							value={instantContent}
 							onChange={setContent}

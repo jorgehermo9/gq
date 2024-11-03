@@ -43,7 +43,7 @@ const ExportPopover = ({ defaultFilename, fileType, onExportFile, className }: P
 					<DownloadCloud className="w-3.5 h-3.5" />
 				</ActionButton>
 			</PopoverTrigger>
-			<PopoverContent className="w-[22rem] max-w-[80vw]">
+			<PopoverContent className="w-[22rem] max-w-[80vw]" align="end">
 				<PopoverHeader className="p-4">
 					<PopoverTitle>Export to file</PopoverTitle>
 					<PopoverDescription>

@@ -75,7 +75,6 @@ export const groupQueries = (queries: UserQuery[]): GroupedQueries => {
 		while (query.timestamp < stepsTimestamps[currentStep].timestamp) {
 			currentStep++;
 		}
-		console.log(currentStep);
 		const step = stepsTimestamps[currentStep];
 		const stepKey = step.label;
 		if (!groupedQueries[stepKey]) {

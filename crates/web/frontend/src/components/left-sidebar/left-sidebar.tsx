@@ -6,9 +6,10 @@ import { type MutableRefObject, useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import ExamplesTab from "../examples-tab/examples-tab";
 import HistoryTab from "../history-tab/history-tab";
-import SettingsTab from "../settings-sheet/settings-sheet";
+import SettingsTab from "../settings-tab/settings-tab";
 import ShareTab from "../share-tab/share-tab";
 import ThemeButton from "../theme-button/theme-button";
+import { string } from "zod";
 
 type Tab = "examples" | "share" | "history" | "settings";
 
