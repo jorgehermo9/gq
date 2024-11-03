@@ -155,10 +155,9 @@ const Home = () => {
 		[linkEditors],
 	);
 
-	// TODO: Handle linked editors
-	const handleChangeLinked = useCallback(() => {
+	const handleToggleLinked = useCallback(() => {
 		setSettings((prev) => setLinkEditors(prev, !linkEditors));
-		notify.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
+		notify.info(`Editors ${linkEditors ? "unlinked" : "linked"}!`);
 		if (!linkEditors) convertOutputEditorCallback.current(inputType.current);
 	}, [linkEditors, setSettings]);
 
@@ -240,29 +239,6 @@ const Home = () => {
 							contentRef={queryContent}
 						/>
 					</aside>
-					{/* <div className="h-full w-16 bg-background flex flex-col justify-center border-x">
-						<ActionButton
-							className={cn(
-								"p-2 min-w-max border-2",
-								linkEditors ? "border-accent" : "border-accent-background",
-							)}
-							description={`${linkEditors ? "Link" : "Unlink"} input and output editor file types`}
-							onClick={handleChangeLinked}
-						>
-							{linkEditors ? <Link2 className="w-3 h-3" /> : <Link2Off className="w-3 h-3" />}
-						</ActionButton>
-						<ApplyButton
-							autoApply={autoApply}
-							onClick={() =>
-								updateOutputData(
-									inputContent.current,
-									inputType.current,
-									queryContent.current,
-									false,
-								)
-							}
-						/>
-					</div> */}
 					<aside className="flex flex-col">
 						<Editor
 							width={`calc(50vw - 32px ${sidebarOpen ? "- 192px" : ""})`}
@@ -283,7 +259,11 @@ const Home = () => {
 						/>
 					</aside>
 				</section>
-				<Footer className="h-10" />
+				<Footer
+					className="h-10"
+					linkEditors={linkEditors}
+					handleToggleLinked={handleToggleLinked}
+				/>
 				<Suspense>
 					<ShareLoader
 						updateInputEditorCallback={updateInputEditorCallback}

@@ -43,15 +43,17 @@ const ExportPopover = ({ defaultFilename, fileType, onExportFile, className }: P
 					<DownloadCloud className="w-3.5 h-3.5" />
 				</ActionButton>
 			</PopoverTrigger>
-			<PopoverContent className="w-[22rem] max-w-[80vw] p-0">
-				<PopoverHeader className="p-4 pb-0">
+			<PopoverContent className="w-[22rem] max-w-[80vw]">
+				<PopoverHeader className="p-4">
 					<PopoverTitle>Export to file</PopoverTitle>
 					<PopoverDescription>
 						Export the content of the editor to a file with a custom name
 					</PopoverDescription>
 				</PopoverHeader>
-				<form onSubmit={handleSubmit} autoComplete="off" className="mt-4">
-					<Label htmlFor="filename">File Name</Label>
+				<form onSubmit={handleSubmit} autoComplete="off">
+					<Label className="block mb-2 px-4" htmlFor="filename">
+						File Name
+					</Label>
 					<div className="flex items-center">
 						<Input
 							id="filename"
@@ -60,7 +62,7 @@ const ExportPopover = ({ defaultFilename, fileType, onExportFile, className }: P
 							minLength={1}
 							maxLength={255}
 							placeholder="Enter file name"
-							className="w-full mt-2"
+							className="w-full m-0 border-x-0"
 							value={fileName}
 							onChange={(e) => setFileName(e.target.value)}
 						/>
@@ -68,8 +70,7 @@ const ExportPopover = ({ defaultFilename, fileType, onExportFile, className }: P
 							.{getFileExtensions(fileType)[0]}
 						</span>
 					</div>
-
-					<Button className="px-6 w-full border-0 border-t" variant="outline" type="submit">
+					<Button className="px-6 w-full border-0" variant="outline" type="submit">
 						Export
 					</Button>
 				</form>

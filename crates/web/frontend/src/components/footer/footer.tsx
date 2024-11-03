@@ -1,30 +1,31 @@
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import ShortcutPopup from "../shortcut-popup/shortcut-popup";
 import StarCount from "../star-count/star-count";
+import ActionButton from "../action-button/action-button";
+import { Link, Link2, Link2Off, Unlink } from "lucide-react";
+import { WebAssemblyBadge } from "../web-assembly-badge/web-assembly-badge";
+import { LinkEditor } from "../link-editor/link-editor";
 
 interface FooterProps {
+	linkEditors: boolean;
+	handleToggleLinked: () => void;
 	className?: string;
 }
 
-const Footer = ({ className }: FooterProps) => {
+const Footer = ({ linkEditors, handleToggleLinked, className }: FooterProps) => {
 	return (
 		<footer className={cn("w-full flex justify-between border-t bg-background", className)}>
 			<div className="flex">
-				<ShortcutPopup />
+				<ShortcutPopup className="h-full px-4" />
+				<LinkEditor
+					linkEditors={linkEditors}
+					handleToggleLinked={handleToggleLinked}
+					className="h-full px-4"
+				/>
 			</div>
 			<div className="flex">
-				<StarCount />
-				<div className="flex items-center px-4">
-					<span className="text-xxs font-mono font-normal">Powered by</span>
-					<Image
-						className="ml-2 inline mb-[2px]"
-						src="/web-assembly-icon.svg"
-						alt="GQ Logo"
-						width={12}
-						height={12}
-					/>
-				</div>
+				<StarCount className="h-full px-4" />
+				<WebAssemblyBadge className="h-full px-4" />
 			</div>
 		</footer>
 	);

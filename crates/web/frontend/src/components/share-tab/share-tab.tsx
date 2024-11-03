@@ -156,7 +156,7 @@ const ShareTab = ({
 							variant="outline"
 							onClick={() => copyToClipboard(shareLink)}
 						>
-							<Clipboard className="w-3.5 h-3.5" />
+							<Clipboard className="w-3 h-3" />
 						</ActionButton>
 					</div>
 					<div className="flex items-center gap-2 mt-4 px-6">

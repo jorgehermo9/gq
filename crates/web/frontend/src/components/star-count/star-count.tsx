@@ -33,13 +33,13 @@ const StarCount = ({ className }: Props) => {
 	return (
 		<ActionButton
 			description="Check the GQ Github repository"
-			className=" mb-[1px] px-4 h-full"
+			className={className}
 			variant="subtle"
 		>
 			<a
 				href="https://github.com/jorgehermo9/gq"
 				onClick={handleClick}
-				className={cn(className, "flex items-center select-none")}
+				className="flex items-center select-none"
 			>
 				<Github className="w-3.5 h-3.5 mr-1" />
 				{fetching ? (

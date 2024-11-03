@@ -1,16 +1,16 @@
 import { cn, isMac } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
-import { Book, History, Share } from "lucide-react";
+import { Book, History, Settings, Share } from "lucide-react";
 import { type MutableRefObject, useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import ExamplesTab from "../examples-tab/examples-tab";
-import SettingsSheet from "../settings-sheet/settings-sheet";
+import HistoryTab from "../history-tab/history-tab";
+import SettingsTab from "../settings-sheet/settings-sheet";
 import ShareTab from "../share-tab/share-tab";
 import ThemeButton from "../theme-button/theme-button";
-import HistoryTab from "../history-tab/history-tab";
 
-type Tab = "examples" | "share" | "history";
+type Tab = "examples" | "share" | "history" | "settings";
 
 interface Props {
 	open: boolean;
@@ -111,7 +111,20 @@ export const LeftSidebar = ({
 				</div>
 				<div className="flex flex-col w-full">
 					<ThemeButton className="w-full h-12" />
-					<SettingsSheet className="w-full h-12" />
+					<ActionButton
+						className={cn("w-full h-12", selectedTab === "settings" && "bg-muted")}
+						side="right"
+						description="Show playground settings"
+						variant="subtle"
+						onClick={() => handleClick("settings")}
+					>
+						<Settings
+							className={cn(
+								"w-4 h-4 transition-opacity",
+								selectedTab !== "settings" && "opacity-80",
+							)}
+						/>
+					</ActionButton>
 				</div>
 			</div>
 			<div
@@ -136,6 +149,7 @@ export const LeftSidebar = ({
 						onClickQuery={onClickQuery}
 						addNewQueryCallback={addNewQueryCallback}
 					/>
+					<SettingsTab className={cn(selectedTab === "settings" ? "block" : "hidden")} />
 				</div>
 			</div>
 		</div>

@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Trash } from "lucide-react";
 import { useCallback } from "react";
+import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import RequestHeadersDatalist from "./request-headers-datalist";
@@ -36,21 +37,22 @@ const RequestHeadersTab = ({ headers, setHeaders }: RequestHeadersTabProps) => {
 	);
 
 	return (
-		<div className="flex flex-col pr-4 gap-2">
+		<div className="flex flex-col gap-2 overflow-y-auto">
 			{headers.map((header, index) => (
 				<div
 					// biome-ignore lint/suspicious/noArrayIndexKey: This is a controlled list
 					key={index}
-					className="flex items-center"
+					className="flex items-center group overflow-x-hidden"
 				>
 					<Checkbox
 						checked={header[2]}
 						onCheckedChange={(checked) =>
 							checked !== "indeterminate" && updateHeaders(index, header[0], header[1], checked)
 						}
-						className="peer mr-4"
+						className="w-4 peer mr-4"
 					/>
 					<Input
+						style={{ minWidth: "calc(50% - 1rem)" }}
 						type="text"
 						placeholder="Header"
 						value={header[0]}
@@ -66,16 +68,20 @@ const RequestHeadersTab = ({ headers, setHeaders }: RequestHeadersTabProps) => {
 						onChange={(e) => updateHeaders(index, header[0], e.target.value, header[2])}
 						className="w-1/2 p-2 border mb-0 peer-data-[state=unchecked]:opacity-50 transition-opacity"
 					/>
-					<Trash
+					<div
 						className={cn(
-							"h-4 w-4 ml-4 cursor-pointer pointer-events-auto transition-opacity opacity-100",
-							index === headers.length - 1 &&
-								!header[0] &&
-								!header[1] &&
-								"opacity-0 pointer-events-none",
+							"max-w-0 group-hover:max-w-10 transition-all peer-data-[state=unchecked]:opacity-50",
+							index === headers.length - 1 && !header[0] && !header[1] && "hidden",
 						)}
-						onClick={() => deleteHeaders(index)}
-					/>
+					>
+						<Button
+							className="h-10 w-10 p-0 border-l-0 transition-opacity opacity-100"
+							variant="outline"
+							onClick={() => deleteHeaders(index)}
+						>
+							<Trash className={cn("h-3 w-3")} />
+						</Button>
+					</div>
 				</div>
 			))}
 			{/* <Button className="block mx-auto mt-2 px-2 py-2 text-xs h-auto" variant="outline">

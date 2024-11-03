@@ -1,8 +1,6 @@
-import { MAX_QUERY_SIZE } from "@/lib/constants";
+import { MAX_HISTORY_SIZE, MAX_QUERY_SIZE } from "@/lib/constants";
 import type { UserQuery } from "@/model/user-query";
-import { deleteDB, type IDBPDatabase, openDB } from "idb";
-import { skip } from "node:test";
-import { boolean } from "zod";
+import { type IDBPDatabase, deleteDB, openDB } from "idb";
 
 const DB_NAME = "gq";
 const DB_VERSION = 1;
@@ -25,24 +23,31 @@ export const getDatabase = (): Promise<IDBPDatabase> => {
 	return dbConnection;
 };
 
-export const addQuery = async (content: string): Promise<UserQuery | undefined> => {
-	// TODO: Handle MAX_HISTORY_SIZE
-	if (!content || content.length > MAX_QUERY_SIZE) return;
-	const lastQuery = (await getPaginatedQueries(0, 1))[0][0];
-	if (lastQuery?.content === content) return; // Avoid adding consecutive duplicated queries
+export const addQuery = async (
+	content: string,
+): Promise<[UserQuery | undefined, UserQuery | undefined]> => {
+	if (!content || content.length > MAX_QUERY_SIZE) return [undefined, undefined];
+	const newestQuery = (await getPaginatedQueries(0, 1))[0][0];
+	if (newestQuery?.content === content) return [undefined, undefined]; // Avoid adding consecutive duplicated queries
+	let oldestQuery: UserQuery | undefined;
+	if ((await countQueries()) >= MAX_HISTORY_SIZE) {
+		oldestQuery = (await getPaginatedQueries(0, 1, undefined, false))[0][0];
+		oldestQuery && (await deleteQuery(oldestQuery.id));
+	}
 	const database = await getDatabase();
 	const tx = database.transaction(STORE_NAME, "readwrite");
 	const store = tx.objectStore(STORE_NAME);
 	const now = Date.now();
 	const key = await store.add({ timestamp: now, content });
 	await tx.done;
-	return { id: Number(key.valueOf()), timestamp: now, content };
+	return [{ id: Number(key.valueOf()), timestamp: now, content }, oldestQuery];
 };
 
 export const getPaginatedQueries = async (
-	page = 0,
-	limit = 10,
+	page: number,
+	limit: number,
 	query?: string,
+	reverse = true,
 ): Promise<[UserQuery[], hasMore: boolean]> => {
 	const database = await getDatabase();
 	const tx = database.transaction(STORE_NAME, "readonly");
@@ -50,7 +55,7 @@ export const getPaginatedQueries = async (
 	const index = store.index("timestamp");
 
 	const items: UserQuery[] = [];
-	let cursor = await index.openCursor(null, "prev");
+	let cursor = await index.openCursor(null, reverse ? "prev" : "next");
 	let skipped = 0;
 	let hasMore = false;
 
@@ -81,4 +86,13 @@ export const deleteQuery = async (id: number) => {
 
 export const deleteDatabase = async () => {
 	await deleteDB(DB_NAME);
+};
+
+const countQueries = async (): Promise<number> => {
+	const database = await getDatabase();
+	const tx = database.transaction(STORE_NAME, "readonly");
+	const store = tx.objectStore(STORE_NAME);
+	const count = await store.count();
+	await tx.done;
+	return count;
 };

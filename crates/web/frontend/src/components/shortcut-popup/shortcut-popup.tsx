@@ -14,14 +14,18 @@ import Link from "../ui/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { shortcutSections } from "./shortcuts";
 
-const ShortcutPopup = () => {
+interface Props {
+	className?: string;
+}
+
+const ShortcutPopup = ({ className }: Props) => {
 	const [open, setOpen] = useState(false);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<ActionButton
-					className="h-full px-4"
+					className={className}
 					description="Show keyboard shortcuts"
 					side="top"
 					variant="subtle"
@@ -29,7 +33,7 @@ const ShortcutPopup = () => {
 					<Keyboard className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
-			<DialogContent className="w-[34rem] max-w-[80vw] max-h-[80vh] overflow-y-auto gap-0">
+			<DialogContent className="w-[34rem] max-w-[80vw] max-h-[80vh] overflow-y-auto gap-0 pb-6">
 				<X
 					className="absolute top-4 right-4 h-4 w-4 cursor-pointer"
 					onClick={() => setOpen(false)}
@@ -40,29 +44,34 @@ const ShortcutPopup = () => {
 						Check all available keyboard shortcuts to improve your efficiency
 					</DialogDescription>
 				</DialogHeader>
-				{shortcutSections(isMac).map((shortcutSection) => (
-					<div className="mt-8" key={shortcutSection.title}>
-						<h3 className="font-semibold mb-1">{shortcutSection.title}</h3>
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Description</TableHead>
-									<TableHead className="text-right">Shortcut</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{shortcutSection.shortcuts.map((shortcut) => (
-									<TableRow key={shortcut.description}>
-										<TableCell className="text-sm">{shortcut.description}</TableCell>
-										<TableCell className="text-right">
-											<code className="py-1 text-sm">{shortcut.shortcut}</code>
-										</TableCell>
+				<div className="flex flex-col gap-8">
+					{shortcutSections(isMac).map((shortcutSection) => (
+						<div key={shortcutSection.title}>
+							<div className="flex py-4 px-6 gap-2 items-center text-accent">
+								{shortcutSection.icon}
+								<h4 className="font-semibold">{shortcutSection.title}</h4>
+							</div>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Description</TableHead>
+										<TableHead className="text-right">Shortcut</TableHead>
 									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					</div>
-				))}
+								</TableHeader>
+								<TableBody>
+									{shortcutSection.shortcuts.map((shortcut) => (
+										<TableRow key={shortcut.description}>
+											<TableCell className="text-sm">{shortcut.description}</TableCell>
+											<TableCell className="text-right">
+												<code className="py-1 text-sm">{shortcut.shortcut}</code>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					))}
+				</div>
 				<div className="flex gap-1 justify-center items-center mt-3">
 					<Link
 						href="https://codemirror.net/5/doc/manual.html#commands"

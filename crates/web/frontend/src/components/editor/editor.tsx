@@ -79,7 +79,7 @@ const Editor = ({
 	const [type, setType] = useState<FileType>(fileTypes[0]);
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
-	const focused = useRef(false); // Ref to avoid rerendering
+	const focused = useRef(false); // Ref to avoid rerendering TODO: This is not working
 	const {
 		settings: {
 			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },

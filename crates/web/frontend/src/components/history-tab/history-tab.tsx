@@ -1,17 +1,17 @@
-import { SidebarContent, SidebarDescription, SidebarHeader, SidebarTitle } from "../ui/sidebar";
-import { Input } from "../ui/input";
-import { MutableRefObject, useCallback, useEffect, useState } from "react";
 import useDebounce from "@/hooks/useDebounce";
-import { UserQuery } from "@/model/user-query";
-import { addQuery, deleteQuery, getPaginatedQueries } from "@/services/queries/queries";
-import SimpleEditor from "../editor/simple-editor";
-import { groupQueries } from "./history-tab-utils";
+import { HISTORY_PAGE_SIZE } from "@/lib/constants";
 import { capitalize, cn, countLines } from "@/lib/utils";
-import { Action } from "@radix-ui/react-alert-dialog";
-import ActionButton from "../action-button/action-button";
-import { Redo, Trash, X } from "lucide-react";
+import type { UserQuery } from "@/model/user-query";
+import { addQuery, deleteQuery, getPaginatedQueries } from "@/services/queries/queries";
 import { AnimatePresence, motion } from "framer-motion";
+import { Redo, Trash, X } from "lucide-react";
+import { type MutableRefObject, useCallback, useEffect, useState } from "react";
+import ActionButton from "../action-button/action-button";
+import SimpleEditor from "../editor/simple-editor";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { SidebarContent, SidebarDescription, SidebarHeader, SidebarTitle } from "../ui/sidebar";
+import { groupQueries } from "./history-tab-utils";
 
 interface Props {
 	onClickQuery: (queryContent: string) => void;
@@ -28,15 +28,19 @@ const HistoryTab = ({ onClickQuery, addNewQueryCallback, className }: Props) => 
 
 	const handleSearch = useCallback(async (value: string) => {
 		setCurrentPage(0);
-		const [matchingQueries, hasMore] = await getPaginatedQueries(0, 20, value);
+		const [matchingQueries, hasMore] = await getPaginatedQueries(0, HISTORY_PAGE_SIZE, value);
 		setHasMore(hasMore);
 		setQueries(matchingQueries);
 	}, []);
 
 	const handleAddNewQuery = useCallback(
 		async (content: string) => {
-			const addedQuery = await addQuery(content);
-			addedQuery && setQueries([addedQuery, ...queries]);
+			const [addedQuery, deletedQuery] = await addQuery(content);
+			const newQueries = deletedQuery
+				? queries.filter((query) => query.id !== deletedQuery.id)
+				: queries;
+			addedQuery && newQueries.unshift(addedQuery);
+			setQueries([...newQueries]);
 		},
 		[queries],
 	);
@@ -51,7 +55,11 @@ const HistoryTab = ({ onClickQuery, addNewQueryCallback, className }: Props) => 
 
 	const handleLoadMore = useCallback(async () => {
 		const nextPage = currentPage + 1;
-		const [matchingQueries, hasMore] = await getPaginatedQueries(nextPage, 3, search);
+		const [matchingQueries, hasMore] = await getPaginatedQueries(
+			nextPage,
+			HISTORY_PAGE_SIZE,
+			search,
+		);
 		setCurrentPage(nextPage);
 		setHasMore(hasMore);
 		setQueries((prevQueries) => [...prevQueries, ...matchingQueries]);

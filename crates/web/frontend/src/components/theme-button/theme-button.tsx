@@ -32,7 +32,7 @@ const ThemeButton = ({ className }: Props) => {
 					<MoonIcon className="absolute w-4 h-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
 				</ActionButton>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent side="right">
+			<DropdownMenuContent className="relative bottom-3" side="right" sideOffset={0}>
 				<DropdownMenuLabel>Color theme</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuRadioGroup value={currentTheme} onValueChange={setTheme}>

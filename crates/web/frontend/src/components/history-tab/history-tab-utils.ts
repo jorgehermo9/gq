@@ -1,4 +1,4 @@
-import { UserQuery } from "@/model/user-query";
+import type { UserQuery } from "@/model/user-query";
 
 type GroupedQueries = {
 	[key: string]: UserQuery[];
@@ -9,55 +9,55 @@ export const groupQueries = (queries: UserQuery[]): GroupedQueries => {
 	const now = Date.now();
 	const buckets = [
 		{
-			label: "today",
+			label: "Today",
 			dayDiff: 1,
 		},
 		{
-			label: "1 day",
+			label: "Yesterday",
 			dayDiff: 2,
 		},
 		{
-			label: "2 days",
+			label: "Two days ago",
 			dayDiff: 3,
 		},
 		{
-			label: "3 days",
+			label: "Three days ago",
 			dayDiff: 4,
 		},
 		{
-			label: "4 days",
+			label: "Four days ago",
 			dayDiff: 5,
 		},
 		{
-			label: "5 days",
+			label: "Five days ago",
 			dayDiff: 6,
 		},
 		{
-			label: "6 days",
+			label: "Six days ago",
 			dayDiff: 7,
 		},
 		{
-			label: "1 week",
+			label: "One week ago",
 			dayDiff: 14,
 		},
 		{
-			label: "2 weeks",
+			label: "Two weeks ago",
 			dayDiff: 21,
 		},
 		{
-			label: "3 weeks",
+			label: "Three weeks ago",
 			dayDiff: 28,
 		},
 		{
-			label: "1 month",
+			label: "One month ago",
 			dayDiff: 60,
 		},
 		{
-			label: "2 months",
+			label: "Two months ago",
 			dayDiff: 90,
 		},
 		{
-			label: "3 months",
+			label: "Three months  ago",
 			dayDiff: 120,
 		},
 	];
@@ -65,14 +65,18 @@ export const groupQueries = (queries: UserQuery[]): GroupedQueries => {
 		label: bucket.label,
 		timestamp: now - bucket.dayDiff * 24 * 60 * 60 * 1000,
 	}));
+	stepsTimestamps.push({
+		label: "A long time ago",
+		timestamp: 0,
+	});
 
 	let currentStep = 0;
 	for (const query of queries) {
-		const queryTimestamp = query.timestamp;
-		while (queryTimestamp < stepsTimestamps[currentStep].timestamp) {
+		while (query.timestamp < stepsTimestamps[currentStep].timestamp) {
 			currentStep++;
 		}
-		const step = buckets[currentStep];
+		console.log(currentStep);
+		const step = stepsTimestamps[currentStep];
 		const stepKey = step.label;
 		if (!groupedQueries[stepKey]) {
 			groupedQueries[stepKey] = [];
