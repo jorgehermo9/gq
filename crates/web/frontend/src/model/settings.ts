@@ -17,6 +17,8 @@ export type FormattingSettings = {
 
 export type WorkspaceSettings = {
 	linkEditors: boolean;
+	sidebarOpen: boolean;
+	selectedTab: string;
 };
 
 const getDefaultSettings = (): Settings => {
@@ -32,6 +34,8 @@ const getDefaultSettings = (): Settings => {
 		},
 		workspaceSettings: {
 			linkEditors: true,
+			sidebarOpen: false,
+			selectedTab: "examples",
 		},
 	};
 };

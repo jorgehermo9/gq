@@ -17,7 +17,7 @@ const EditorTitle = ({ title, fileTypes, currentFileType, onChangeFileType }: Pr
 	}, [currentFileType, fileTypes, onChangeFileType]);
 
 	return (
-		<h2 className="flex gap-2 justify-center items-center">
+		<h2 className="flex gap-2 justify-center items-center my-auto pl-4">
 			<span className="text-lg">{title}</span>
 			{fileTypes.length === 1 ? (
 				<span className="text-lg font-bold text-accent">{currentFileType.toUpperCase()}</span>

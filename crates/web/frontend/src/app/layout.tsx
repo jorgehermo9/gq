@@ -29,7 +29,6 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={cn("min-h-screen antialiased", montserrat.variable, firaCode.variable)}>
 				<Toaster
-					offset="32px"
 					duration={2000}
 					visibleToasts={4}
 					expand={false}
@@ -38,10 +37,10 @@ export default function RootLayout({
 						unstyled: true,
 						classNames: {
 							toast:
-								"w-full flex gap-4 bg-background items-center border border-accent-background p-4 rounded-md shadow-md",
+								"w-full flex gap-4 bg-background items-center border border-accent-background p-4 shadow-md",
 							title: "text-foreground text-sm",
 							actionButton:
-								"min-w-max bg-foreground text-background text-xs px-2 py-1 rounded-md justify-self-end",
+								"min-w-max bg-foreground text-background text-xs px-2 py-1 justify-self-end",
 							closeButton:
 								"text-foreground hover:text-accent bg-background transition-colors h-4 w-4",
 							icon: "",

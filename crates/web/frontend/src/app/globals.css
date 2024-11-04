@@ -94,3 +94,15 @@ code {
 li[aria-selected="true"] {
 	@apply !bg-accent-background !text-[var(--code-secondary)];
 }
+
+h3 {
+	@apply text-lg font-semibold leading-none tracking-tight;
+}
+
+h4 {
+	@apply text-base font-semibold leading-none tracking-tight;
+}
+
+p {
+	@apply text-xs;
+}

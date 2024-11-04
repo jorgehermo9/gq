@@ -15,7 +15,7 @@ const TabsList = React.forwardRef<
 	<TabsPrimitive.List
 		ref={ref}
 		className={cn(
-			"inline-flex  items-center justify-center rounded-md bg-background text-muted-foreground",
+			"inline-flex items-center justify-center bg-background text-muted-foreground",
 			className,
 		)}
 		{...props}
@@ -28,9 +28,9 @@ const tabsTriggerVariants = cva(
 	{
 		variants: {
 			variant: {
-				solid: "rounded-sm data-[state=active]:bg-muted",
+				solid: "data-[state=active]:bg-muted",
 				outline:
-					"rounded-none border-b data-[state=active]:border-accent data-[state=inactive]:border-transparent",
+					"border-b data-[state=active]:border-accent data-[state=inactive]:border-transparent",
 			},
 		},
 		defaultVariants: {

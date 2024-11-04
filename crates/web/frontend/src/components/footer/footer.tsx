@@ -1,24 +1,30 @@
 import { cn } from "@/lib/utils";
-import Image from "next/image";
-import { Badge } from "../ui/badge";
+import { LinkEditor } from "../link-editor/link-editor";
+import ShortcutPopup from "../shortcut-popup/shortcut-popup";
+import StarCount from "../star-count/star-count";
+import { WebAssemblyBadge } from "../web-assembly-badge/web-assembly-badge";
 
 interface FooterProps {
+	linkEditors: boolean;
+	handleToggleLinked: () => void;
 	className?: string;
 }
 
-const Footer = ({ className }: FooterProps) => {
+const Footer = ({ linkEditors, handleToggleLinked, className }: FooterProps) => {
 	return (
-		<footer className={cn("w-full flex justify-center", className)}>
-			<Badge variant="outline" className="py-1 px-3">
-				<span className="text-xxs font-mono font-normal mt-[3px]">Powered by</span>
-				<Image
-					className="ml-2 inline "
-					src="/web-assembly-icon.svg"
-					alt="GQ Logo"
-					width={12}
-					height={12}
+		<footer className={cn("w-full flex justify-between border-t bg-background", className)}>
+			<div className="flex">
+				<ShortcutPopup className="h-full px-4" />
+				<LinkEditor
+					linkEditors={linkEditors}
+					handleToggleLinked={handleToggleLinked}
+					className="h-full px-4"
 				/>
-			</Badge>
+			</div>
+			<div className="flex">
+				<StarCount className="h-full px-4" />
+				<WebAssemblyBadge className="h-full px-4" />
+			</div>
 		</footer>
 	);
 };

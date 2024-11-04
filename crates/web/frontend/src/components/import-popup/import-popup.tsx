@@ -1,5 +1,5 @@
 import ActionButton from "@/components/action-button/action-button";
-import useLazyState from "@/hooks/useLazyState";
+import useLazyState from "@/hooks/use-lazy-state";
 import { STATE_DEBOUNCE_TIME } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { Data } from "@/model/data";
@@ -51,6 +51,8 @@ const ImportPopup = ({
 	onError,
 	hidden = false,
 }: Props) => {
+	if (hidden) return null;
+
 	const [open, setOpen] = useState(false);
 	const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
 	const [headers, setHeaders] = useState<[string, string, boolean][]>([["", "", true]]);
@@ -136,7 +138,7 @@ const ImportPopup = ({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<ActionButton description="Import file" className="px-4 py-2" hidden={hidden}>
+				<ActionButton description="Import file" className="px-4 h-full border-0 border-l">
 					<FileUp className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
@@ -149,7 +151,7 @@ const ImportPopup = ({
 				</DialogHeader>
 				<form onSubmit={handleSubmit} autoComplete="off" className="overflow-x-auto">
 					<Tabs defaultValue="url" className="pb-8">
-						<TabsList className="flex mb-8">
+						<TabsList className="flex mb-8 border-y">
 							<TabsTrigger value="url" className="w-1/2">
 								From URL
 							</TabsTrigger>
@@ -157,10 +159,10 @@ const ImportPopup = ({
 								From local file
 							</TabsTrigger>
 						</TabsList>
-						<TabsContent value="url" className="h-[32vh]">
+						<TabsContent value="url" className="h-[32vh] px-6">
 							<div className="flex items-center">
 								<Select value={httpMethod} onValueChange={handleChangeHttpMethod}>
-									<SelectTrigger className="w-min rounded-r-none bg-accent-background font-semibold">
+									<SelectTrigger className="w-min bg-accent-background font-semibold">
 										<SelectValue id="http-method" />
 									</SelectTrigger>
 									<SelectContent>
@@ -221,12 +223,12 @@ const ImportPopup = ({
 								)}
 							</Tabs>
 						</TabsContent>
-						<TabsContent value="file" className="h-[32vh] mt-8">
+						<TabsContent value="file" className="h-[32vh] mt-8 px-8">
 							<div className="flex items-center w-full h-full">
 								<div className={styles.importFileContainer}>
 									<Label
 										htmlFor="file-import"
-										className="flex items-center rounded-md justify-center border-2 border-muted border-dashed w-full h-full cursor-pointer"
+										className="flex items-center justify-center border-2 border-muted border-dashed w-full h-full cursor-pointer"
 										onDrop={handleDrop}
 										onDragOver={(e) => e.preventDefault()}
 									>
@@ -269,14 +271,21 @@ const ImportPopup = ({
 					</Tabs>
 					<div className="flex justify-between mt-12">
 						<Button
-							className="py-1 px-8"
+							containerClassName="w-1/2"
+							className="w-full py-1 px-8 border-0 border-t"
 							variant="outline"
 							onClick={() => setOpen(false)}
 							type="button"
 						>
 							Cancel
 						</Button>
-						<Button className="py-1 px-8" variant="success" type="submit" disabled={!(file || url)}>
+						<Button
+							containerClassName="w-1/2"
+							className="w-full py-1 px-8"
+							variant="success"
+							type="submit"
+							disabled={!(file || url)}
+						>
 							Import
 						</Button>
 					</div>

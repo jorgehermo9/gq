@@ -1,5 +1,5 @@
 .popupContainer {
-	@apply rounded-md border border-accent w-96 p-4 bg-background;
+	@apply border p-4 bg-background border-accent;
 	transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
 
 	&[data-visible="true"] {

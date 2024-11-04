@@ -1,4 +1,4 @@
-import useLazyState from "@/hooks/useLazyState";
+import useLazyState from "@/hooks/use-lazy-state";
 import { MAX_RENDER_SIZE, STATE_DEBOUNCE_TIME } from "@/lib/constants";
 import { gqTheme } from "@/lib/theme";
 import { cn, copyToClipboard, isMac } from "@/lib/utils";
@@ -9,9 +9,8 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
 import CodeMirror, { type Extension } from "@uiw/react-codemirror";
-import { cubicBezier, motion } from "framer-motion";
 import { TriangleAlert } from "lucide-react";
-import { type MutableRefObject, useCallback, useEffect, useMemo, useState } from "react";
+import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import EditorConsole from "../editor-console/editor-console";
 import EditorErrorOverlay from "../editor-overlay/editor-error-overlay";
@@ -27,12 +26,13 @@ import {
 } from "./editor-utils";
 import styles from "./editor.module.css";
 
-interface Props {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
 	title: string;
 	defaultFileName: string;
 	fileTypes: FileType[];
 	onChangeFileType?: (fileType: FileType) => void;
 	onChangeContent?: (content: string) => void;
+	onApply?: () => void;
 	className?: string;
 	errorMessage?: string;
 	onDismissError?: () => void;
@@ -44,6 +44,8 @@ interface Props {
 	completionSource?: CompletionSource;
 	contentRef?: MutableRefObject<string>;
 	typeRef?: MutableRefObject<FileType>;
+	width: string;
+	height: string;
 }
 
 const Editor = ({
@@ -52,6 +54,7 @@ const Editor = ({
 	fileTypes,
 	onChangeFileType,
 	onChangeContent,
+	onApply,
 	className,
 	errorMessage,
 	onDismissError,
@@ -62,7 +65,10 @@ const Editor = ({
 	completionSource,
 	contentRef,
 	typeRef,
+	width,
+	height,
 	editable = true,
+	...props
 }: Props) => {
 	const [editorErrorMessage, setEditorErrorMessage] = useState<string>();
 	const [content, setContent, instantContent] = useLazyState(
@@ -73,7 +79,7 @@ const Editor = ({
 	const [type, setType] = useState<FileType>(fileTypes[0]);
 	const [showConsole, setShowConsole] = useState(false);
 	const [loadingState, setLoadingState] = useState<LoadingState>(notLoading());
-	const [focused, onChangeFocused] = useState(false);
+	const focused = useRef(false); // Ref to avoid rerendering
 	const {
 		settings: {
 			formattingSettings: { formatOnImport, dataTabSize, queryTabSize },
@@ -82,7 +88,6 @@ const Editor = ({
 	const { formatWorker, convertWorker } = useWorker();
 	const indentSize = type === FileType.GQ ? queryTabSize : dataTabSize;
 	const available = content.length < MAX_RENDER_SIZE;
-	// const borderRepeatDelay = Math.random() * 5 + 15;
 
 	const handleFormatCode = useCallback(
 		async (cont: string, type: FileType) => {
@@ -114,13 +119,13 @@ const Editor = ({
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
-			if (!focused) return;
+			if (!focused.current) return;
 			if ((isMac ? event.metaKey : event.ctrlKey) && (event.key === "s" || event.key === "S")) {
 				event.preventDefault();
 				handleFormatCode(content, type);
 			}
 		},
-		[focused, handleFormatCode, content, type],
+		[handleFormatCode, content, type],
 	);
 
 	const handleChangeFileType = useCallback(
@@ -160,7 +165,6 @@ const Editor = ({
 		}
 		if (updateCallback) {
 			updateCallback.current = (data: Data) => {
-				console.log("update callback", data);
 				setContent(data.content);
 				setType(data.type);
 			};
@@ -181,9 +185,17 @@ const Editor = ({
 		[type, completionSource],
 	);
 
+	const handleChangeFocused = useCallback((value: boolean) => {
+		focused.current = value;
+	}, []);
+
 	return (
-		<div className={cn("flex flex-col gap-2", className)}>
-			<div className="flex gap-4 items-center pr-2">
+		<div
+			className={cn("flex flex-col gap-2 border-accent-background bg-background", className)}
+			style={{ height, width }}
+			{...props}
+		>
+			<div className="flex min-h-12 max-h-12 justify-between gap-4 border-b">
 				<EditorTitle
 					title={title}
 					fileTypes={fileTypes}
@@ -201,40 +213,11 @@ const Editor = ({
 					onExportFile={(filename) => exportFile(new Data(content, type), filename)}
 					onChangeLoading={setLoadingState}
 					onError={(err) => setEditorErrorMessage(err.message)}
+					onApply={onApply}
 				/>
 			</div>
 
-			<div
-				data-focused={focused}
-				data-title={defaultFileName}
-				className={`${styles.editor} relative h-full rounded-lg p-[1px] overflow-hidden`}
-			>
-				<motion.div
-					className={styles.editorBorderTop}
-					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, 10, 180, 190, 360] }}
-					transition={{
-						duration: 4,
-						delay: 0,
-						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
-						// repeat: Number.POSITIVE_INFINITY,
-						// repeatType: "loop",
-						// repeatDelay: borderRepeatDelay,
-						times: [0, 0.1, 0.5, 0.6, 1],
-					}}
-				/>
-				<motion.div
-					className={styles.editorBorderBottom}
-					animate={{ opacity: [0, 0.4, 0.4, 0, 0], rotate: [0, -10, -180, -190, -360] }}
-					transition={{
-						duration: 4,
-						delay: 0,
-						ease: cubicBezier(0.66, 0.17, 0.43, 0.91),
-						// repeat: Number.POSITIVE_INFINITY,
-						// repeatType: "loop",
-						// repeatDelay: borderRepeatDelay,
-						times: [0, 0.1, 0.5, 0.6, 1],
-					}}
-				/>
+			<div data-title={defaultFileName} className="relative h-full">
 				<EditorLoadingOverlay loadingState={loadingState} />
 				<EditorErrorOverlay
 					visibleBackdrop={!editable && (!!errorMessage || !!editorErrorMessage)}
@@ -256,12 +239,17 @@ const Editor = ({
 					visible={showConsole}
 					onClose={() => setShowConsole(false)}
 				/>
-				<div className="bg-background w-full h-full rounded-lg">
+				<div
+					className="bg-background w-full"
+					style={{
+						height: `calc(${height} - 60px)`,
+					}}
+				>
 					{available ? (
 						<CodeMirror
-							onFocus={() => onChangeFocused(true)}
-							onBlur={() => onChangeFocused(false)}
-							className="w-full h-full rounded-lg text-xs overflow-hidden"
+							onFocus={() => handleChangeFocused(true)}
+							onBlur={() => handleChangeFocused(false)}
+							className="w-full h-full text-xs overflow-hidden"
 							value={instantContent}
 							onChange={setContent}
 							height="100%"

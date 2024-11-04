@@ -1,4 +1,5 @@
 import ActionButton from "@/components/action-button/action-button";
+import { cn } from "@/lib/utils";
 import type FileType from "@/model/file-type";
 import { getFileExtensions } from "@/model/file-type";
 import { DownloadCloud } from "lucide-react";
@@ -19,9 +20,10 @@ interface Props {
 	defaultFilename: string;
 	fileType: FileType;
 	onExportFile: (fileName: string) => void;
+	className?: string;
 }
 
-const ExportPopover = ({ defaultFilename, fileType, onExportFile }: Props) => {
+const ExportPopover = ({ defaultFilename, fileType, onExportFile, className }: Props) => {
 	const [fileName, setFileName] = useState(defaultFilename);
 	const [open, setOpen] = useState(false);
 
@@ -34,19 +36,24 @@ const ExportPopover = ({ defaultFilename, fileType, onExportFile }: Props) => {
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
-				<ActionButton description="Export file" className="px-4 py-2">
+				<ActionButton
+					description="Export file"
+					className={cn("px-4 h-full border-0 border-l", className)}
+				>
 					<DownloadCloud className="w-3.5 h-3.5" />
 				</ActionButton>
 			</PopoverTrigger>
-			<PopoverContent className="w-[22rem] max-w-[80vw]">
-				<PopoverHeader>
+			<PopoverContent className="w-[22rem] max-w-[80vw]" align="end">
+				<PopoverHeader className="p-4">
 					<PopoverTitle>Export to file</PopoverTitle>
 					<PopoverDescription>
 						Export the content of the editor to a file with a custom name
 					</PopoverDescription>
 				</PopoverHeader>
-				<form onSubmit={handleSubmit} autoComplete="off" className="mt-4">
-					<Label htmlFor="filename">File Name</Label>
+				<form onSubmit={handleSubmit} autoComplete="off">
+					<Label className="block mb-2 px-4" htmlFor="filename">
+						File Name
+					</Label>
 					<div className="flex items-center">
 						<Input
 							id="filename"
@@ -55,16 +62,15 @@ const ExportPopover = ({ defaultFilename, fileType, onExportFile }: Props) => {
 							minLength={1}
 							maxLength={255}
 							placeholder="Enter file name"
-							className="w-full mt-2 rounded-r-none"
+							className="w-full m-0 border-x-0"
 							value={fileName}
 							onChange={(e) => setFileName(e.target.value)}
 						/>
-						<span className="py-2 px-4 h-10 rounded-r-md text-sm bg-accent-background">
+						<span className="py-2 px-4 h-10 text-sm bg-accent-background">
 							.{getFileExtensions(fileType)[0]}
 						</span>
 					</div>
-
-					<Button className="px-6 w-full mt-4" variant="outline" type="submit">
+					<Button className="px-6 w-full border-0" variant="outline" type="submit">
 						Export
 					</Button>
 				</form>

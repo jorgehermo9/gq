@@ -1,13 +1,10 @@
 "use client";
-
-import ActionButton from "@/components/action-button/action-button";
-import ApplyButton from "@/components/apply-button/apply-button";
 import Editor from "@/components/editor/editor";
 import Footer from "@/components/footer/footer";
-import Header from "@/components/header/header";
-import useDebounce from "@/hooks/useDebounce";
+import { LeftSidebar } from "@/components/left-sidebar/left-sidebar";
+import useDebounce from "@/hooks/use-debounce";
 import { notify } from "@/lib/notify";
-import { cn, i } from "@/lib/utils";
+import { i } from "@/lib/utils";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
 import { type LoadingState, loading, notLoading } from "@/model/loading-state";
@@ -15,12 +12,10 @@ import { setLinkEditors } from "@/model/settings";
 import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import type { CompletionSource } from "@codemirror/autocomplete";
-import { Link2, Link2Off } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { type MutableRefObject, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type PromiseWorker from "webworker-promise";
 import { applyGq, getQueryCompletionSource, importShare } from "./page-utils";
-import styles from "./page.module.css";
 
 const ShareLoader = ({
 	updateInputEditorCallback,
@@ -80,6 +75,8 @@ const Home = () => {
 	const [queryCompletionSource, setQueryCompletionSource] = useState<CompletionSource>();
 	const [isApplying, setIsApplying] = useState(false);
 	const [shareLink, setShareLink] = useState<string>();
+	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const addNewQueryCallback = useRef<(queryContent: string) => void>(i);
 	const {
 		settings: {
 			autoApplySettings: { autoApply, debounceTime },
@@ -88,7 +85,7 @@ const Home = () => {
 		},
 		setSettings,
 	} = useSettings();
-	const debounce = useDebounce(debounceTime);
+	const debounce = useDebounce();
 	const { gqWorker, lspWorker } = useWorker();
 
 	const updateOutputData = useCallback(
@@ -114,6 +111,7 @@ const Home = () => {
 					gqWorker,
 					silent,
 				);
+				addNewQueryCallback.current(queryContent);
 				setErrorMessage(undefined);
 				updateOutputEditorCallback.current(result);
 			} catch (err) {
@@ -137,6 +135,10 @@ const Home = () => {
 		[updateOutputData],
 	);
 
+	const handleClickQuery = useCallback((queryContent: string) => {
+		updateQueryEditorCallback.current(new Data(queryContent, FileType.GQ));
+	}, []);
+
 	const handleChangeInputDataFileType = useCallback(
 		(fileType: FileType) => {
 			setShareLink(undefined);
@@ -153,9 +155,9 @@ const Home = () => {
 		[linkEditors],
 	);
 
-	const handleChangeLinked = useCallback(() => {
+	const handleToggleLinked = useCallback(() => {
 		setSettings((prev) => setLinkEditors(prev, !linkEditors));
-		notify.info(`${linkEditors ? "Unlinked" : "Linked"} editors!`);
+		notify.info(`Editors ${linkEditors ? "unlinked" : "linked"}!`);
 		if (!linkEditors) convertOutputEditorCallback.current(inputType.current);
 	}, [linkEditors, setSettings]);
 
@@ -166,7 +168,7 @@ const Home = () => {
 				getQueryCompletionSource(lspWorker, new Data(content, inputType.current)),
 			);
 			autoApply &&
-				debounce(() =>
+				debounce(debounceTime, () =>
 					updateOutputData(content, inputType.current, queryContent.current, debounceTime < 500),
 				);
 		},
@@ -177,7 +179,7 @@ const Home = () => {
 		(content: string) => {
 			setShareLink(undefined);
 			autoApply &&
-				debounce(() =>
+				debounce(debounceTime, () =>
 					updateOutputData(inputContent.current, inputType.current, content, debounceTime < 500),
 				);
 		},
@@ -185,10 +187,13 @@ const Home = () => {
 	);
 
 	return (
-		<main className="flex flex-col items-center pt-4 px-12 h-screen">
-			<Header
-				className="w-full mb-8"
+		<div className="flex h-screen w-screen overflow-hidden">
+			<LeftSidebar
+				open={sidebarOpen}
+				setOpen={setSidebarOpen}
 				onClickExample={handleClickExample}
+				onClickQuery={handleClickQuery}
+				addNewQueryCallback={addNewQueryCallback}
 				inputContent={inputContent}
 				inputType={inputType}
 				queryContent={queryContent}
@@ -196,82 +201,80 @@ const Home = () => {
 				shareLink={shareLink}
 				setShareLink={setShareLink}
 			/>
-			<section className="flex items-center justify-center w-full">
-				<aside className="flex flex-col gap-8">
-					<Editor
-						className="w-[44vw] h-[40vh]"
-						onChangeFileType={handleChangeInputDataFileType}
-						onChangeContent={handleChangeInputContent}
-						title="Input"
-						defaultFileName="input"
-						fileTypes={[FileType.JSON, FileType.YAML]}
-						convertCodeCallback={convertInputEditorCallback}
-						updateCallback={updateInputEditorCallback}
-						contentRef={inputContent}
-						typeRef={inputType}
-					/>
-					<Editor
-						className="w-[44vw] h-[40vh]"
-						onChangeContent={handleChangeQueryContent}
-						title="Input"
-						defaultFileName="query"
-						fileTypes={[FileType.GQ]}
-						completionSource={queryCompletionSource}
-						updateCallback={updateQueryEditorCallback}
-						contentRef={queryContent}
-					/>
-				</aside>
-				<div className="h-full flex justify-center items-center px-8 relative">
-					<div className="absolute top-40 flex w-full items-center">
-						<div className={styles.linkLeftBorder} data-linked={linkEditors} />
-						<ActionButton
-							className={cn(
-								"p-2 min-w-max border-2",
-								linkEditors ? "border-accent" : "border-accent-background",
-							)}
-							description={`${linkEditors ? "Link" : "Unlink"} input and output editor file types`}
-							onClick={handleChangeLinked}
-						>
-							{linkEditors ? <Link2 className="w-3 h-3" /> : <Link2Off className="w-3 h-3" />}
-						</ActionButton>
-						<div className={styles.linkRightBorder} data-linked={linkEditors} />
-					</div>
-					<ApplyButton
-						autoApply={autoApply}
-						onClick={() =>
-							updateOutputData(inputContent.current, inputType.current, queryContent.current, false)
-						}
-					/>
-				</div>
-				<aside className="flex flex-col">
-					<Editor
-						className="w-[44vw] h-[83vh]"
-						onChangeFileType={handleChangeOutputDataFileType}
-						title="Output"
-						editable={false}
-						defaultFileName="output"
-						fileTypes={[FileType.JSON, FileType.YAML]}
-						errorMessage={errorMessage}
-						onDismissError={() => setErrorMessage(undefined)}
-						warningMessages={warningMessages}
-						convertCodeCallback={convertOutputEditorCallback}
-						loadingCallback={outputEditorLoadingCallback}
-						updateCallback={updateOutputEditorCallback}
-						typeRef={outputType}
-					/>
-				</aside>
-			</section>
-			<Footer className="my-auto" />
-			<Suspense>
-				<ShareLoader
-					updateInputEditorCallback={updateInputEditorCallback}
-					updateQueryEditorCallback={updateQueryEditorCallback}
-					updateOutputData={updateOutputData}
-					gqWorker={gqWorker}
-					setLinkEditors={(value) => setSettings((prev) => setLinkEditors(prev, value))}
+			<main className="flex flex-col items-center">
+				<section className="flex items-center justify-between w-full h-full relative">
+					<aside className="flex flex-col">
+						<Editor
+							width={`calc(50vw - 32px ${sidebarOpen ? "- 192px" : ""})`}
+							height="calc(50vh - 20px)"
+							className="border-b transition-all"
+							onChangeFileType={handleChangeInputDataFileType}
+							onChangeContent={handleChangeInputContent}
+							title="Input"
+							defaultFileName="input"
+							fileTypes={[FileType.JSON, FileType.YAML]}
+							convertCodeCallback={convertInputEditorCallback}
+							updateCallback={updateInputEditorCallback}
+							contentRef={inputContent}
+							typeRef={inputType}
+						/>
+						<Editor
+							width={`calc(50vw - 32px ${sidebarOpen ? "- 192px" : ""})`}
+							height="calc(50vh - 20px)"
+							className="transition-all"
+							onChangeContent={handleChangeQueryContent}
+							onApply={() =>
+								updateOutputData(
+									inputContent.current,
+									inputType.current,
+									queryContent.current,
+									false,
+								)
+							}
+							title="Input"
+							defaultFileName="query"
+							fileTypes={[FileType.GQ]}
+							completionSource={queryCompletionSource}
+							updateCallback={updateQueryEditorCallback}
+							contentRef={queryContent}
+						/>
+					</aside>
+					<aside className="flex flex-col">
+						<Editor
+							width={`calc(50vw - 32px ${sidebarOpen ? "- 192px" : ""})`}
+							height="calc(100vh - 40px)"
+							className="border-l transition-all"
+							onChangeFileType={handleChangeOutputDataFileType}
+							title="Output"
+							editable={false}
+							defaultFileName="output"
+							fileTypes={[FileType.JSON, FileType.YAML]}
+							errorMessage={errorMessage}
+							onDismissError={() => setErrorMessage(undefined)}
+							warningMessages={warningMessages}
+							convertCodeCallback={convertOutputEditorCallback}
+							loadingCallback={outputEditorLoadingCallback}
+							updateCallback={updateOutputEditorCallback}
+							typeRef={outputType}
+						/>
+					</aside>
+				</section>
+				<Footer
+					className="h-10"
+					linkEditors={linkEditors}
+					handleToggleLinked={handleToggleLinked}
 				/>
-			</Suspense>
-		</main>
+				<Suspense>
+					<ShareLoader
+						updateInputEditorCallback={updateInputEditorCallback}
+						updateQueryEditorCallback={updateQueryEditorCallback}
+						updateOutputData={updateOutputData}
+						gqWorker={gqWorker}
+						setLinkEditors={(value) => setSettings((prev) => setLinkEditors(prev, value))}
+					/>
+				</Suspense>
+			</main>
+		</div>
 	);
 };
 

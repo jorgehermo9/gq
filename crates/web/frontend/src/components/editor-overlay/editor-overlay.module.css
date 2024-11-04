@@ -41,6 +41,7 @@
 	position: absolute;
 	z-index: 10;
 	left: 0;
+	bottom: 0;
 	height: 3rem;
 	padding: 0 2rem;
 	display: flex;
@@ -48,7 +49,7 @@
 	justify-content: space-between;
 	width: 100%;
 	background-color: var(--error);
-	transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
+	transition: opacity 0.2s ease-in-out;
 
 	& > span {
 		@apply text-xs font-mono;
@@ -59,12 +60,10 @@
 	}
 
 	&[data-visible="true"] {
-		bottom: 0;
 		opacity: 1;
 	}
 
 	&[data-visible="false"] {
-		bottom: -3rem;
 		opacity: 0;
 	}
 }

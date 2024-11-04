@@ -5,12 +5,9 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
-import { Book } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import ActionButton from "../action-button/action-button";
+import { useCallback, useState } from "react";
 import { formatCode } from "../editor/editor-utils";
 import SimpleEditor from "../editor/simple-editor";
-import OnboardingPopup from "../onboarding-popup/onboarding-popup";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import {
 	AlertDialog,
@@ -22,16 +19,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "../ui/alert-dialog";
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from "../ui/sheet";
+import { SidebarContent, SidebarDescription, SidebarHeader, SidebarTitle } from "../ui/sidebar";
 import { type Example, type ExampleSection, queryExamples } from "./examples";
-import styles from "./examples-sheet.module.css";
 
 interface ExampleItemDescriptionProps {
 	description: string;
@@ -73,17 +62,17 @@ const ExampleItemDescription = ({ description, className }: ExampleItemDescripti
 const ExampleItem = ({ example, onClick }: ExampleItemProps) => {
 	return (
 		<div
-			className="p-4 border rounded-lg hover:border-accent transition-colors cursor-pointer"
+			className="border-y hover:border-accent transition-colors cursor-pointer px-4 py-8"
 			onClick={() => onClick(example.query)}
 			onKeyDown={(event) => event.key === "Enter" && onClick(example.query)}
 		>
 			<h3 className="font-semibold text-sm mb-1">{example.title}</h3>
 			<ExampleItemDescription
-				className="font-medium text-[0.85rem] mb-4 flex gap-1 flex-wrap"
+				className="font-medium text-xs mb-4 flex gap-1 flex-wrap"
 				description={example.description}
 			/>
 			<SimpleEditor
-				className="rounded-sm cursor-auto overflow-hidden"
+				className="cursor-auto overflow-hidden p-1"
 				onClick={(event) => event.stopPropagation()}
 				content={example.query}
 			/>
@@ -104,12 +93,14 @@ const ExamplesSection = ({ title, exampleSection, onClick }: ExampleSectionProps
 	);
 
 	return (
-		<AccordionItem value={title}>
-			<AccordionTrigger className="font-semibold text-sm py-6">{title}</AccordionTrigger>
+		<AccordionItem value={title} className="last:border-b">
+			<AccordionTrigger className="font-semibold text-sm py-6 px-4 border-t">
+				{title}
+			</AccordionTrigger>
 			<AccordionContent>
-				<div className="flex flex-col gap-4">
+				<div className="flex flex-col">
 					<CodeMirror
-						className="w-full rounded-lg text-xs"
+						className="w-full text-xs"
 						value={JSON.stringify(exampleSection.json, null, " ".repeat(jsonTabSize))}
 						height="100%"
 						theme={gqTheme}
@@ -131,9 +122,7 @@ const ExamplesSection = ({ title, exampleSection, onClick }: ExampleSectionProps
 	);
 };
 
-const ExamplesSheet = ({ onClickExample, className }: Props) => {
-	const [onboardingVisible, setOnboardingVisible] = useState(false);
-	const [sheetOpen, setSheetOpen] = useState(false);
+const ExamplesTab = ({ onClickExample, className }: Props) => {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedExample, setSelectedExample] = useState<{
 		json: string;
@@ -151,33 +140,15 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 		setDialogOpen(true);
 	}, []);
 
-	const handleCloseOnboarding = useCallback(() => {
-		setOnboardingVisible(false);
-		localStorage.setItem("onboarding", "done");
-	}, []);
-
-	const handleOpenChange = useCallback(
-		(open: boolean) => {
-			onboardingVisible && handleCloseOnboarding();
-			setSheetOpen(open);
-		},
-		[onboardingVisible, handleCloseOnboarding],
-	);
-
 	const handleSubmit = useCallback(async () => {
 		if (!selectedExample || !formatWorker) return;
 		const jsonData = new Data(selectedExample.json, FileType.JSON);
 		const queryData = new Data(selectedExample.query, FileType.GQ);
 		const formattedJson = await formatCode(jsonData, dataTabSize, formatWorker, true);
 		const formattedQuery = await formatCode(queryData, queryTabSize, formatWorker, true);
-		setSheetOpen(false);
 		setDialogOpen(false);
 		onClickExample(formattedJson, formattedQuery);
 	}, [dataTabSize, queryTabSize, onClickExample, selectedExample, formatWorker]);
-
-	useEffect(() => {
-		localStorage.getItem("onboarding") || setOnboardingVisible(true);
-	}, []);
 
 	return (
 		<>
@@ -186,53 +157,43 @@ const ExamplesSheet = ({ onClickExample, className }: Props) => {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Replace editor content?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This will replace the content of both json and query editors with the selected
-							example.
+							This will replace the content of both json and query editors with the selected example
 						</AlertDialogDescription>
 					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel onClick={() => setDialogOpen(false)}>Cancel</AlertDialogCancel>
-						<AlertDialogAction onClick={handleSubmit} className="success">
+					<AlertDialogFooter className="w-full">
+						<AlertDialogCancel
+							containerClassName="w-1/2"
+							className="w-full border-0 border-t"
+							onClick={() => setDialogOpen(false)}
+						>
+							Cancel
+						</AlertDialogCancel>
+						<AlertDialogAction className="w-1/2 bg-success" onClick={handleSubmit}>
 							Continue
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-			<Sheet open={sheetOpen} onOpenChange={handleOpenChange}>
-				<SheetTrigger className={className} asChild>
-					<div className="relative">
-						<ActionButton description="Show query examples" className="p-3">
-							<Book className="w-4 h-4" />
-						</ActionButton>
-						<OnboardingPopup
-							visible={onboardingVisible}
-							onClose={handleCloseOnboarding}
-							className="absolute z-10 top-full translate-y-4"
+			<SidebarContent className={className}>
+				<SidebarHeader>
+					<SidebarTitle>Query Examples</SidebarTitle>
+					<SidebarDescription>
+						Check some query examples and import them into your editor with ease.
+					</SidebarDescription>
+				</SidebarHeader>
+				<Accordion type="multiple">
+					{queryExamples.map((exampleSection: ExampleSection) => (
+						<ExamplesSection
+							key={exampleSection.title}
+							title={exampleSection.title}
+							exampleSection={exampleSection}
+							onClick={handleClick}
 						/>
-					</div>
-				</SheetTrigger>
-				<SheetContent side="left" className="sm:max-w-lg overflow-y-scroll">
-					<SheetHeader>
-						<SheetTitle>Query Examples</SheetTitle>
-						<SheetDescription>
-							Check some query examples and import them into your editor with ease. There are
-							endless possiblities!
-						</SheetDescription>
-					</SheetHeader>
-					<Accordion type="multiple" className={styles.accordion}>
-						{queryExamples.map((exampleSection: ExampleSection) => (
-							<ExamplesSection
-								key={exampleSection.title}
-								title={exampleSection.title}
-								exampleSection={exampleSection}
-								onClick={handleClick}
-							/>
-						))}
-					</Accordion>
-				</SheetContent>
-			</Sheet>
+					))}
+				</Accordion>
+			</SidebarContent>
 		</>
 	);
 };
 
-export default ExamplesSheet;
+export default ExamplesTab;

@@ -2,13 +2,13 @@
 	transition: box-shadow 0.2s, background-color 0.2s;
 
 	&[data-focused="true"] {
-		background-color: var(--accent-subtle);
-		box-shadow: 0 60px 60px -100px var(--shadow-accent);
+		/* background-color: var(--accent-subtle); */
+		/* box-shadow: 0 60px 60px -100px var(--shadow-accent); */
 	}
 
 	&[data-focused="false"] {
-		background-color: var(--accent-background);
-		box-shadow: 0 60px 60px -100px var(--shadow);
+		/* background-color: var(--accent-background); */
+		/* box-shadow: 0 60px 60px -100px var(--shadow); */
 	}
 }
 
@@ -58,7 +58,7 @@
 }
 
 .languageToggle {
-	@apply p-0 pr-2 rounded-lg flex items-center justify-center gap-2 select-none cursor-pointer relative;
+	@apply p-0 rounded-lg flex items-center justify-center gap-2 select-none cursor-pointer relative;
 
 	& span {
 		@apply text-lg font-bold;

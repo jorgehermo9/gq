@@ -1,6 +1,6 @@
 "use client";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { type ComponentPropsWithoutRef, forwardRef, useCallback, useEffect, useState } from "react";
@@ -45,20 +45,18 @@ const SliderWithTooltip = forwardRef<
 				<SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-accent-background">
 					<SliderPrimitive.Range className="absolute h-full bg-foreground" />
 				</SliderPrimitive.Track>
-				<TooltipProvider>
-					<Tooltip open={showTooltip && showTooltipState}>
-						<TooltipTrigger asChild>
-							<SliderPrimitive.Thumb
-								className="block relative h-4 w-4 rounded-full border-2 border-foreground shadow-md bg-background cursor-pointer ring-offset-background transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-								onMouseEnter={() => setShowTooltipState(true)}
-								onMouseLeave={() => setShowTooltipState(false)}
-							/>
-						</TooltipTrigger>
-						<TooltipContent side="bottom">
-							<p className="block w-max">{value[0]} ms</p>
-						</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
+				<Tooltip open={showTooltip && showTooltipState}>
+					<TooltipTrigger asChild>
+						<SliderPrimitive.Thumb
+							className="block relative h-4 w-4 rounded-full border-2 border-foreground shadow-md bg-background cursor-pointer ring-offset-background transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+							onMouseEnter={() => setShowTooltipState(true)}
+							onMouseLeave={() => setShowTooltipState(false)}
+						/>
+					</TooltipTrigger>
+					<TooltipContent side="bottom">
+						<p className="block w-max">{value[0]} ms</p>
+					</TooltipContent>
+				</Tooltip>
 			</SliderPrimitive.Root>
 			<span
 				data-show={showTooltipState}
