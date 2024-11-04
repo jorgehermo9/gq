@@ -1,4 +1,4 @@
-import useLazyState from "@/hooks/useLazyState";
+import useLazyState from "@/hooks/use-lazy-state";
 import { MAX_RENDER_SIZE, STATE_DEBOUNCE_TIME } from "@/lib/constants";
 import { gqTheme } from "@/lib/theme";
 import { cn, copyToClipboard, isMac } from "@/lib/utils";

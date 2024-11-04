@@ -47,13 +47,13 @@ const ShortcutPopup = ({ className }: Props) => {
 				<div className="flex flex-col gap-8">
 					{shortcutSections(isMac).map((shortcutSection) => (
 						<div key={shortcutSection.title}>
-							<div className="flex py-4 px-6 gap-2 items-center text-accent">
+							<div className="flex py-4 px-6 gap-2 items-center">
 								{shortcutSection.icon}
 								<h4 className="font-semibold">{shortcutSection.title}</h4>
 							</div>
 							<Table>
 								<TableHeader>
-									<TableRow>
+									<TableRow className="text-accent">
 										<TableHead>Description</TableHead>
 										<TableHead className="text-right">Shortcut</TableHead>
 									</TableRow>

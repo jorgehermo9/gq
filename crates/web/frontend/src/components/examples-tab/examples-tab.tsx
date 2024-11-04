@@ -123,7 +123,6 @@ const ExamplesSection = ({ title, exampleSection, onClick }: ExampleSectionProps
 };
 
 const ExamplesTab = ({ onClickExample, className }: Props) => {
-	const [onboardingVisible, setOnboardingVisible] = useState(false);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedExample, setSelectedExample] = useState<{
 		json: string;
@@ -141,20 +140,6 @@ const ExamplesTab = ({ onClickExample, className }: Props) => {
 		setDialogOpen(true);
 	}, []);
 
-	const handleCloseOnboarding = useCallback(() => {
-		setOnboardingVisible(false);
-		localStorage.setItem("onboarding", "done");
-	}, []);
-
-	// TODO: Handle onboarding
-	// const handleOpenChange = useCallback(
-	// 	(open: boolean) => {
-	// 		onboardingVisible && handleCloseOnboarding();
-	// 		setSheetOpen(open);
-	// 	},
-	// 	[onboardingVisible, handleCloseOnboarding],
-	// );
-
 	const handleSubmit = useCallback(async () => {
 		if (!selectedExample || !formatWorker) return;
 		const jsonData = new Data(selectedExample.json, FileType.JSON);
@@ -164,10 +149,6 @@ const ExamplesTab = ({ onClickExample, className }: Props) => {
 		setDialogOpen(false);
 		onClickExample(formattedJson, formattedQuery);
 	}, [dataTabSize, queryTabSize, onClickExample, selectedExample, formatWorker]);
-
-	useEffect(() => {
-		localStorage.getItem("onboarding") || setOnboardingVisible(true);
-	}, []);
 
 	return (
 		<>

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import useDebounce from "./useDebounce";
+import useDebounce from "./use-debounce";
 
 function useLazyState<S>(
 	initialState: S,

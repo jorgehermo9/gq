@@ -1,5 +1,5 @@
 import ActionButton from "@/components/action-button/action-button";
-import useLazyState from "@/hooks/useLazyState";
+import useLazyState from "@/hooks/use-lazy-state";
 import { STATE_DEBOUNCE_TIME } from "@/lib/constants";
 import { formatBytes } from "@/lib/utils";
 import { Data } from "@/model/data";

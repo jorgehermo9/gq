@@ -9,7 +9,8 @@ import HistoryTab from "../history-tab/history-tab";
 import SettingsTab from "../settings-tab/settings-tab";
 import ShareTab from "../share-tab/share-tab";
 import ThemeButton from "../theme-button/theme-button";
-import { string } from "zod";
+import OnboardingPopup from "../onboarding-popup/onboarding-popup";
+import { useOnboarding } from "@/hooks/use-onboarding";
 
 type Tab = "examples" | "share" | "history" | "settings";
 
@@ -42,23 +43,32 @@ export const LeftSidebar = ({
 	setShareLink,
 }: Props) => {
 	const [selectedTab, setSelectedTab] = useState<Tab>("examples");
+	const [OnboardingComponent, isOnboardingVisible, dismissOnboarding] = useOnboarding();
+
+	const handleChangeOpen = useCallback(
+		(value: boolean) => {
+			setOpen(value);
+			dismissOnboarding();
+		},
+		[setOpen, dismissOnboarding],
+	);
 
 	const handleClick = useCallback(
 		(tab: Tab) => {
 			setSelectedTab(tab);
-			open && tab === selectedTab ? setOpen(false) : setOpen(true);
+			open && tab === selectedTab ? handleChangeOpen(false) : handleChangeOpen(true);
 		},
-		[open, setOpen, selectedTab],
+		[open, handleChangeOpen, selectedTab],
 	);
 
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			if ((isMac ? e.metaKey : e.ctrlKey) && (e.key === "b" || e.key === "B")) {
 				e.preventDefault();
-				setOpen(!open);
+				handleChangeOpen(!open);
 			}
 		},
-		[open, setOpen],
+		[open, handleChangeOpen],
 	);
 
 	useEffect(() => {
@@ -69,7 +79,7 @@ export const LeftSidebar = ({
 	return (
 		<div className="flex bg-background">
 			<div className="h-full w-16 flex flex-col items-center justify-between border-r">
-				<div className="flex flex-col w-full">
+				<div className="flex flex-col w-full relative">
 					<ActionButton
 						className={cn("w-full h-12", selectedTab === "share" && "bg-muted")}
 						description="Share your playground"
@@ -96,7 +106,11 @@ export const LeftSidebar = ({
 						/>
 					</ActionButton>
 					<ActionButton
-						className={cn("w-full h-12", selectedTab === "examples" && "bg-muted")}
+						className={cn(
+							"w-full h-12",
+							selectedTab === "examples" && "bg-muted",
+							isOnboardingVisible && "border-y border-accent",
+						)}
 						side="right"
 						description="Show query examples"
 						variant="subtle"
@@ -109,6 +123,8 @@ export const LeftSidebar = ({
 							)}
 						/>
 					</ActionButton>
+
+					<OnboardingComponent className="absolute left-full top-24 -translate-y-1/4 z-20 w-80" />
 				</div>
 				<div className="flex flex-col w-full">
 					<ThemeButton className="w-full h-12" />
@@ -132,10 +148,6 @@ export const LeftSidebar = ({
 				className={`${open ? "max-w-96 border-r" : "max-w-0 border-0"} transition-all overflow-hidden`}
 			>
 				<div className="w-96 h-full overflow-y-auto overflow-x-hidden">
-					<ExamplesTab
-						className={cn(selectedTab === "examples" ? "block" : "hidden")}
-						onClickExample={onClickExample}
-					/>
 					<ShareTab
 						className={cn(selectedTab === "share" ? "block" : "hidden")}
 						inputContent={inputContent}
@@ -149,6 +161,10 @@ export const LeftSidebar = ({
 						className={cn(selectedTab === "history" ? "block" : "hidden")}
 						onClickQuery={onClickQuery}
 						addNewQueryCallback={addNewQueryCallback}
+					/>
+					<ExamplesTab
+						className={cn(selectedTab === "examples" ? "block" : "hidden")}
+						onClickExample={onClickExample}
 					/>
 					<SettingsTab className={cn(selectedTab === "settings" ? "block" : "hidden")} />
 				</div>

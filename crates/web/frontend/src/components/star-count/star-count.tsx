@@ -13,7 +13,7 @@ const StarCount = ({ className }: Props) => {
 	const [clicked, setClicked] = useState<boolean>(false);
 	const [fetching, setFetching] = useState<boolean>(true);
 
-	const handleClick = useCallback((e: MouseEvent<HTMLAnchorElement>) => {
+	const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		setClicked(true);
 		setTimeout(() => {
 			window.open("https://github.com/jorgehermo9/gq", "_blank");
@@ -35,12 +35,9 @@ const StarCount = ({ className }: Props) => {
 			description="Check the GQ Github repository"
 			className={className}
 			variant="subtle"
+			onClick={handleClick}
 		>
-			<a
-				href="https://github.com/jorgehermo9/gq"
-				onClick={handleClick}
-				className="flex items-center select-none"
-			>
+			<a href="https://github.com/jorgehermo9/gq" className="flex items-center select-none">
 				<Github className="w-3.5 h-3.5 mr-1" />
 				{fetching ? (
 					<Loader />

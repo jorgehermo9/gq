@@ -1,8 +1,8 @@
-import useDebounce from "@/hooks/useDebounce";
+import useDebounce from "@/hooks/use-debounce";
 import { HISTORY_PAGE_SIZE } from "@/lib/constants";
 import { capitalize, cn, countLines } from "@/lib/utils";
 import type { UserQuery } from "@/model/user-query";
-import { addQuery, deleteQuery, getPaginatedQueries } from "@/services/queries/queries";
+import { addQuery, deleteQuery, getPaginatedQueries } from "@/services/queries/query-service";
 import { AnimatePresence, motion } from "framer-motion";
 import { Redo, Trash, X } from "lucide-react";
 import { type MutableRefObject, useCallback, useEffect, useState } from "react";

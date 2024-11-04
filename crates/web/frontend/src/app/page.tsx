@@ -2,7 +2,7 @@
 import Editor from "@/components/editor/editor";
 import Footer from "@/components/footer/footer";
 import { LeftSidebar } from "@/components/left-sidebar/left-sidebar";
-import useDebounce from "@/hooks/useDebounce";
+import useDebounce from "@/hooks/use-debounce";
 import { notify } from "@/lib/notify";
 import { i } from "@/lib/utils";
 import { Data } from "@/model/data";

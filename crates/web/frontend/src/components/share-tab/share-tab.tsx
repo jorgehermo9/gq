@@ -73,13 +73,13 @@ const ShareTab = ({
 							<InfoIcon className="w-3 h-3" />
 						</TooltipTrigger>
 						<TooltipContent className="w-96 font-normal p-4" side="bottom">
-							<span>
+							<p>
 								When generating a sharable link,{" "}
 								<strong>
 									the content of the input json and the query will be saved in the server
 								</strong>{" "}
 								until the expiration time is reached
-							</span>
+							</p>
 						</TooltipContent>
 					</Tooltip>
 				</div>

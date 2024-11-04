@@ -16,15 +16,14 @@ const OnboardingPopup = ({ className, visible, onClose }: Props) => {
 			data-visible={visible}
 			className={cn(className, styles.popupContainer)}
 		>
-			<div className="absolute bottom-full h-[1.1rem] w-[1px] bg-accent left-5" />
 			<div className="flex items-center gap-2 mb-2">
-				<Stars className="h-4 w-4" />
-				<h3 className="font-semibold text-md">New to GQ?</h3>
+				<Stars className="h-3.5 w-3.5" />
+				<h4>New to GQ?</h4>
 			</div>
-			<span className="text-sm">
+			<p className="text-wrap text-start">
 				You can check some examples here as your starting point to discover all the features!
-			</span>
-			<X className="absolute top-2 right-2 h-4 w-4 cursor-pointer" onClick={onClose} />
+			</p>
+			<X className="absolute top-2 right-2 h-3 w-3 cursor-pointer" onClick={onClose} />
 		</div>
 	);
 };

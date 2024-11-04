@@ -45,7 +45,7 @@ const ApplyButton = ({ className, onClick }: Props) => {
 		<ActionButton
 			className={cn("h-full px-4 border-0", className)}
 			onClick={onClick}
-			description="Apply the query to the provided JSON"
+			description="Apply GQ query"
 		>
 			<Play className="w-4 h-4 text-accent" />
 		</ActionButton>
