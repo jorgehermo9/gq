@@ -5,7 +5,7 @@ import { useSettings } from "@/providers/settings-provider";
 import { useWorker } from "@/providers/worker-provider";
 import { json } from "@codemirror/lang-json";
 import CodeMirror from "@uiw/react-codemirror";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { formatCode } from "../editor/editor-utils";
 import SimpleEditor from "../editor/simple-editor";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";

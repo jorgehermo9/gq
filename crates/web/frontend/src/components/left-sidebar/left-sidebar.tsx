@@ -1,3 +1,4 @@
+import { useOnboarding } from "@/hooks/use-onboarding";
 import { cn, isMac } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
@@ -9,8 +10,6 @@ import HistoryTab from "../history-tab/history-tab";
 import SettingsTab from "../settings-tab/settings-tab";
 import ShareTab from "../share-tab/share-tab";
 import ThemeButton from "../theme-button/theme-button";
-import OnboardingPopup from "../onboarding-popup/onboarding-popup";
-import { useOnboarding } from "@/hooks/use-onboarding";
 
 type Tab = "examples" | "share" | "history" | "settings";
 

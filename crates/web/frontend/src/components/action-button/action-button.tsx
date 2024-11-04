@@ -1,6 +1,6 @@
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import React, { useEffect } from "react";
+import React from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 interface Props extends ButtonProps {

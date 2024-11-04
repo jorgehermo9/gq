@@ -1,4 +1,4 @@
-import { cn, formatNumber } from "@/lib/utils";
+import { formatNumber } from "@/lib/utils";
 import { Github, Star } from "lucide-react";
 import { type MouseEvent, useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";

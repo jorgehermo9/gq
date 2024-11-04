@@ -1,10 +1,8 @@
 import { cn } from "@/lib/utils";
+import { LinkEditor } from "../link-editor/link-editor";
 import ShortcutPopup from "../shortcut-popup/shortcut-popup";
 import StarCount from "../star-count/star-count";
-import ActionButton from "../action-button/action-button";
-import { Link, Link2, Link2Off, Unlink } from "lucide-react";
 import { WebAssemblyBadge } from "../web-assembly-badge/web-assembly-badge";
-import { LinkEditor } from "../link-editor/link-editor";
 
 interface FooterProps {
 	linkEditors: boolean;

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import ActionButton from "../action-button/action-button";
 import { Link, Unlink } from "lucide-react";
+import ActionButton from "../action-button/action-button";
 
 interface Props {
 	linkEditors: boolean;
