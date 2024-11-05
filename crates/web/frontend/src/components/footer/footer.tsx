@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { DocsButton } from "../docs-button/docs-button";
 import { LinkEditor } from "../link-editor/link-editor";
 import ShortcutPopup from "../shortcut-popup/shortcut-popup";
 import StarCount from "../star-count/star-count";
@@ -22,6 +23,7 @@ const Footer = ({ linkEditors, handleToggleLinked, className }: FooterProps) => 
 				/>
 			</div>
 			<div className="flex">
+				<DocsButton className="h-full px-4" />
 				<StarCount className="h-full px-4" />
 				<WebAssemblyBadge className="h-full px-4" />
 			</div>
