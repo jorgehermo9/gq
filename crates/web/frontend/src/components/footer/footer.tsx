@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
+import { DocsButton } from "../docs-button/docs-button";
 import { LinkEditor } from "../link-editor/link-editor";
 import ShortcutPopup from "../shortcut-popup/shortcut-popup";
 import StarCount from "../star-count/star-count";
 import { WebAssemblyBadge } from "../web-assembly-badge/web-assembly-badge";
-import { DocsButton } from "../docs-button/docs-button";
 
 interface FooterProps {
 	linkEditors: boolean;

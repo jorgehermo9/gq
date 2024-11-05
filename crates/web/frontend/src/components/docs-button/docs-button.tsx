@@ -1,6 +1,6 @@
-import { Book, BookOpen } from "lucide-react";
-import ActionButton from "../action-button/action-button";
+import { BookOpen } from "lucide-react";
 import { type MouseEvent, useCallback } from "react";
+import ActionButton from "../action-button/action-button";
 
 interface Props {
 	className?: string;

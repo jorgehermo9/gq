@@ -2,7 +2,7 @@ import { useOnboarding } from "@/hooks/use-onboarding";
 import { cn, isMac } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
-import { Album, Book, BookMarked, History, Settings, Share } from "lucide-react";
+import { BookMarked, History, Settings, Share } from "lucide-react";
 import { type MutableRefObject, useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import ExamplesTab from "../examples-tab/examples-tab";
