@@ -3,10 +3,11 @@ import ExportPopover from "@/components/export-popover/export-popover";
 import ImportPopup from "@/components/import-popup/import-popup";
 import { cn } from "@/lib/utils";
 import type { Data } from "@/model/data";
-import type FileType from "@/model/file-type";
+import FileType from "@/model/file-type";
 import type { LoadingState } from "@/model/loading-state";
 import { Braces, Clipboard } from "lucide-react";
-import ApplyButton from "../apply-button/apply-button";
+import ApplyQueryButton from "../apply-query-button/apply-query-button";
+import ApplyTemplateButton from "../apply-template-button/apply-template-button";
 
 interface Props {
 	currentType: FileType;
@@ -66,7 +67,11 @@ const EditorMenu = ({
 				onExportFile={onExportFile}
 				className={cn(onApply && "border-r")}
 			/>
-			<ApplyButton onClick={onApply} />
+			{currentType === FileType.GQ ? (
+				<ApplyQueryButton onClick={onApply} />
+			) : (
+				<ApplyTemplateButton onClick={onApply} />
+			)}
 		</div>
 	);
 };

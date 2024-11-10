@@ -2,6 +2,8 @@ enum FileType {
 	JSON = "json",
 	GQ = "gq",
 	YAML = "yaml",
+	JINJA = "jinja",
+	UNKNOWN = "render",
 }
 
 export const getFileExtensions = (fileType: FileType): string[] => {
@@ -12,6 +14,10 @@ export const getFileExtensions = (fileType: FileType): string[] => {
 			return ["gq"];
 		case FileType.YAML:
 			return ["yml", "yaml"];
+		case FileType.JINJA:
+			return ["jinja"];
+		case FileType.UNKNOWN:
+			return [];
 	}
 };
 
@@ -21,6 +27,9 @@ export const fromMimeType = (mime: string): FileType => {
 	}
 	if (mime.startsWith("application/yaml")) {
 		return FileType.YAML;
+	}
+	if (mime.startsWith("application/jinja")) {
+		return FileType.JINJA;
 	}
 	if (mime === "") {
 		return FileType.GQ;

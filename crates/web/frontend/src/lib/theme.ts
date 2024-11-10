@@ -25,7 +25,6 @@ export function gqThemeInit(options?: Partial<CreateThemeOptions>) {
 		styles: [
 			{
 				tag: [
-					t.keyword,
 					t.operatorKeyword,
 					t.modifier,
 					t.color,
@@ -38,6 +37,10 @@ export function gqThemeInit(options?: Partial<CreateThemeOptions>) {
 					t.special(t.variableName),
 				],
 				color: "var(--foreground)",
+			},
+			{
+				tag: [t.keyword],
+				color: "var(--success)",
 			},
 			{
 				tag: [t.controlKeyword, t.moduleKeyword],
@@ -92,7 +95,8 @@ export function gqThemeInit(options?: Partial<CreateThemeOptions>) {
 			{ tag: t.strong, fontWeight: "bold" },
 			{ tag: t.emphasis, fontStyle: "italic" },
 			{ tag: t.strikethrough, textDecoration: "line-through" },
-			{ tag: [t.meta, t.comment], color: "var(--foreground)" },
+			{ tag: [t.meta], color: "var(--foreground)" },
+			{ tag: [t.comment], color: "var(--accent-subtle)" },
 			{ tag: t.link, color: "var(--foreground)", textDecoration: "underline" },
 			{ tag: t.invalid, color: "var(--foreground)" },
 			{ tag: t.punctuation, color: "var(--code-primary)" },

@@ -66,9 +66,11 @@ const ExportPopover = ({ defaultFilename, fileType, onExportFile, className }: P
 							value={fileName}
 							onChange={(e) => setFileName(e.target.value)}
 						/>
-						<span className="py-2 px-4 h-10 text-sm bg-accent-background">
-							.{getFileExtensions(fileType)[0]}
-						</span>
+						{getFileExtensions(fileType).length > 0 && (
+							<span className="py-2 px-4 h-10 text-sm bg-accent-background">
+								.{getFileExtensions(fileType)[0]}
+							</span>
+						)}
 					</div>
 					<Button className="px-6 w-full border-0" variant="outline" type="submit">
 						Export

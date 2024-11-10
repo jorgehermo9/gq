@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Fira_Mono, Montserrat } from "next/font/google";
 import { useEffect } from "react";
 import "./globals.css";
-import { deleteDatabase } from "@/services/queries/query-service";
+import { deleteDatabase } from "@/services/history/history-service";
 
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-sans" });
 const firaCode = Fira_Mono({

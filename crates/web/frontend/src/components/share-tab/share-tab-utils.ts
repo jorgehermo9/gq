@@ -2,7 +2,7 @@ import { notify } from "@/lib/notify";
 import { ShareTooLargeError } from "@/model/errors/share-input-too-large-error";
 import { type ExpirationTime, toSeconds } from "@/model/expiration-time";
 import type FileType from "@/model/file-type";
-import { createShare } from "@/services/shares/share-service";
+import { createShare } from "@/services/share/share-service";
 
 export const createShareLink = async (
 	inputContent: string,

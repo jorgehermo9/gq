@@ -17,8 +17,16 @@ const globalShortcuts = (isMac: boolean) => [
 		shortcut: `${isMac ? "⌘" : "Ctrl"} + Enter`,
 	},
 	{
+		description: "Apply the current template",
+		shortcut: `${isMac ? "⌘" : "Ctrl"} + Alt + Enter`,
+	},
+	{
 		description: "Toggle the left sidebar",
 		shortcut: `${isMac ? "⌘" : "Ctrl"} + B`,
+	},
+	{
+		description: "Toggle template editors",
+		shortcut: `${isMac ? "⌘" : "Ctrl"} + M`,
 	},
 ];
 

@@ -13,11 +13,13 @@ import { yaml } from "@codemirror/lang-yaml";
 import {
 	LRLanguage,
 	LanguageSupport,
+	StreamLanguage,
 	continuedIndent,
 	foldInside,
 	foldNodeProp,
 	indentNodeProp,
 } from "@codemirror/language";
+import { jinja2 } from "@codemirror/legacy-modes/mode/jinja2";
 import { parser } from "@lezer/json";
 import { EditorView, type Extension, Prec, keymap } from "@uiw/react-codemirror";
 import type PromiseWorker from "webworker-promise";
@@ -29,7 +31,7 @@ export const exportFile = (data: Data, filename: string) => {
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;
-	a.download = `${filename}.${data.type}`;
+	a.download = `${filename}${data.type === FileType.UNKNOWN ? "" : data.type}`;
 	a.click();
 	URL.revokeObjectURL(url);
 	notify.success("File exported successfully!");
@@ -92,9 +94,12 @@ const gqLanguageParser = LRLanguage.define({
 const jsonLanguage = json();
 const gqLanguage = new LanguageSupport(gqLanguageParser);
 const yamlLanguage = yaml();
+const jinjaLanguage = StreamLanguage.define(jinja2);
 const modKey = isMac ? "Cmd" : "Ctrl";
 
-const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport => {
+const getCodemirrorLanguageByFileType = (
+	fileType: FileType,
+): LanguageSupport | StreamLanguage<unknown> | undefined => {
 	switch (fileType) {
 		case FileType.JSON:
 			return jsonLanguage;
@@ -102,8 +107,10 @@ const getCodemirrorLanguageByFileType = (fileType: FileType): LanguageSupport =>
 			return gqLanguage;
 		case FileType.YAML:
 			return yamlLanguage;
+		case FileType.JINJA:
+			return jinjaLanguage;
 		default:
-			throw new Error("Invalid file type");
+			return undefined;
 	}
 };
 
@@ -120,6 +127,9 @@ export const getCodemirrorExtensionsByFileType = (
 	completionSource?: CompletionSource,
 ): Extension[] => {
 	const language = getCodemirrorLanguageByFileType(fileType);
+	if (!language) {
+		return [];
+	}
 	switch (fileType) {
 		case FileType.JSON:
 		case FileType.YAML:
@@ -128,6 +138,12 @@ export const getCodemirrorExtensionsByFileType = (
 				urlPlugin,
 				Prec.highest(keymap.of([{ key: `${modKey}-Enter`, run: () => true }])),
 				getDragAndDropExtension([FileType.JSON, FileType.YAML]),
+			];
+		case FileType.JINJA:
+			return [
+				language,
+				Prec.highest(keymap.of([{ key: `${modKey}-Enter`, run: () => true }])),
+				getDragAndDropExtension([FileType.JINJA]),
 			];
 		case FileType.GQ:
 			return [
@@ -148,6 +164,6 @@ export const getCodemirrorExtensionsByFileType = (
 				getDragAndDropExtension([FileType.GQ]),
 			];
 		default:
-			throw new Error("Invalid file type");
+			return [];
 	}
 };

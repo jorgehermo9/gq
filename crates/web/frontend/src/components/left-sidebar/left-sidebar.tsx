@@ -19,7 +19,9 @@ interface Props {
 	className?: string;
 	onClickExample: (json: Data, query: Data) => void;
 	onClickQuery: (queryContent: string) => void;
+	onClickTemplate: (templateContent: string) => void;
 	addNewQueryCallback: MutableRefObject<(queryContent: string) => void>;
+	addNewTemplateCallback: MutableRefObject<(templateContent: string) => void>;
 	inputContent: MutableRefObject<string>;
 	inputType: MutableRefObject<FileType>;
 	queryContent: MutableRefObject<string>;
@@ -33,7 +35,9 @@ export const LeftSidebar = ({
 	setOpen,
 	onClickExample,
 	onClickQuery,
+	onClickTemplate,
 	addNewQueryCallback,
+	addNewTemplateCallback,
 	inputContent,
 	inputType,
 	queryContent,
@@ -159,7 +163,9 @@ export const LeftSidebar = ({
 					<HistoryTab
 						className={cn(selectedTab === "history" ? "block" : "hidden")}
 						onClickQuery={onClickQuery}
+						onClickTemplate={onClickTemplate}
 						addNewQueryCallback={addNewQueryCallback}
+						addNewTemplateCallback={addNewTemplateCallback}
 					/>
 					<ExamplesTab
 						className={cn(selectedTab === "examples" ? "block" : "hidden")}
