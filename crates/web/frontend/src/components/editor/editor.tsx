@@ -90,11 +90,11 @@ const Editor = ({
 	const available = content.length < MAX_RENDER_SIZE;
 
 	const handleFormatCode = useCallback(
-		async (cont: string, type: FileType) => {
-			if (!formatWorker || loadingState.isLoading || cont === "") return;
+		async (content: string, type: FileType) => {
+			if (!formatWorker || !editable || loadingState.isLoading || content === "") return;
 			setLoadingState(loading("Formatting code..."));
 			try {
-				const data = new Data(cont, type);
+				const data = new Data(content, type);
 				const result = await formatCode(data, indentSize, formatWorker);
 				setEditorErrorMessage(undefined);
 				setContent(result.content);
@@ -104,7 +104,7 @@ const Editor = ({
 				setLoadingState(notLoading);
 			}
 		},
-		[indentSize, formatWorker, loadingState, setContent],
+		[indentSize, formatWorker, loadingState, setContent, editable],
 	);
 
 	const handleImportFile = useCallback(

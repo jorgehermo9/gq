@@ -1,11 +1,11 @@
-import type { UserQuery } from "@/model/user-query";
+import type { HistoryItem } from "@/model/history-item";
 
-type GroupedQueries = {
-	[key: string]: UserQuery[];
+type GroupedItems = {
+	[key: string]: HistoryItem[];
 };
 
-export const groupQueries = (queries: UserQuery[]): GroupedQueries => {
-	const groupedQueries: GroupedQueries = {};
+export const groupItems = (items: HistoryItem[]): GroupedItems => {
+	const groupedItems: GroupedItems = {};
 	const now = Date.now();
 	const buckets = [
 		{
@@ -71,17 +71,17 @@ export const groupQueries = (queries: UserQuery[]): GroupedQueries => {
 	});
 
 	let currentStep = 0;
-	for (const query of queries) {
-		while (query.timestamp < stepsTimestamps[currentStep].timestamp) {
+	for (const item of items) {
+		while (item.timestamp < stepsTimestamps[currentStep].timestamp) {
 			currentStep++;
 		}
 		const step = stepsTimestamps[currentStep];
 		const stepKey = step.label;
-		if (!groupedQueries[stepKey]) {
-			groupedQueries[stepKey] = [];
+		if (!groupedItems[stepKey]) {
+			groupedItems[stepKey] = [];
 		}
-		groupedQueries[stepKey].push(query);
+		groupedItems[stepKey].push(item);
 	}
 
-	return groupedQueries;
+	return groupedItems;
 };

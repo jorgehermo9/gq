@@ -33,7 +33,7 @@ const ShortcutPopup = ({ className }: Props) => {
 					<Keyboard className="w-3.5 h-3.5" />
 				</ActionButton>
 			</DialogTrigger>
-			<DialogContent className="w-[34rem] max-w-[80vw] max-h-[80vh] overflow-y-auto gap-0 pb-6">
+			<DialogContent className="w-[38rem] max-w-[80vw] max-h-[80vh] overflow-y-auto gap-0 pb-6">
 				<X
 					className="absolute top-4 right-4 h-4 w-4 cursor-pointer"
 					onClick={() => setOpen(false)}

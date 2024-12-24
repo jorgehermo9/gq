@@ -9,7 +9,7 @@ interface Props {
 	className?: string;
 }
 
-const ApplyButton = ({ className, onClick }: Props) => {
+const ApplyTemplateButton = ({ className, onClick }: Props) => {
 	if (!onClick) return null;
 
 	const {
@@ -20,7 +20,7 @@ const ApplyButton = ({ className, onClick }: Props) => {
 
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
-			if ((isMac ? e.metaKey : e.ctrlKey) && e.key === "Enter") {
+			if ((isMac ? e.metaKey : e.ctrlKey) && e.altKey && e.key === "Enter") {
 				e.preventDefault();
 				onClick();
 			}
@@ -37,7 +37,7 @@ const ApplyButton = ({ className, onClick }: Props) => {
 		<ActionButton
 			disabled
 			className={cn("h-full px-4 border-0", className)}
-			description="Auto applying the query. You can disable this feature in the settings."
+			description="Auto applying the template. You can disable this feature in the settings."
 		>
 			<CirclePlay className="w-4 h-4" />
 		</ActionButton>
@@ -45,10 +45,10 @@ const ApplyButton = ({ className, onClick }: Props) => {
 		<ActionButton
 			className={cn("h-full px-4 border-0", className)}
 			onClick={onClick}
-			description="Apply GQ query"
+			description="Apply template"
 		>
 			<Play className="w-4 h-4 text-accent" />
 		</ActionButton>
 	);
 };
-export default ApplyButton;
+export default ApplyTemplateButton;

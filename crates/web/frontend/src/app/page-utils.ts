@@ -2,8 +2,9 @@ import { notify } from "@/lib/notify";
 import type { Completion } from "@/model/completion";
 import { Data } from "@/model/data";
 import FileType from "@/model/file-type";
-import { getShare } from "@/services/shares/share-service";
+import { getShare } from "@/services/share/share-service";
 import type { CompletionContext, CompletionSource } from "@codemirror/autocomplete";
+import nunjucks from "nunjucks";
 import type PromiseWorker from "webworker-promise";
 
 export const applyGq = async (
@@ -21,6 +22,18 @@ export const applyGq = async (
 		indent: indent,
 	});
 	!silent && notify.success(`Query applied to ${inputData.type.toUpperCase()}`);
+	return result;
+};
+
+export const applyTemplate = async (
+	inputContent: string,
+	inputType: FileType,
+	jinjaContent: string,
+	silent = true,
+): Promise<string> => {
+	const input = { data: JSON.parse(inputContent) };
+	const result = nunjucks.renderString(jinjaContent, input);
+	!silent && notify.success(`Template applied to ${inputType.toUpperCase()}`);
 	return result;
 };
 
