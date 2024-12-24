@@ -1,9 +1,5 @@
-import {
-	MAX_HISTORY_QUERY_SIZE,
-	MAX_QUERY_HISTORY_SIZE,
-	MAX_TEMPLATE_HISTORY_SIZE,
-} from "@/lib/constants";
-import { HistoryItem } from "@/model/history-item";
+import { MAX_QUERY_HISTORY_SIZE, MAX_TEMPLATE_HISTORY_SIZE } from "@/lib/constants";
+import type { HistoryItem } from "@/model/history-item";
 import { type IDBPDatabase, deleteDB, openDB } from "idb";
 
 const DB_NAME = "gq";

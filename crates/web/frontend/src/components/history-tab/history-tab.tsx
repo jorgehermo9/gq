@@ -11,17 +11,16 @@ import {
 	getPaginatedTemplates,
 } from "@/services/history/history-service";
 import { TabsContent } from "@radix-ui/react-tabs";
-import { AnimatePresence, motion } from "framer-motion";
-import { Code, Redo, Search, SquareDashed, Trash, X } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { Code, Search, SquareDashed, X } from "lucide-react";
 import { type MutableRefObject, useCallback, useEffect, useState } from "react";
-import ActionButton from "../action-button/action-button";
+import { DumpBlock } from "../dump-block/dump-block";
 import SimpleEditor from "../editor/simple-editor";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { SidebarContent, SidebarDescription, SidebarHeader, SidebarTitle } from "../ui/sidebar";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { groupItems } from "./history-tab-utils";
-import { DumpBlock } from "../dump-block/dump-block";
 
 interface HistoryTabContentProps {
 	value: string;

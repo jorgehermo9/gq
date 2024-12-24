@@ -18,7 +18,6 @@ import { useSearchParams } from "next/navigation";
 import { type MutableRefObject, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type PromiseWorker from "webworker-promise";
 import { applyGq, applyTemplate, getQueryCompletionSource, importShare } from "./page-utils";
-import { set } from "zod";
 
 const ShareLoader = ({
 	updateInputEditorCallback,
@@ -100,7 +99,6 @@ const Home = () => {
 	const debounce = useDebounce();
 	const { gqWorker, lspWorker } = useWorker();
 
-
 	const updateTemplateOutput = useCallback(
 		async (inputContent: string, inputType: FileType, jinjaContent: string, silent = true) => {
 			if (!gqWorker || isApplying) return;
@@ -125,7 +123,12 @@ const Home = () => {
 		(content: string) => {
 			autoApply &&
 				debounce(debounceTime, () =>
-					updateTemplateOutput(outputContent.current, outputType.current, content, debounceTime < 500),
+					updateTemplateOutput(
+						outputContent.current,
+						outputType.current,
+						content,
+						debounceTime < 500,
+					),
 				);
 		},
 		[autoApply, debounce, updateTemplateOutput, debounceTime],

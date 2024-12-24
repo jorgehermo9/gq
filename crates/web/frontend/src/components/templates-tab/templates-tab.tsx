@@ -1,13 +1,13 @@
-import { gqTheme, gqThemeInit } from "@/lib/theme";
+import { gqThemeInit } from "@/lib/theme";
+import { countLines } from "@/lib/utils";
+import FileType from "@/model/file-type";
+import CodeMirror, { type Extension } from "@uiw/react-codemirror";
+import { Dot, Info } from "lucide-react";
+import { useMemo } from "react";
+import { DumpBlock } from "../dump-block/dump-block";
+import { getCodemirrorExtensionsByFileType } from "../editor/editor-utils";
 import { SidebarContent, SidebarDescription, SidebarHeader, SidebarTitle } from "../ui/sidebar";
 import { templates } from "./templates";
-import CodeMirror, { type Extension } from "@uiw/react-codemirror";
-import { useMemo } from "react";
-import { getCodemirrorExtensionsByFileType } from "../editor/editor-utils";
-import FileType from "@/model/file-type";
-import { CircleDot, Dot, Info } from "lucide-react";
-import { DumpBlock } from "../dump-block/dump-block";
-import { countLines } from "@/lib/utils";
 
 interface Props {
 	onClickTemplate: (templateContent: string) => void;

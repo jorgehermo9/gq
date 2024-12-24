@@ -9,8 +9,8 @@ import ExamplesTab from "../examples-tab/examples-tab";
 import HistoryTab from "../history-tab/history-tab";
 import SettingsTab from "../settings-tab/settings-tab";
 import ShareTab from "../share-tab/share-tab";
-import ThemeButton from "../theme-button/theme-button";
 import { TemplatesTab } from "../templates-tab/templates-tab";
+import ThemeButton from "../theme-button/theme-button";
 
 type Tab = "examples" | "share" | "history" | "templates" | "settings";
 
