@@ -106,3 +106,7 @@ h4 {
 p {
 	@apply text-xs;
 }
+
+.cm-editor {
+	outline: none !important;
+}

@@ -64,6 +64,7 @@ const ShareLoader = ({
 
 const Home = () => {
 	const [errorMessage, setErrorMessage] = useState<string>();
+	const [templateErrorMessage, setTemplateErrorMessage] = useState<string>();
 	const [warningMessages, setWarningMessages] = useState<string[]>([]);
 	const inputContent = useRef<string>("");
 	const queryContent = useRef<string>("");
@@ -99,6 +100,37 @@ const Home = () => {
 	const debounce = useDebounce();
 	const { gqWorker, lspWorker } = useWorker();
 
+
+	const updateTemplateOutput = useCallback(
+		async (inputContent: string, inputType: FileType, jinjaContent: string, silent = true) => {
+			if (!gqWorker || isApplying) return;
+			setIsTemplateApplying(true);
+			renderEditorLoadingCallback.current(loading("Applying template..."));
+			try {
+				const result = await applyTemplate(inputContent, inputType, jinjaContent, silent);
+				addNewTemplateCallback.current(jinjaContent);
+				updateRenderEditorCallback.current(new Data(result, FileType.UNKNOWN));
+				setTemplateErrorMessage(undefined);
+			} catch (err) {
+				setTemplateErrorMessage(err.message);
+			} finally {
+				setIsTemplateApplying(false);
+				renderEditorLoadingCallback.current(notLoading());
+			}
+		},
+		[gqWorker, isApplying],
+	);
+
+	const handleChangeTemplateContent = useCallback(
+		(content: string) => {
+			autoApply &&
+				debounce(debounceTime, () =>
+					updateTemplateOutput(outputContent.current, outputType.current, content, debounceTime < 500),
+				);
+		},
+		[autoApply, debounce, updateTemplateOutput, debounceTime],
+	);
+
 	const updateOutputData = useCallback(
 		async (
 			inputContent: string,
@@ -125,6 +157,7 @@ const Home = () => {
 				addNewQueryCallback.current(queryContent);
 				setErrorMessage(undefined);
 				updateOutputEditorCallback.current(result);
+				handleChangeTemplateContent(jinjaContent.current);
 			} catch (err) {
 				setErrorMessage(err.message);
 				setWarningMessages([]);
@@ -133,27 +166,7 @@ const Home = () => {
 				outputEditorLoadingCallback.current(notLoading());
 			}
 		},
-		[gqWorker, dataTabSize, isApplying],
-	);
-
-	const updateTemplateOutput = useCallback(
-		async (inputContent: string, inputType: FileType, jinjaContent: string, silent = true) => {
-			if (!gqWorker || isApplying) return;
-			setIsTemplateApplying(true);
-			renderEditorLoadingCallback.current(loading("Applying template..."));
-			try {
-				const result = await applyTemplate(inputContent, inputType, jinjaContent, silent);
-				addNewTemplateCallback.current(jinjaContent);
-				updateRenderEditorCallback.current(new Data(result, FileType.UNKNOWN));
-			} catch (err) {
-				// setErrorMessage(err.message);
-				// setWarningMessages([]);
-			} finally {
-				setIsTemplateApplying(false);
-				renderEditorLoadingCallback.current(notLoading());
-			}
-		},
-		[gqWorker, isApplying],
+		[gqWorker, dataTabSize, isApplying, handleChangeTemplateContent],
 	);
 
 	const handleClickExample = useCallback(
@@ -171,6 +184,7 @@ const Home = () => {
 	}, []);
 
 	const handleClickHistoryTemplate = useCallback((templateContent: string) => {
+		setTemplateOpen(true);
 		updateJinjaEditorCallback.current(new Data(templateContent, FileType.JINJA));
 	}, []);
 
@@ -335,6 +349,7 @@ const Home = () => {
 								title="Input"
 								defaultFileName="template"
 								fileTypes={[FileType.JINJA]}
+								onChangeContent={handleChangeTemplateContent}
 								onApply={() =>
 									updateTemplateOutput(
 										outputContent.current,
@@ -355,6 +370,8 @@ const Home = () => {
 								defaultFileName="output"
 								fileTypes={[FileType.UNKNOWN]}
 								updateCallback={updateRenderEditorCallback}
+								errorMessage={templateErrorMessage}
+								onDismissError={() => setTemplateErrorMessage(undefined)}
 							/>
 						</div>
 					</aside>

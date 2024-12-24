@@ -2,7 +2,7 @@ import { useOnboarding } from "@/hooks/use-onboarding";
 import { cn, isMac } from "@/lib/utils";
 import type { Data } from "@/model/data";
 import type FileType from "@/model/file-type";
-import { BookMarked, History, Settings, Share } from "lucide-react";
+import { BookMarked, History, Settings, Share, SquareDashed } from "lucide-react";
 import { type MutableRefObject, useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import ExamplesTab from "../examples-tab/examples-tab";
@@ -10,8 +10,9 @@ import HistoryTab from "../history-tab/history-tab";
 import SettingsTab from "../settings-tab/settings-tab";
 import ShareTab from "../share-tab/share-tab";
 import ThemeButton from "../theme-button/theme-button";
+import { TemplatesTab } from "../templates-tab/templates-tab";
 
-type Tab = "examples" | "share" | "history" | "settings";
+type Tab = "examples" | "share" | "history" | "templates" | "settings";
 
 interface Props {
 	open: boolean;
@@ -126,6 +127,24 @@ export const LeftSidebar = ({
 							)}
 						/>
 					</ActionButton>
+					<ActionButton
+						className={cn(
+							"w-full h-12",
+							selectedTab === "templates" && "bg-muted",
+							isOnboardingVisible && "border-y border-accent",
+						)}
+						side="right"
+						description="Show default templates"
+						variant="subtle"
+						onClick={() => handleClick("templates")}
+					>
+						<SquareDashed
+							className={cn(
+								"w-4 h-4 transition-opacity",
+								selectedTab !== "templates" && "opacity-80",
+							)}
+						/>
+					</ActionButton>
 
 					<OnboardingComponent className="absolute left-full top-24 -translate-y-1/4 z-20 w-80" />
 				</div>
@@ -170,6 +189,10 @@ export const LeftSidebar = ({
 					<ExamplesTab
 						className={cn(selectedTab === "examples" ? "block" : "hidden")}
 						onClickExample={onClickExample}
+					/>
+					<TemplatesTab
+						className={cn(selectedTab === "templates" ? "block" : "hidden")}
+						onClickTemplate={onClickTemplate}
 					/>
 					<SettingsTab className={cn(selectedTab === "settings" ? "block" : "hidden")} />
 				</div>

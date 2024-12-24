@@ -31,10 +31,7 @@ export const applyTemplate = async (
 	jinjaContent: string,
 	silent = true,
 ): Promise<string> => {
-	let input = JSON.parse(inputContent);
-	if (inputContent.startsWith("[")) {
-		input = { data: input };
-	}
+	const input = { data: JSON.parse(inputContent) };
 	const result = nunjucks.renderString(jinjaContent, input);
 	!silent && notify.success(`Template applied to ${inputType.toUpperCase()}`);
 	return result;

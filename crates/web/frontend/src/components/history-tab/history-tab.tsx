@@ -12,7 +12,7 @@ import {
 } from "@/services/history/history-service";
 import { TabsContent } from "@radix-ui/react-tabs";
 import { AnimatePresence, motion } from "framer-motion";
-import { Redo, Search, Trash, X } from "lucide-react";
+import { Code, Redo, Search, SquareDashed, Trash, X } from "lucide-react";
 import { type MutableRefObject, useCallback, useEffect, useState } from "react";
 import ActionButton from "../action-button/action-button";
 import SimpleEditor from "../editor/simple-editor";
@@ -21,6 +21,7 @@ import { Input } from "../ui/input";
 import { SidebarContent, SidebarDescription, SidebarHeader, SidebarTitle } from "../ui/sidebar";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { groupItems } from "./history-tab-utils";
+import { DumpBlock } from "../dump-block/dump-block";
 
 interface HistoryTabContentProps {
 	value: string;
@@ -44,7 +45,7 @@ const HistoryTabContent = ({
 			{items.length === 0 ? (
 				<div className="w-full mt-8 flex gap-2 items-center justify-center">
 					<Search className="w-3 h-3" />
-					<span className="text-xs">There is nothing here yet!</span>
+					<span className="text-xs">There is nothing here</span>
 				</div>
 			) : (
 				Object.entries(groupItems(items)).map((entry) => (
@@ -54,51 +55,20 @@ const HistoryTabContent = ({
 						</div>
 						<AnimatePresence mode="sync">
 							{entry[1].map((item) => (
-								<motion.div
-									// initial={{ left: "100%" }}
-									// animate={{ left: 0, transition: { ease: "easeOut", duration: 0.25 } }}
-									// exit={{ left: "110%", transition: { ease: "easeOut", duration: 0.25 } }}
+								<DumpBlock
 									key={item.timestamp}
-									className="relative border-b flex justify-between group"
+									className="border-b"
+									lines={countLines(item.content)}
+									onDump={() => onClickItem(item.content)}
+									onDelete={() => onDeleteItem(item.id)}
+									onDumpMessage="Query dumped into the editor"
+									onDeleteMessage="Query deleted from history"
 								>
 									<SimpleEditor
 										className="px-2 py-4 max-h-40 bg-background w-full text-nowrap"
 										content={item.content}
 									/>
-									<div
-										className={cn(
-											"max-w-0 transition-all",
-											countLines(item.content) > 2
-												? "group-hover:max-w-10"
-												: "group-hover:max-w-20 flex",
-										)}
-									>
-										<ActionButton
-											side={countLines(item.content) > 2 ? "right" : "bottom"}
-											containerClassName={cn(
-												"min-h-10 flex items-center justify-center border-l",
-												countLines(item.content) > 2 ? "h-1/2 border-b" : "h-full",
-											)}
-											className="h-full w-10 border-0"
-											description="Dump query into the editor"
-											onClick={() => onClickItem(item.content)}
-										>
-											<Redo className="w-3 h-3" />
-										</ActionButton>
-										<ActionButton
-											side={countLines(item.content) > 2 ? "right" : "bottom"}
-											containerClassName={cn(
-												"min-h-10 flex items-center justify-center border-l",
-												countLines(item.content) > 2 ? "h-1/2" : "h-full",
-											)}
-											className="h-full w-10 border-0"
-											description="Delete from history"
-											onClick={() => onDeleteItem(item.id)}
-										>
-											<Trash className="w-3 h-3" />
-										</ActionButton>
-									</div>
-								</motion.div>
+								</DumpBlock>
 							))}
 						</AnimatePresence>
 					</div>
@@ -258,17 +228,20 @@ const HistoryTab = ({
 				<TabsList className="flex">
 					<TabsTrigger
 						value="queries"
-						className="w-1/2 text-xs font-semibold py-4"
+						className="flex gap-2 items-center justify-center w-1/2 py-4"
 						variant="outline"
 					>
-						Queries
+						<Code className="w-3.5 h-3.5" />
+						<span className="text-xs">Queries</span>
 					</TabsTrigger>
+
 					<TabsTrigger
 						value="templates"
-						className="w-1/2 text-xs font-semibold py-4"
+						className="flex gap-2 items-center justify-center w-1/2 py-4"
 						variant="outline"
 					>
-						Templates
+						<SquareDashed className="w-3.5 h-3.5" />
+						<span className="text-xs">Templates</span>
 					</TabsTrigger>
 				</TabsList>
 				<HistoryTabContent
