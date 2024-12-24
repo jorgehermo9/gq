@@ -1,4 +1,8 @@
-import { MAX_HISTORY_QUERY_SIZE, MAX_QUERY_HISTORY_SIZE } from "@/lib/constants";
+import {
+	MAX_HISTORY_QUERY_SIZE,
+	MAX_QUERY_HISTORY_SIZE,
+	MAX_TEMPLATE_HISTORY_SIZE,
+} from "@/lib/constants";
 import { HistoryItem } from "@/model/history-item";
 import { type IDBPDatabase, deleteDB, openDB } from "idb";
 
@@ -38,7 +42,7 @@ export const addQuery = async (
 export const addTemplate = async (
 	content: string,
 ): Promise<[HistoryItem | undefined, HistoryItem | undefined]> => {
-	return addItem(TEMPLATES_STORE_NAME, MAX_HISTORY_QUERY_SIZE, content);
+	return addItem(TEMPLATES_STORE_NAME, MAX_TEMPLATE_HISTORY_SIZE, content);
 };
 
 export const getPaginatedQueries = async (
