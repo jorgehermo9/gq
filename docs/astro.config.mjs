@@ -16,7 +16,7 @@ export default defineConfig({
         github: "https://github.com/jorgehermo9/gq",
       },
       editLink: {
-        baseUrl: "https://github.com/jorgehermo9/gq/tree/feature/docs/docs",
+        baseUrl: "https://github.com/jorgehermo9/gq/edit/main/docs",
       },
       customCss: ["./src/styles/custom.css"],
       sidebar: [
