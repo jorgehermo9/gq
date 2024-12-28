@@ -10,17 +10,17 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.2",
-    "@astrojs/starlight": "^0.25.5",
-    "@astrojs/starlight-tailwind": "^2.0.3",
-    "@astrojs/tailwind": "^5.1.0",
-    "@expressive-code/plugin-line-numbers": "^0.35.6",
-    "astro": "^4.10.2",
-    "sharp": "^0.32.5",
-    "tailwindcss": "^3.4.10",
-    "typescript": "^5.5.4"
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/starlight": "^0.30.3",
+    "@astrojs/starlight-tailwind": "^3.0.0",
+    "@astrojs/tailwind": "^5.1.4",
+    "@expressive-code/plugin-line-numbers": "^0.38.3",
+    "astro": "^5.1.1",
+    "sharp": "^0.33.5",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.8.3"
+    "@biomejs/biome": "1.9.4"
   }
 }
